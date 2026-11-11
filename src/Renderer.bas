@@ -25,6 +25,7 @@ Private mWs As Worksheet
 Private mBack() As Long
 Private mFront() As Long
 Private mBg() As Long
+Private mBgDark() As Long
 Private mPaintCalls As Long
 Private mRuns As Long
 Private mColName(0 To SCREEN_W - 1) As String
@@ -52,7 +53,13 @@ Public Sub Init()
     ReDim mBack(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
     ReDim mFront(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
     ReDim mBg(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
+    ReDim mBgDark(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
     BuildBackground
+    For y = 0 To SCREEN_H - 1
+        For x = 0 To SCREEN_W - 1
+            mBgDark(x, y) = Darken(mBg(x, y))
+        Next x
+    Next y
     For y = 0 To SCREEN_H - 1
         For x = 0 To SCREEN_W - 1
             mFront(x, y) = -1     ' force full paint on first frame
@@ -72,14 +79,31 @@ Public Function BackPixel(ByVal x As Long, ByVal y As Long) As Long
     BackPixel = mBack(x, y)
 End Function
 
-Public Sub BeginFrame()
+' dark = True draws the dimmed stage (super freeze, menu).
+Public Sub BeginFrame(Optional ByVal dark As Boolean = False)
     Dim x As Long, y As Long
-    For y = 0 To SCREEN_H - 1
-        For x = 0 To SCREEN_W - 1
-            mBack(x, y) = mBg(x, y)
-        Next x
-    Next y
+    If dark Then
+        For y = 0 To SCREEN_H - 1
+            For x = 0 To SCREEN_W - 1
+                mBack(x, y) = mBgDark(x, y)
+            Next x
+        Next y
+    Else
+        For y = 0 To SCREEN_H - 1
+            For x = 0 To SCREEN_W - 1
+                mBack(x, y) = mBg(x, y)
+            Next x
+        Next y
+    End If
 End Sub
+
+Private Function Darken(ByVal c As Long) As Long
+    Dim r As Long, g As Long, b As Long
+    r = c And &HFF&
+    g = (c \ &H100&) And &HFF&
+    b = (c \ &H10000) And &HFF&
+    Darken = RGB(r * 0.3, g * 0.3, b * 0.3 + 20)
+End Function
 
 Public Sub PutPixel(ByVal x As Long, ByVal y As Long, ByVal color As Long)
     If x >= 0 And x < SCREEN_W And y >= 0 And y < SCREEN_H Then mBack(x, y) = color

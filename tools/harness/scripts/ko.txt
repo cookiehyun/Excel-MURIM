@@ -1,3 +1,5 @@
+CMD start 0 1 0 1
+CMD dummy 1
 CMD place 50 66
 2 -
 8 R

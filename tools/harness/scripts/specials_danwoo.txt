@@ -1,0 +1,23 @@
+CMD start 0 1 0 1
+CMD dummy 1
+CMD place 30 90
+3 -
+# QCF + A (fireball): down, down-forward, forward+A
+1 D
+1 D+R
+1 R+A
+40 -
+# DP: forward, down, down-forward + A (rising palm), Cheolsan jumping in
+CMD place 50 66
+1 R
+1 D
+1 D+R+A
+30 -
+# super: meter full, down forward down forward + S
+CMD meter 0 1000
+CMD place 30 80
+1 D
+1 R
+1 D
+1 R+S
+60 -

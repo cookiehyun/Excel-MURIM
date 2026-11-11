@@ -39,6 +39,16 @@ Public MvKind() As Long, MvStartup() As Long, MvActive() As Long, MvRecovery() A
 Public MvDamage() As Long, MvHitstun() As Long, MvBlockstun() As Long, MvLevel() As Long, MvKD() As Boolean
 Public MvHbX() As Long, MvHbY() As Long, MvHbW() As Long, MvHbH() As Long
 Public MvSprS() As Long, MvSprA() As Long
+Public MvType() As Long, MvP1() As Double, MvP2() As Double, MvCmd() As String
+
+Public Const MT_NORMAL As Long = 0
+Public Const MT_THROW As Long = 1
+Public Const MT_PROJ As Long = 2
+Public Const MT_RISE As Long = 3
+Public Const MT_RUSH As Long = 4
+Public Const MT_GRAB As Long = 5
+Public Const MT_SUPER_PROJ As Long = 6
+Public Const MT_SUPER_GRAB As Long = 7
 
 Private mSprIdx As Collection
 Private mAnimIdx As Collection
@@ -58,6 +68,7 @@ Public Sub LoadAll()
 
     LoadSpriteFile "danwoo"
     LoadSpriteFile "cheolsan"
+    LoadSpriteFile "fx"
     LoadStageFile "stage_sanmun"
     LoadMoves
     ResolveAnimFrames
@@ -225,6 +236,7 @@ Private Sub LoadMoves()
     ReDim MvKD(0 To n)
     ReDim MvHbX(0 To n): ReDim MvHbY(0 To n): ReDim MvHbW(0 To n): ReDim MvHbH(0 To n)
     ReDim MvSprS(0 To n): ReDim MvSprA(0 To n)
+    ReDim MvType(0 To n): ReDim MvP1(0 To n): ReDim MvP2(0 To n): ReDim MvCmd(0 To n)
     Set mMoveIdx = New Collection
     MvCount = 0
 
@@ -235,7 +247,7 @@ Private Sub LoadMoves()
                 ln = Replace(ln, "  ", " ")
             Loop
             p = Split(ln, " ")
-            If UBound(p) < 16 Then Err.Raise ERR_BASE + 517, "Data", "moves.txt line " & (i + 1) & ": expected 17 columns"
+            If UBound(p) < 20 Then Err.Raise ERR_BASE + 517, "Data", "moves.txt line " & (i + 1) & ": expected 21 columns"
             id = MvCount
             Select Case p(2)
                 Case "S": MvKind(id) = MK_STAND
@@ -253,6 +265,19 @@ Private Sub LoadMoves()
             MvHbX(id) = CLng(p(11)): MvHbY(id) = CLng(p(12)): MvHbW(id) = CLng(p(13)): MvHbH(id) = CLng(p(14))
             MvSprS(id) = SpriteId(p(0) & "." & p(15))
             MvSprA(id) = SpriteId(p(0) & "." & p(16))
+            Select Case p(17)
+                Case "T": MvType(id) = MT_THROW
+                Case "P": MvType(id) = MT_PROJ
+                Case "U": MvType(id) = MT_RISE
+                Case "R": MvType(id) = MT_RUSH
+                Case "G": MvType(id) = MT_GRAB
+                Case "SP": MvType(id) = MT_SUPER_PROJ
+                Case "SG": MvType(id) = MT_SUPER_GRAB
+                Case Else: MvType(id) = MT_NORMAL
+            End Select
+            MvP1(id) = Val(p(18))
+            MvP2(id) = Val(p(19))
+            If p(20) = "-" Then MvCmd(id) = "" Else MvCmd(id) = p(20)
             mMoveIdx.Add id, p(0) & "." & p(1)
             MvCount = MvCount + 1
         End If

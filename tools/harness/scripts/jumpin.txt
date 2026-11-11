@@ -1,6 +1,7 @@
+CMD start 0 1 0 1
 # jump-in kick (overhead) into crouch guard dummy? dummy guard stands -> blocks overhead; then repeat with crouching -> hit
 CMD place 40 70
-CMD dummy 1
+CMD dummy 2
 3 -
 1 U+R
 4 R

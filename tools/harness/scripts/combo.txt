@@ -1,3 +1,5 @@
+CMD start 0 1 0 1
+CMD dummy 1
 # Danwoo LP > LP > HP chain on an idle Cheolsan
 CMD place 50 66
 5 -

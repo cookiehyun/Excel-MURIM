@@ -5,7 +5,9 @@ Option Explicit
 ' Script lines:
 '   <ticks> <keys>      keys joined with "+": L R U D A S Z X TAB H J DD F1, "-" = none
 '   CMD control <i>     which fighter the keys control
-'   CMD dummy <mode>    0 off, 1 guard, 2 attack
+'   CMD start <human> <level> <watch> <seed>   start a match (skips the menu)
+'   CMD dummy <mode>    0 CPU, 1 idle, 2 guard, 3 attack
+'   CMD meter <i> <n>   set super gauge
 '   CMD place <x0> <x1> set positions
 ' Output file: "T <tick> <paintCalls> <runs> <hitstop> | <fighter0> | <fighter1>" per tick,
 '              "F <tick>" + SCREEN_H rows of hex BGR pixels for dumped frames.
@@ -26,6 +28,15 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
             p = Split(ln, " ")
             If p(0) = "CMD" Then
                 Select Case p(1)
+                Case "start"
+                    ' CMD start <human 0/1> <level 0-2> <watch 0/1> <seed>
+                    Game.HumanIndex = CLng(p(2))
+                    Game.Level = CLng(p(3))
+                    Game.Watch = (p(4) = "1")
+                    Game.AutoRestart = True
+                    Game.StartMatch CLng(p(5))
+                Case "meter"
+                    Fighter.F(CLng(p(2))).meter = CLng(p(3))
                 Case "control": Fighter.SetControl CLng(p(2))
                 Case "dummy": Fighter.SetDummy CLng(p(2))
                 Case "place"
@@ -48,6 +59,7 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                     Game.GameRender
                     tick = tick + 1
                     Print #f, "T " & tick & " " & Renderer.PaintCalls & " " & Renderer.RunCount & " " & Combat.HitStop & _
+                              " " & Game.State & " " & Combat.ComboCount(0) & " " & Combat.ComboCount(1) & _
                               " | " & FighterLine(0) & " | " & FighterLine(1)
                     If dumpEvery > 0 Then
                         If tick Mod dumpEvery = 0 Then DumpFrame f, tick
@@ -69,7 +81,7 @@ Private Function FighterLine(ByVal i As Long) As String
     With Fighter.F(i)
         FighterLine = .prefix & " st=" & .state & " t=" & .stTick & " x=" & Format(.x, "0.0") & _
             " y=" & Format(.footY, "0.0") & " hp=" & .health & " stun=" & .stun & " chain=" & .chain & _
-            " face=" & .facing
+            " face=" & .facing & " mv=" & .mv & " meter=" & .meter & " dir=" & .inDir & " press=" & .inPress
     End With
 End Function
 

@@ -159,6 +159,12 @@ BASE_POSES = {
     "down_1": P(lean=0, lf=(5, 0), lb=(-5, -5), af=(170, 175), ab=(150, 160), ground="bbox", rot=-90),
     "throw_0": P(lean=15, af=(80, 85), ab=(75, 80), open_hand=True),
     "throw_1": P(lean=-28, lf=(-10, 0), lb=(-40, -20), af=(160, 175), ab=(150, 170), open_hand=True),
+    "dash": P(lean=28, lf=(60, -5), lb=(-45, -60), af=(70, 120), ab=(-35, 50)),
+    "bdash": P(lean=-18, lf=(45, -15), lb=(15, -40), af=(40, 150), ab=(20, 140), ground="air"),
+    "dp_0": P(lean=22, lf=CROUCH_F, lb=CROUCH_B, af=(10, 50), ab=(-20, 40), open_hand=True),
+    "dp_1": P(lean=-6, lf=(85, -15), lb=(-10, -25), af=(168, 178), ab=(140, 110), ground="air", open_hand=True),
+    "rush_0": P(lean=-12, lf=(30, 5), lb=(-35, -20), af=(20, 100), ab=(-25, 70)),
+    "rush_1": P(lean=42, lf=(55, 10), lb=(-55, -40), af=(115, 55), ab=(95, 35)),
     "sp_0": P(lean=-6, af=(-15, 80), ab=(-25, 75), open_hand=True),
     "sp_1": P(lean=20, lf=(40, 0), lb=(-40, -40), af=(90, 90), ab=(84, 86), open_hand=True),
 }

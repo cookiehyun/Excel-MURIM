@@ -4,31 +4,40 @@
 # level  H = high/mid (stand or crouch guard), L = low (crouch guard only), O = overhead (stand guard only)
 # kd     1 = knocks down
 # hb*    hitbox relative to the anchor (ground point under the hip), facing right:
-#        x = left edge (+ forward), y = top edge (negative = up), w, h in pixels
+#        x = left edge (+ forward), y = top edge (negative = up), w, h in pixels.
+#        throws / grabs: hbX + hbW = reach. projectiles: hbW x hbH = projectile hitbox.
 # spr*   sprite shown during startup+recovery / during active frames
-#        (air moves: recovery 0 = stays in recovery pose until landing)
+# type   N normal | T throw | P projectile (p1 = speed, p2 = hits) | U rising uppercut (p1 = rise speed, p2 = invincible ticks,
+#        recovery = landing lag) | R rush (p1 = forward speed during active) | G command grab | SP super projectile | SG super grab
+# cmd    motion relative to facing (numpad: 6 = forward, 2 = down, 4 = back, 3 = down-forward) + P (A or S) / K (Z or X).
+#        "-" = plain button. Supers (SP / SG) cost a full gauge.
 #
-# char     move kind startup active recovery damage hitstun blockstun level kd  hbX  hbY hbW hbH sprStartup sprActive
-danwoo     lp   S    2       2      3        30     6       4         H     0   8   -26   7   5   lp_0       lp_1
-danwoo     hp   S    3       2      6        90     10      7         H     0   9   -25   7   5   hp_0       hp_1
-danwoo     lk   S    3       2      5        40     7       5         H     0   11  -18   8   6   lk_0       lk_1
-danwoo     hk   S    5       3      8        100    11      8         H     0   8   -28   8   6   hk_0       hk_1
-danwoo     clp  C    2       2      3        25     6       4         H     0   8   -20   7   5   crouch     clp
-danwoo     chp  C    3       3      8        80     10      7         H     0   -2  -36   7   8   chp_0      chp_1
-danwoo     clk  C    3       2      4        30     6       4         L     0   10  -6    8   6   crouch     clk
-danwoo     chk  C    5       3      10       90     12      8         L     1   10  -5    8   5   crouch     chk
-danwoo     jp   A    3       4      0        60     8       6         O     0   6   -19   7   6   jump       jp
-danwoo     jk   A    4       5      0        80     9       7         O     0   9   -11   8   6   jump       jk
-cheolsan   lp   S    3       2      4        40     6       4         H     0   11  -31   7   5   lp_0       lp_1
-cheolsan   hp   S    4       3      8        120    11      8         H     0   12  -30   8   6   hp_0       hp_1
-cheolsan   lk   S    4       2      6        50     7       5         H     0   13  -21   8   6   lk_0       lk_1
-cheolsan   hk   S    6       3      10       130    12      9         H     0   10  -32   8   6   hk_0       hk_1
-cheolsan   clp  C    3       2      4        35     6       4         H     0   11  -25   7   5   crouch     clp
-cheolsan   chp  C    4       3      10       100    11      8         H     0   -1  -44   8   9   chp_0      chp_1
-cheolsan   clk  C    4       2      5        40     6       4         L     0   12  -7    8   6   crouch     clk
-cheolsan   chk  C    6       3      12       110    12      9         L     1   12  -5    8   5   crouch     chk
-cheolsan   jp   A    4       4      0        80     8       6         O     0   8   -23   7   6   jump       jp
-cheolsan   jk   A    5       5      0        100    9       7         O     0   11  -13   8   6   jump       jk
-# throw: LP+LK together at close range. startup = tick the throw lands; hbX+hbW = reach from own anchor
-danwoo     throw S   3       1      8        110    0       0         H     1   0   -30   16  10  throw_0    throw_1
-cheolsan   throw S   3       1      8        150    0       0         H     1   0   -34   20  12  throw_0    throw_1
+# char     move  kind startup active recovery damage hitstun blockstun level kd hbX hbY hbW hbH sprStartup sprActive type p1   p2 cmd
+danwoo     lp    S    2       2      3        30     6       4         H     0  8   -26 7   5   lp_0       lp_1      N    0    0  -
+danwoo     hp    S    3       2      6        90     10      7         H     0  9   -25 7   5   hp_0       hp_1      N    0    0  -
+danwoo     lk    S    3       2      5        40     7       5         H     0  11  -18 8   6   lk_0       lk_1      N    0    0  -
+danwoo     hk    S    5       3      8        100    11      8         H     0  8   -28 8   6   hk_0       hk_1      N    0    0  -
+danwoo     clp   C    2       2      3        25     6       4         H     0  8   -20 7   5   crouch     clp       N    0    0  -
+danwoo     chp   C    3       3      8        80     10      7         H     0  -2  -36 7   8   chp_0      chp_1     N    0    0  -
+danwoo     clk   C    3       2      4        30     6       4         L     0  10  -6  8   6   crouch     clk       N    0    0  -
+danwoo     chk   C    5       3      10       90     12      8         L     1  10  -5  8   5   crouch     chk       N    0    0  -
+danwoo     jp    A    3       4      0        60     8       6         O     0  6   -19 7   6   jump       jp        N    0    0  -
+danwoo     jk    A    4       5      0        80     9       7         O     0  9   -11 8   6   jump       jk        N    0    0  -
+danwoo     throw S    3       1      8        110    0       0         H     1  0   -30 16  10  throw_0    throw_1   T    0    0  -
+danwoo     sp1   S    4       1      9        70     12      8         H     0  0   0   12  10  sp_0       sp_1      P    3    1  26P
+danwoo     sp2   S    1       6      10       110    14      8         H     1  -2  -40 10  30  dp_0       dp_1      U    -5.5 4  623P
+danwoo     super S    4       1      12       300    10      6         H     1  0   0   20  16  sp_0       sp_1      SP   3.5  5  2626P
+cheolsan   lp    S    3       2      4        40     6       4         H     0  11  -31 7   5   lp_0       lp_1      N    0    0  -
+cheolsan   hp    S    4       3      8        120    11      8         H     0  12  -30 8   6   hp_0       hp_1      N    0    0  -
+cheolsan   lk    S    4       2      6        50     7       5         H     0  13  -21 8   6   lk_0       lk_1      N    0    0  -
+cheolsan   hk    S    6       3      10       130    12      9         H     0  10  -32 8   6   hk_0       hk_1      N    0    0  -
+cheolsan   clp   C    3       2      4        35     6       4         H     0  11  -25 7   5   crouch     clp       N    0    0  -
+cheolsan   chp   C    4       3      10       100    11      8         H     0  -1  -44 8   9   chp_0      chp_1     N    0    0  -
+cheolsan   clk   C    4       2      5        40     6       4         L     0  12  -7  8   6   crouch     clk       N    0    0  -
+cheolsan   chk   C    6       3      12       110    12      9         L     1  12  -5  8   5   crouch     chk       N    0    0  -
+cheolsan   jp    A    4       4      0        80     8       6         O     0  8   -23 7   6   jump       jp        N    0    0  -
+cheolsan   jk    A    5       5      0        100    9       7         O     0  11  -13 8   6   jump       jk        N    0    0  -
+cheolsan   throw S    3       1      8        150    0       0         H     1  0   -34 20  12  throw_0    throw_1   T    0    0  -
+cheolsan   sp1   S    2       1      14       200    0       0         H     1  0   -34 24  12  throw_0    throw_1   G    0    0  624P
+cheolsan   sp2   S    4       4      12       120    14      10        H     1  8   -30 12  20  rush_0     rush_1    R    3.5  0  26P
+cheolsan   super S    3       1      16       380    0       0         H     1  0   -36 40  14  throw_0    throw_1   SG   0    0  2626P

@@ -1,3 +1,5 @@
+CMD start 0 1 0 1
+CMD dummy 1
 # S (HP) stand / crouch, for the "S key looks weird" check
 CMD place 40 80
 3 -

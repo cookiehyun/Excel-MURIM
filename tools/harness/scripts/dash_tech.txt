@@ -1,0 +1,15 @@
+CMD start 0 1 0 1
+CMD dummy 1
+CMD place 30 90
+2 -
+# forward dash (tap tap)
+1 R
+1 -
+1 R
+12 -
+# back dash
+1 L
+1 -
+1 L
+12 -
+# Danwoo is thrown by CPU-controlled? no: switch control to Cheolsan to throw Danwoo, Danwoo dummy escapes via script? (tech tested in cpu runs)

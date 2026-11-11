@@ -1,0 +1,23 @@
+CMD start 1 1 0 1
+CMD dummy 1
+CMD place 50 66
+3 -
+# command grab: forward, down, back + A (Cheolsan faces left, so forward = L)
+1 L
+1 D
+1 R+A
+40 -
+# rush: down, down-forward, forward + S
+CMD place 30 75
+1 D
+1 D+L
+1 L+S
+40 -
+# super grab from mid range
+CMD meter 1 1000
+CMD place 40 72
+1 D
+1 L
+1 D
+1 L+A
+60 -

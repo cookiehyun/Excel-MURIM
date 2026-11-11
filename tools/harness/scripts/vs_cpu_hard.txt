@@ -1,0 +1,3 @@
+# human (Danwoo) stands still: CPU Cheolsan must walk in and attack
+CMD start 0 2 0 7
+200 -

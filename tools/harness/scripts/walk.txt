@@ -1,3 +1,5 @@
+CMD start 0 1 0 1
+CMD dummy 1
 # smoke test: idle, walk, jump, crouch
 10 -
 20 R

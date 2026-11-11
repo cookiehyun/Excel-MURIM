@@ -2,13 +2,12 @@ Attribute VB_Name = "Fighter"
 Option Explicit
 
 ' Fighter state machine.
-'   IDLE / WALK / CROUCH / JUMP / ATTACK / GUARD / HIT / DOWN / THROW / THROWN
-' Attacks run on frame data from data\moves.txt (startup / active / recovery).
-' Combos: a light normal that connected (hit or guard) can be chained into
-' another normal (up to MAX_CHAIN). Inputs are buffered for BUF_TICKS ticks.
-' Throw: LP+LK together at close range.
-' Debug keys: Tab = switch controlled fighter, D = dummy mode (off/guard/attack),
-'             H / J = hit / knock down the other fighter, F1 = show boxes.
+'   IDLE / WALK / CROUCH / JUMP / ATTACK / GUARD / HIT / DOWN / THROW / THROWN / DASH / LAND
+' Input: every tick each fighter receives a direction (numpad, relative to facing:
+' 6 = forward, 4 = back, 2 = down, 8 = up) plus pressed/held button masks, from the
+' keyboard (FeedHuman), the CPU (CpuAI -> FeedInput) or the training dummy.
+' A 32-tick direction history drives command specials and dashes.
+' Moves and their frame data come from data\moves.txt.
 
 Public Const ST_IDLE As Long = 0
 Public Const ST_WALK As Long = 1
@@ -20,6 +19,8 @@ Public Const ST_HIT As Long = 6
 Public Const ST_DOWN As Long = 7
 Public Const ST_THROW As Long = 8
 Public Const ST_THROWN As Long = 9
+Public Const ST_DASH As Long = 10
+Public Const ST_LAND As Long = 11
 
 ' move slots per fighter
 Public Const MV_LP As Long = 0
@@ -33,6 +34,22 @@ Public Const MV_CHK As Long = 7
 Public Const MV_JP As Long = 8
 Public Const MV_JK As Long = 9
 Public Const MV_THROW As Long = 10
+Public Const MV_SP1 As Long = 11
+Public Const MV_SP2 As Long = 12
+Public Const MV_SUPER As Long = 13
+
+' button masks
+Public Const B_LP As Long = 1
+Public Const B_HP As Long = 2
+Public Const B_LK As Long = 4
+Public Const B_HK As Long = 8
+
+Public Const METER_MAX As Long = 1000
+
+Public Const DUMMY_CPU As Long = 0
+Public Const DUMMY_IDLE As Long = 1
+Public Const DUMMY_GUARD As Long = 2
+Public Const DUMMY_ATTACK As Long = 3
 
 Private Const GRAVITY As Double = 0.5        ' px / tick^2
 Private Const BACK_WALK As Double = 0.75     ' back-walk speed factor
@@ -42,10 +59,11 @@ Private Const GETUP_TICKS As Long = 4
 Private Const DUMMY_INTERVAL As Long = 30
 Private Const BUF_TICKS As Long = 5
 Private Const MAX_CHAIN As Long = 3
-
-Public Const DUMMY_OFF As Long = 0
-Public Const DUMMY_GUARD As Long = 1
-Public Const DUMMY_ATTACK As Long = 2
+Private Const HIST As Long = 32
+Private Const MOTION_WINDOW As Long = 12
+Private Const SUPER_WINDOW As Long = 20
+Private Const DASH_TICKS As Long = 6
+Private Const TECH_WINDOW As Long = 3
 
 Public Type TFighter
     prefix As String
@@ -55,26 +73,36 @@ Public Type TFighter
     footY As Double          ' GROUND_Y when on the ground
     vx As Double
     vy As Double
+    slide As Double          ' extra horizontal push (corner pushback), decays
     onGround As Boolean
     crouch As Boolean        ' crouching variant of ATTACK / GUARD / HIT
-    backward As Boolean      ' walking away from the opponent
+    backward As Boolean      ' walking / dashing away from the opponent
     facing As Long           ' +1 right, -1 left
     mv As Long               ' current move id (ATTACK / THROW)
     hasHit As Boolean        ' current attack already connected
     chain As Long            ' chained normals so far
     airAttacked As Boolean
-    stun As Long             ' remaining hit/block stun
+    stun As Long             ' remaining hit/block stun, or landing lag
     stunTotal As Long
     downPhase As Long        ' 0 airborne, 1 lying, 2 getting up
     flash As Long            ' ticks left of white hit flash
     bufAtk As Long           ' buffered attack slot (-1 = none)
     bufAge As Long
+    bufDash As Long          ' +1 forward dash, -1 back dash, 0 none
     health As Long
     maxHealth As Long
     healthShown As Double    ' red damage trail on the health bar
     trailDelay As Long
+    meter As Long            ' super gauge 0..METER_MAX
+    ' input this tick
+    inDir As Long
+    inPress As Long
+    inHeld As Long
+    hist(0 To 31) As Long
+    histPos As Long
     ' tuning
     walkSpeed As Double
+    dashSpeed As Double
     jumpVY As Double
     jumpVX As Double
     halfW As Double          ' push-box half width
@@ -93,7 +121,10 @@ Public Type TFighter
     sCHit As Long
     sDown0 As Long
     sDown1 As Long
-    moves(0 To 10) As Long
+    sDash As Long
+    sBDash As Long
+    moves(0 To 13) As Long
+    spOrder(0 To 2) As Long  ' special slots sorted by command length (longest first)
 End Type
 
 Public F(0 To 1) As TFighter
@@ -103,12 +134,12 @@ Private mDummyTick As Long
 Private mDummyNext As Long
 Private mShowBoxes As Boolean
 
-Public Sub Init()
-    '      i  prefix      x   walk  jumpVY jumpVX halfW  hp    hurtH hurtHC
-    Setup 0, "danwoo", 40, 2#, -4.5, 1.8, 6, 1000, 30, 21
-    Setup 1, "cheolsan", 80, 1.4, -4#, 1.4, 8, 1150, 34, 25
-    mControl = 0
-    mDummy = DUMMY_OFF
+Public Sub Init(ByVal humanIndex As Long)
+    '      i  prefix      x   walk dash  jumpVY jumpVX halfW  hp    hurtH hurtHC
+    Setup 0, "danwoo", 36, 2#, 3.2, -4.5, 1.8, 6, 1000, 30, 21
+    Setup 1, "cheolsan", 84, 1.4, 2.6, -4#, 1.4, 8, 1150, 34, 25
+    mControl = humanIndex
+    mDummy = DUMMY_CPU
     mShowBoxes = False
 End Sub
 
@@ -116,14 +147,19 @@ Public Property Get Controlled() As Long
     Controlled = mControl
 End Property
 
+Public Property Get DummyMode() As Long
+    DummyMode = mDummy
+End Property
+
 Public Property Get StatusText() As String
     Dim d As String
     Select Case mDummy
-        Case DUMMY_GUARD: d = "guard"
-        Case DUMMY_ATTACK: d = "attack"
-        Case Else: d = "off"
+        Case DUMMY_CPU: d = "CPU"
+        Case DUMMY_IDLE: d = "dummy idle"
+        Case DUMMY_GUARD: d = "dummy guard"
+        Case Else: d = "dummy attack"
     End Select
-    StatusText = "P1 " & F(mControl).prefix & " (Tab) | dummy " & d & " (D)" & IIf(mShowBoxes, " | boxes (F1)", "")
+    StatusText = "P1 " & F(mControl).prefix & " (Tab) | opponent " & d & " (D)" & IIf(mShowBoxes, " | boxes (F1)", "")
 End Property
 
 ' Harness / debug helpers
@@ -137,14 +173,15 @@ Public Sub SetDummy(ByVal mode As Long)
 End Sub
 
 Private Sub Setup(ByVal i As Long, ByVal prefix As String, ByVal x As Double, ByVal walkSpeed As Double, _
-                  ByVal jumpVY As Double, ByVal jumpVX As Double, ByVal halfW As Double, _
+                  ByVal dashSpeed As Double, ByVal jumpVY As Double, ByVal jumpVX As Double, ByVal halfW As Double, _
                   ByVal maxHealth As Long, ByVal hurtH As Long, ByVal hurtHC As Long)
-    Dim names As Variant, k As Long
-    names = Array("lp", "hp", "lk", "hk", "clp", "chp", "clk", "chk", "jp", "jk", "throw")
+    Dim names As Variant, k As Long, a As Long, b As Long, t As Long
+    names = Array("lp", "hp", "lk", "hk", "clp", "chp", "clk", "chk", "jp", "jk", "throw", "sp1", "sp2", "super")
     With F(i)
         .prefix = prefix
         .startX = x
         .walkSpeed = walkSpeed
+        .dashSpeed = dashSpeed
         .jumpVY = jumpVY
         .jumpVX = jumpVX
         .halfW = halfW
@@ -162,9 +199,20 @@ Private Sub Setup(ByVal i As Long, ByVal prefix As String, ByVal x As Double, By
         .sCHit = Data.SpriteId(prefix & ".chit")
         .sDown0 = Data.SpriteId(prefix & ".down_0")
         .sDown1 = Data.SpriteId(prefix & ".down_1")
-        For k = 0 To 10
+        .sDash = Data.SpriteId(prefix & ".dash")
+        .sBDash = Data.SpriteId(prefix & ".bdash")
+        For k = 0 To 13
             .moves(k) = Data.MoveId(prefix & "." & names(k))
         Next k
+        ' specials ordered by command length so e.g. 623 is tested before 26
+        .spOrder(0) = MV_SUPER: .spOrder(1) = MV_SP1: .spOrder(2) = MV_SP2
+        For a = 0 To 1
+            For b = a + 1 To 2
+                If Len(Data.MvCmd(.moves(.spOrder(b)))) > Len(Data.MvCmd(.moves(.spOrder(a)))) Then
+                    t = .spOrder(a): .spOrder(a) = .spOrder(b): .spOrder(b) = t
+                End If
+            Next b
+        Next a
     End With
     ResetOne i
 End Sub
@@ -175,10 +223,11 @@ Public Sub ResetRound()
 End Sub
 
 Private Sub ResetOne(ByVal i As Long)
+    Dim k As Long
     With F(i)
         .x = .startX
         .footY = GROUND_Y
-        .vx = 0: .vy = 0
+        .vx = 0: .vy = 0: .slide = 0
         .onGround = True
         .crouch = False
         .facing = IIf(i = 0, 1, -1)
@@ -188,7 +237,13 @@ Private Sub ResetOne(ByVal i As Long)
         .stun = 0
         .flash = 0
         .bufAtk = -1
+        .bufDash = 0
         .chain = 0
+        .meter = 0
+        .inDir = 5: .inPress = 0: .inHeld = 0
+        For k = 0 To HIST - 1
+            .hist(k) = 5
+        Next k
         .state = -1
     End With
     SetState i, ST_IDLE
@@ -198,24 +253,65 @@ End Sub
 ' input
 ' ======================================================================
 
-' Called every tick (also during hit stop) so presses are never lost.
-Public Sub BufferInput()
-    Dim a As Long
-    If F(0).flash > 0 Then F(0).flash = F(0).flash - 1
-    If F(1).flash > 0 Then F(1).flash = F(1).flash - 1
-    a = -1
-    ' throw = LP + LK together (one of them pressed this tick, the other held)
-    If KeyInput.IsDown(BTN_LP) And KeyInput.IsDown(BTN_LK) And _
-       (KeyInput.IsPressed(BTN_LP) Or KeyInput.IsPressed(BTN_LK)) Then
-        a = MV_THROW
+Public Function DirFrom(ByVal fwd As Boolean, ByVal back As Boolean, ByVal up As Boolean, ByVal down As Boolean) As Long
+    Dim d As Long
+    d = 5
+    If fwd Then d = d + 1
+    If back And Not fwd Then d = d - 1
+    If up Then d = d + 3
+    If down And Not up Then d = d - 3
+    DirFrom = d
+End Function
+
+' Keyboard -> relative input for fighter i.
+Public Sub FeedHuman(ByVal i As Long)
+    Dim l As Boolean, r As Boolean, press As Long, held As Long, d As Long
+    l = KeyInput.IsDown(BTN_LEFT): r = KeyInput.IsDown(BTN_RIGHT)
+    If F(i).facing > 0 Then
+        d = DirFrom(r, l, KeyInput.IsDown(BTN_UP), KeyInput.IsDown(BTN_DOWN))
     Else
-        ' heavier button wins if pressed on the same tick
-        If KeyInput.IsPressed(BTN_LP) Then a = MV_LP
-        If KeyInput.IsPressed(BTN_LK) Then a = MV_LK
-        If KeyInput.IsPressed(BTN_HP) Then a = MV_HP
-        If KeyInput.IsPressed(BTN_HK) Then a = MV_HK
+        d = DirFrom(l, r, KeyInput.IsDown(BTN_UP), KeyInput.IsDown(BTN_DOWN))
     End If
-    With F(mControl)
+    If KeyInput.IsPressed(BTN_LP) Then press = press Or B_LP
+    If KeyInput.IsPressed(BTN_HP) Then press = press Or B_HP
+    If KeyInput.IsPressed(BTN_LK) Then press = press Or B_LK
+    If KeyInput.IsPressed(BTN_HK) Then press = press Or B_HK
+    If KeyInput.IsDown(BTN_LP) Then held = held Or B_LP
+    If KeyInput.IsDown(BTN_HP) Then held = held Or B_HP
+    If KeyInput.IsDown(BTN_LK) Then held = held Or B_LK
+    If KeyInput.IsDown(BTN_HK) Then held = held Or B_HK
+    FeedInput i, d, press, held
+End Sub
+
+' Training dummy (when the CPU is switched off with D).
+Public Sub FeedDummy(ByVal i As Long)
+    Dim d As Long, press As Long
+    d = 5
+    If mDummy = DUMMY_GUARD Then
+        If Threatened(i) Then d = 4
+    ElseIf mDummy = DUMMY_ATTACK Then
+        mDummyTick = mDummyTick + 1
+        If mDummyTick >= DUMMY_INTERVAL Then
+            mDummyTick = 0
+            press = 2 ^ (mDummyNext Mod 4)
+            If (mDummyNext Mod 8) >= 4 Then d = 2
+            mDummyNext = mDummyNext + 1
+        ElseIf F(i).state = ST_ATTACK And F(i).crouch Then
+            d = 2
+        End If
+    End If
+    FeedInput i, d, press, press
+End Sub
+
+' Common entry: record history, decode buffered attacks and dashes.
+Public Sub FeedInput(ByVal i As Long, ByVal d As Long, ByVal press As Long, ByVal held As Long)
+    Dim a As Long
+    With F(i)
+        .inDir = d: .inPress = press: .inHeld = held
+        .histPos = (.histPos + 1) Mod HIST
+        .hist(.histPos) = d
+        If .flash > 0 Then .flash = .flash - 1
+        a = DecodeAttack(i)
         If a >= 0 Then
             .bufAtk = a
             .bufAge = 0
@@ -223,32 +319,99 @@ Public Sub BufferInput()
             .bufAge = .bufAge + 1
             If .bufAge > BUF_TICKS Then .bufAtk = -1
         End If
+        If Tapped(i, 6) Then .bufDash = 1
+        If Tapped(i, 4) Then .bufDash = -1
+        If d <> 6 And d <> 4 Then .bufDash = 0
     End With
 End Sub
+
+' Direction t ticks ago (0 = this tick).
+Private Function HistAt(ByVal i As Long, ByVal t As Long) As Long
+    HistAt = F(i).hist((F(i).histPos - t + HIST * 4) Mod HIST)
+End Function
+
+' Double tap: d now (new press), released, and d tapped again within DASH window.
+Private Function Tapped(ByVal i As Long, ByVal d As Long) As Boolean
+    Dim t As Long
+    If HistAt(i, 0) <> d Or HistAt(i, 1) = d Then Exit Function
+    For t = 2 To 6
+        If HistAt(i, t) = d Then
+            Tapped = (HistAt(i, t + 1) <> d)
+            Exit Function
+        End If
+    Next t
+End Function
+
+Private Function DirMatches(ByVal want As Long, ByVal got As Long) As Boolean
+    If want = 2 Then
+        DirMatches = (got = 1 Or got = 2 Or got = 3)       ' "down" is lenient
+    Else
+        DirMatches = (want = got)
+    End If
+End Function
+
+' Motion like "623" found in order in the recent history; last step within 4 ticks.
+Private Function MatchMotion(ByVal i As Long, ByVal dirs As String, ByVal window As Long) As Boolean
+    Dim j As Long, t As Long, firstHit As Long
+    j = Len(dirs)
+    firstHit = -1
+    For t = 0 To window
+        If DirMatches(CLng(Mid$(dirs, j, 1)), HistAt(i, t)) Then
+            If firstHit < 0 Then firstHit = t
+            j = j - 1
+            If j = 0 Then
+                MatchMotion = (firstHit <= 4)
+                Exit Function
+            End If
+        End If
+    Next t
+End Function
+
+Private Function DecodeAttack(ByVal i As Long) As Long
+    Dim press As Long, isP As Boolean, isK As Boolean, k As Long, slot As Long, cmd As String, btn As String
+    DecodeAttack = -1
+    With F(i)
+        press = .inPress
+        If press = 0 Then Exit Function
+        ' throw = LP + LK together
+        If (.inHeld And (B_LP Or B_LK)) = (B_LP Or B_LK) And (press And (B_LP Or B_LK)) <> 0 Then
+            DecodeAttack = MV_THROW
+            Exit Function
+        End If
+        isP = (press And (B_LP Or B_HP)) <> 0
+        isK = (press And (B_LK Or B_HK)) <> 0
+        For k = 0 To 2
+            slot = .spOrder(k)
+            cmd = Data.MvCmd(.moves(slot))
+            If Len(cmd) >= 2 Then
+                btn = Right$(cmd, 1)
+                If (btn = "P" And isP) Or (btn = "K" And isK) Then
+                    If slot = MV_SUPER Then
+                        If .meter >= METER_MAX Then
+                            If MatchMotion(i, Left$(cmd, Len(cmd) - 1), SUPER_WINDOW) Then
+                                DecodeAttack = slot
+                                Exit Function
+                            End If
+                        End If
+                    ElseIf MatchMotion(i, Left$(cmd, Len(cmd) - 1), MOTION_WINDOW) Then
+                        DecodeAttack = slot
+                        Exit Function
+                    End If
+                End If
+            End If
+        Next k
+        ' plain normals: heavier button wins if pressed on the same tick
+        If (press And B_LP) <> 0 Then DecodeAttack = MV_LP
+        If (press And B_LK) <> 0 Then DecodeAttack = MV_LK
+        If (press And B_HP) <> 0 Then DecodeAttack = MV_HP
+        If (press And B_HK) <> 0 Then DecodeAttack = MV_HK
+    End With
+End Function
 
 Private Function TakeAttack(ByVal i As Long) As Long
     TakeAttack = F(i).bufAtk
     F(i).bufAtk = -1
 End Function
-
-Private Sub ReadDirections(ByVal i As Long, l As Boolean, r As Boolean, u As Boolean, d As Boolean)
-    If i = mControl Then
-        l = KeyInput.IsDown(BTN_LEFT): r = KeyInput.IsDown(BTN_RIGHT)
-        u = KeyInput.IsDown(BTN_UP): d = KeyInput.IsDown(BTN_DOWN)
-    ElseIf mDummy = DUMMY_ATTACK Then
-        ' training dummy: cycles through its ground normals
-        mDummyTick = mDummyTick + 1
-        If mDummyTick >= DUMMY_INTERVAL Then
-            mDummyTick = 0
-            F(i).bufAtk = mDummyNext Mod 4
-            F(i).bufAge = 0
-            d = (mDummyNext Mod 8) >= 4
-            mDummyNext = mDummyNext + 1
-        ElseIf F(i).state = ST_ATTACK Then
-            d = F(i).crouch
-        End If
-    End If
-End Sub
 
 ' ======================================================================
 ' update
@@ -257,7 +420,7 @@ End Sub
 Public Sub Update()
     Dim i As Long
     If KeyInput.IsPressed(BTN_SWAP) Then mControl = 1 - mControl: F(0).bufAtk = -1: F(1).bufAtk = -1
-    If KeyInput.IsPressed(BTN_DBG_DUMMY) Then SetDummy ((mDummy + 1) Mod 3)
+    If KeyInput.IsPressed(BTN_DBG_DUMMY) Then SetDummy ((mDummy + 1) Mod 4)
     If KeyInput.IsPressed(BTN_DBG_BOX) Then mShowBoxes = Not mShowBoxes
     If KeyInput.IsPressed(BTN_DBG_HIT) Then ApplyHit 1 - mControl, 10, 1.5, False
     If KeyInput.IsPressed(BTN_DBG_DOWN) Then ApplyHit 1 - mControl, 0, 1.5, True
@@ -272,19 +435,20 @@ Public Sub Update()
 End Sub
 
 Private Sub UpdateFighter(ByVal i As Long)
-    Dim l As Boolean, r As Boolean, u As Boolean, d As Boolean
-    Dim fwd As Boolean, back As Boolean, wantGuard As Boolean, atk As Long
+    Dim fwd As Boolean, back As Boolean, u As Boolean, d As Boolean, wantGuard As Boolean, atk As Long, mt As Long
 
-    ReadDirections i, l, r, u, d
     With F(i)
-        If .facing > 0 Then
-            fwd = r: back = l
-        Else
-            fwd = l: back = r
-        End If
+        fwd = (.inDir = 3 Or .inDir = 6 Or .inDir = 9)
+        back = (.inDir = 1 Or .inDir = 4 Or .inDir = 7)
+        u = (.inDir >= 7)
+        d = (.inDir <= 3)
         wantGuard = back And Threatened(i)
-        If i <> mControl And mDummy = DUMMY_GUARD Then wantGuard = Threatened(i)   ' guard only, never walk away
         .stTick = .stTick + 1
+        If .slide <> 0 Then
+            .x = .x + .slide
+            .slide = .slide * 0.6
+            If Abs(.slide) < 0.1 Then .slide = 0
+        End If
 
         Select Case .state
         Case ST_IDLE, ST_WALK, ST_CROUCH
@@ -299,33 +463,32 @@ Private Sub UpdateFighter(ByVal i As Long)
                 Actionable i, fwd, back, u, d, wantGuard
             End If
 
+        Case ST_DASH
+            .x = .x + .vx
+            If .backward Then
+                .footY = GROUND_Y - 3 * Sin(3.14159 * .stTick / DASH_TICKS)     ' small hop
+            End If
+            If .stTick >= DASH_TICKS Then
+                .footY = GROUND_Y
+                SetState i, ST_IDLE
+            End If
+
         Case ST_JUMP
             atk = TakeAttack(i)
             If atk >= 0 And Not .airAttacked Then
                 .airAttacked = True
-                If atk = MV_LP Or atk = MV_HP Or atk = MV_THROW Then .mv = .moves(MV_JP) Else .mv = .moves(MV_JK)
+                If atk = MV_LK Or atk = MV_HK Then .mv = .moves(MV_JK) Else .mv = .moves(MV_JP)
                 .hasHit = False
                 SetState i, ST_ATTACK
             End If
             If AirStep(i) Then SetState i, ST_IDLE
 
         Case ST_ATTACK
-            If Not .onGround Then
-                If AirStep(i) Then SetState i, ST_IDLE      ' landing ends an air attack
-            Else
-                ' chain combo: light normal that connected -> next normal
-                If .hasHit And .bufAtk >= 0 And .bufAtk <> MV_THROW And .chain < MAX_CHAIN And IsLight(.mv) Then
-                    atk = TakeAttack(i)
-                    .chain = .chain + 1
-                    StartGroundAttack i, atk, d, True
-                ElseIf .stTick >= MoveTotal(.mv) Then
-                    If d Then
-                        SetState i, ST_CROUCH
-                    Else
-                        SetState i, ST_IDLE
-                    End If
-                End If
-            End If
+            UpdateAttack i, d
+
+        Case ST_LAND
+            .stun = .stun - 1
+            If .stun <= 0 Then SetState i, ST_IDLE
 
         Case ST_HIT
             .x = .x + .vx
@@ -358,6 +521,7 @@ Private Sub UpdateFighter(ByVal i As Long)
         Case ST_THROW
             If .stTick = Data.MvStartup(.mv) Then
                 Combat.DealDamage 1 - i, Data.MvDamage(.mv)
+                Combat.AddMeter i, 80
                 ApplyHit 1 - i, 0, 2.5, True
                 FX.Spawn Int(F(1 - i).x + 0.5), Int(F(1 - i).footY) - 18, FX_HEAVY
                 Combat.HitStop = 4
@@ -365,13 +529,90 @@ Private Sub UpdateFighter(ByVal i As Long)
             If .stTick >= MoveTotal(.mv) Then SetState i, ST_IDLE
 
         Case ST_THROWN
-            .vx = 0                ' held in place by the thrower until the throw lands
+            .vx = 0
+            ' throw escape: press throw right after being grabbed (normal throws only)
+            If .stTick <= TECH_WINDOW And .bufAtk = MV_THROW Then
+                If Data.MvType(F(1 - i).mv) = MT_THROW Then TechThrow i
+            End If
         End Select
     End With
     ClampX i
 End Sub
 
-' Neutral ground states: attack, jump, guard, crouch, walk.
+Private Sub UpdateAttack(ByVal i As Long, ByVal d As Boolean)
+    Dim mt As Long, atk As Long, t As Long
+    With F(i)
+        mt = Data.MvType(.mv)
+        t = .stTick
+
+        ' per-type behaviour
+        Select Case mt
+        Case MT_PROJ, MT_SUPER_PROJ
+            If t = Data.MvStartup(.mv) Then Projectile.Spawn i, .mv
+        Case MT_RISE
+            If t = Data.MvStartup(.mv) Then
+                .onGround = False
+                .vy = Data.MvP1(.mv)
+                .vx = .facing * 0.8
+            End If
+        Case MT_RUSH
+            If t >= Data.MvStartup(.mv) And t < Data.MvStartup(.mv) + Data.MvActive(.mv) Then
+                .x = .x + .facing * Data.MvP1(.mv)
+            End If
+        Case MT_GRAB, MT_SUPER_GRAB
+            If t = Data.MvStartup(.mv) Then
+                If TryGrab(i, .mv) Then Exit Sub
+            End If
+        End Select
+
+        If Not .onGround Then
+            If AirStep(i) Then
+                If mt = MT_RISE Then
+                    SetState i, ST_LAND
+                    .stun = Data.MvRecovery(.mv)
+                Else
+                    SetState i, ST_IDLE                     ' landing ends an air attack
+                End If
+            End If
+            Exit Sub
+        End If
+
+        ' cancels after the attack connected (hit or guard)
+        If .hasHit And .bufAtk >= 0 And .bufAtk <> MV_THROW Then
+            If .bufAtk >= MV_SP1 And CanCancelIntoSpecial(i, .bufAtk) Then
+                atk = TakeAttack(i)
+                StartAttack i, atk, d, True
+                Exit Sub
+            ElseIf .bufAtk < MV_SP1 And .chain < MAX_CHAIN And IsLight(.mv) Then
+                atk = TakeAttack(i)
+                .chain = .chain + 1
+                StartAttack i, atk, d, True
+                Exit Sub
+            End If
+        End If
+
+        If t >= MoveTotal(.mv) Then
+            If d Then
+                SetState i, ST_CROUCH
+            Else
+                SetState i, ST_IDLE
+            End If
+        End If
+    End With
+End Sub
+
+' normal -> special, special -> super
+Private Function CanCancelIntoSpecial(ByVal i As Long, ByVal slot As Long) As Boolean
+    Dim cur As Long
+    cur = Data.MvType(F(i).mv)
+    If slot = MV_SUPER Then
+        CanCancelIntoSpecial = (cur <> MT_SUPER_PROJ And cur <> MT_SUPER_GRAB)
+    Else
+        CanCancelIntoSpecial = (cur = MT_NORMAL)
+    End If
+End Function
+
+' Neutral ground states: attack, jump, dash, guard, crouch, walk.
 Private Sub Actionable(ByVal i As Long, ByVal fwd As Boolean, ByVal back As Boolean, _
                        ByVal u As Boolean, ByVal d As Boolean, ByVal wantGuard As Boolean)
     Dim atk As Long
@@ -382,7 +623,13 @@ Private Sub Actionable(ByVal i As Long, ByVal fwd As Boolean, ByVal back As Bool
             atk = MV_LP                                   ' whiffed throw becomes a jab
         End If
         If atk >= 0 Then
-            StartGroundAttack i, atk, d, False
+            If StartAttack(i, atk, d, False) Then Exit Sub
+        End If
+        If .bufDash <> 0 Then
+            .backward = (.bufDash < 0)
+            .vx = .facing * .dashSpeed * .bufDash
+            .bufDash = 0
+            SetState i, ST_DASH
         ElseIf u Then
             SetState i, ST_JUMP
             .onGround = False
@@ -410,42 +657,79 @@ Private Sub Actionable(ByVal i As Long, ByVal fwd As Boolean, ByVal back As Bool
     End With
 End Sub
 
-Private Sub StartGroundAttack(ByVal i As Long, ByVal atk As Long, ByVal crouching As Boolean, ByVal chained As Boolean)
+' Returns False if the move cannot start (e.g. projectile already on screen).
+Private Function StartAttack(ByVal i As Long, ByVal atk As Long, ByVal crouching As Boolean, ByVal chained As Boolean) As Boolean
+    Dim mv As Long, mt As Long
     With F(i)
         If atk = MV_THROW Then atk = MV_LP
-        If crouching Then .mv = .moves(atk + 4) Else .mv = .moves(atk)
+        If atk >= MV_SP1 Then
+            mv = .moves(atk)
+            mt = Data.MvType(mv)
+            If (mt = MT_PROJ Or mt = MT_SUPER_PROJ) And Projectile.Alive(i) Then Exit Function
+            If atk = MV_SUPER Then
+                If .meter < METER_MAX Then Exit Function
+                .meter = 0
+                Combat.StartSuper i
+            End If
+            crouching = False
+        ElseIf crouching Then
+            mv = .moves(atk + 4)
+        Else
+            mv = .moves(atk)
+        End If
+        .mv = mv
         .crouch = crouching
         .vx = 0
         .hasHit = False
         If Not chained Then .chain = 0
         SetState i, ST_ATTACK
     End With
-End Sub
+    StartAttack = True
+End Function
+
+Private Function CanBeGrabbed(ByVal o As Long) As Boolean
+    If Not F(o).onGround Then Exit Function
+    Select Case F(o).state
+    Case ST_IDLE, ST_WALK, ST_CROUCH, ST_DASH, ST_LAND
+        CanBeGrabbed = True
+    Case ST_GUARD
+        CanBeGrabbed = (F(o).stun = 0)
+    Case ST_ATTACK
+        ' only during recovery (attacks beat throws)
+        CanBeGrabbed = (F(o).stTick >= Data.MvStartup(F(o).mv) + Data.MvActive(F(o).mv))
+    End Select
+End Function
 
 Private Function TryThrow(ByVal i As Long) As Boolean
-    Dim o As Long, mv As Long, reach As Double
+    TryThrow = TryGrab(i, F(i).moves(MV_THROW))
+End Function
+
+Private Function TryGrab(ByVal i As Long, ByVal mv As Long) As Boolean
+    Dim o As Long, reach As Double
     o = 1 - i
-    mv = F(i).moves(MV_THROW)
     reach = Data.MvHbX(mv) + Data.MvHbW(mv)
-    If Not F(o).onGround Then Exit Function
     If Abs(F(o).x - F(i).x) > reach Then Exit Function
-    Select Case F(o).state
-    Case ST_IDLE, ST_WALK, ST_CROUCH
-    Case ST_GUARD
-        If F(o).stun > 0 Then Exit Function
-    Case ST_ATTACK
-        If F(o).stTick < Data.MvStartup(F(o).mv) + Data.MvActive(F(o).mv) Then Exit Function   ' only in recovery
-    Case Else
-        Exit Function
-    End Select
+    If Not CanBeGrabbed(o) Then Exit Function
     F(i).mv = mv
     F(i).vx = 0
     SetState i, ST_THROW
     SetState o, ST_THROWN
     F(o).crouch = False
+    F(o).bufAtk = -1
     F(o).x = F(i).x + F(i).facing * (F(i).halfW + F(o).halfW - 2)
-    TryThrow = True
+    If Data.MvType(mv) = MT_SUPER_GRAB Then FX.Spawn Int(F(o).x + 0.5), Int(F(o).footY) - 20, FX_HEAVY
+    TryGrab = True
 End Function
+
+Private Sub TechThrow(ByVal i As Long)
+    Dim o As Long
+    o = 1 - i
+    SetState i, ST_GUARD: F(i).stun = 6: F(i).vx = -F(i).facing * 2.5
+    SetState o, ST_GUARD: F(o).stun = 6: F(o).vx = -F(o).facing * 2.5
+    F(i).bufAtk = -1
+    FX.Spawn Int((F(0).x + F(1).x) / 2), Int(F(i).footY) - 22, FX_BLOCK
+    Combat.ShowText "ESCAPE", 20
+End Sub
 
 Private Function IsLight(ByVal mv As Long) As Boolean
     Dim k As Long
@@ -457,15 +741,16 @@ Private Function IsLight(ByVal mv As Long) As Boolean
     Next k
 End Function
 
-Private Function MoveTotal(ByVal mv As Long) As Long
+Public Function MoveTotal(ByVal mv As Long) As Long
     MoveTotal = Data.MvStartup(mv) + Data.MvActive(mv) + Data.MvRecovery(mv)
 End Function
 
-' Is the opponent attacking close enough that holding back should guard?
-Private Function Threatened(ByVal i As Long) As Boolean
+' Is the opponent attacking (or its projectile coming) close enough that holding back should guard?
+Public Function Threatened(ByVal i As Long) As Boolean
     Dim o As Long
     o = 1 - i
-    Threatened = (F(o).state = ST_ATTACK) And (Abs(F(o).x - F(i).x) < GUARD_RANGE)
+    If F(o).state = ST_ATTACK And Abs(F(o).x - F(i).x) < GUARD_RANGE Then Threatened = True
+    If Projectile.IncomingDistance(i) < 40 Then Threatened = True
 End Function
 
 ' Ballistic step. Returns True on the tick it lands.
@@ -486,10 +771,10 @@ End Function
 
 Private Sub SetState(ByVal i As Long, ByVal st As Long)
     With F(i)
-        If .state <> st Or st = ST_ATTACK Or st = ST_HIT Or st = ST_DOWN Or st = ST_THROW Then .stTick = 0
+        If .state <> st Or st = ST_ATTACK Or st = ST_HIT Or st = ST_DOWN Or st = ST_THROW Or st = ST_DASH Then .stTick = 0
         .state = st
         If st = ST_CROUCH Then .crouch = True
-        If st = ST_IDLE Or st = ST_WALK Or st = ST_JUMP Then .crouch = False
+        If st = ST_IDLE Or st = ST_WALK Or st = ST_JUMP Or st = ST_DASH Then .crouch = False
     End With
 End Sub
 
@@ -497,6 +782,7 @@ End Sub
 Public Sub ApplyHit(ByVal i As Long, ByVal hitstun As Long, ByVal push As Double, ByVal knockdown As Boolean)
     With F(i)
         .bufAtk = -1
+        .footY = IIf(.onGround, GROUND_Y, .footY)
         If knockdown Or Not .onGround Then
             SetState i, ST_DOWN
             .downPhase = 0
@@ -520,6 +806,12 @@ Public Sub ApplyBlock(ByVal i As Long, ByVal blockstun As Long, ByVal push As Do
         .vx = -.facing * push
     End With
 End Sub
+
+Public Function AtWall(ByVal i As Long) As Boolean
+    With F(i)
+        AtWall = (.x <= .halfW + 0.5) Or (.x >= SCREEN_W - .halfW - 0.5)
+    End With
+End Function
 
 Private Sub ClampX(ByVal i As Long)
     With F(i)
@@ -577,7 +869,7 @@ Private Sub UpdateFacing(ByVal i As Long)
 End Sub
 
 ' ======================================================================
-' boxes (used by Combat)
+' boxes (used by Combat / CpuAI)
 ' ======================================================================
 
 ' True while the current attack is in its active frames.
@@ -588,11 +880,21 @@ Public Function InActive(ByVal i As Long) As Boolean
     InActive = (t >= Data.MvStartup(mv)) And (t < Data.MvStartup(mv) + Data.MvActive(mv))
 End Function
 
+Public Function InRecovery(ByVal i As Long) As Boolean
+    If F(i).state = ST_LAND Then
+        InRecovery = True
+    ElseIf F(i).state = ST_ATTACK And F(i).onGround Then
+        InRecovery = (F(i).stTick >= Data.MvStartup(F(i).mv) + Data.MvActive(F(i).mv))
+    End If
+End Function
+
 Public Function HitRect(ByVal i As Long, x0 As Long, y0 As Long, w As Long, h As Long) As Boolean
-    Dim mv As Long
+    Dim mv As Long, mt As Long
     If Not InActive(i) Then Exit Function
     With F(i)
         mv = .mv
+        mt = Data.MvType(mv)
+        If mt = MT_PROJ Or mt = MT_SUPER_PROJ Or mt = MT_GRAB Or mt = MT_SUPER_GRAB Or mt = MT_THROW Then Exit Function
         w = Data.MvHbW(mv): h = Data.MvHbH(mv)
         If .facing > 0 Then
             x0 = Int(.x + 0.5) + Data.MvHbX(mv)
@@ -607,6 +909,9 @@ End Function
 Public Function HurtRect(ByVal i As Long, x0 As Long, y0 As Long, w As Long, h As Long) As Boolean
     With F(i)
         If .state = ST_DOWN Or .state = ST_THROWN Then Exit Function     ' invulnerable
+        If .state = ST_ATTACK Then
+            If Data.MvType(.mv) = MT_RISE And .stTick < Data.MvP2(.mv) Then Exit Function   ' invincible uppercut
+        End If
         If .crouch Then h = .hurtHC Else h = .hurtH
         w = Int(.halfW * 2 + 4)
         x0 = Int(.x + 0.5) - w \ 2
@@ -637,13 +942,17 @@ Private Function CurrentSprite(ByVal i As Long) As Long
             CurrentSprite = Data.AnimFrame(.aIdle, t)
         Case ST_WALK
             CurrentSprite = Data.AnimFrame(.aWalk, t, .backward)
-        Case ST_CROUCH
+        Case ST_CROUCH, ST_LAND
             CurrentSprite = .sCrouch
         Case ST_JUMP
             CurrentSprite = .sJump
+        Case ST_DASH
+            If .backward Then CurrentSprite = .sBDash Else CurrentSprite = .sDash
         Case ST_ATTACK, ST_THROW
             If .state = ST_THROW Then
                 If t >= Data.MvStartup(.mv) Then CurrentSprite = Data.MvSprA(.mv) Else CurrentSprite = Data.MvSprS(.mv)
+            ElseIf Data.MvType(.mv) = MT_RISE And Not .onGround Then
+                CurrentSprite = Data.MvSprA(.mv)
             ElseIf InActive(i) Then
                 CurrentSprite = Data.MvSprA(.mv)
             Else

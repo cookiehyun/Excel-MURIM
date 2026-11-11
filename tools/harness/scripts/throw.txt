@@ -1,3 +1,5 @@
+CMD start 0 1 0 1
+CMD dummy 1
 # Danwoo walks in and throws (LP+LK)
 CMD place 40 66
 10 R
