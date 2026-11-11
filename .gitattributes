@@ -1,0 +1,5 @@
+# VBE imports/exports .bas as CRLF + system codepage (ANSI). Keep code ASCII-only.
+*.bas text eol=crlf
+*.cls text eol=crlf
+*.frm text eol=crlf
+*.xlsm binary
