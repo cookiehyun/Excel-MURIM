@@ -1,0 +1,5 @@
+# Danwoo walks in and throws (LP+LK)
+CMD place 40 66
+10 R
+1 A+Z
+40 -

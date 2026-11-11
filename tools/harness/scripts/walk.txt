@@ -1,0 +1,7 @@
+# smoke test: idle, walk, jump, crouch
+10 -
+20 R
+10 U
+10 -
+10 D
+20 L

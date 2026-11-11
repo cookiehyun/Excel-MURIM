@@ -1,0 +1,8 @@
+# S (HP) stand / crouch, for the "S key looks weird" check
+CMD place 40 80
+3 -
+1 S
+16 -
+3 D
+1 D+S
+16 D

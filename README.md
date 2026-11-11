@@ -12,7 +12,12 @@ excel-fighter/
     KeyInput.bas      GetAsyncKeyState 입력 (held/pressed), 포커스 없으면 무시
     Renderer.bas      셀 픽셀 프레임버퍼, 스프라이트(좌우 반전), 바뀐 셀만 칠하기
     Data.bas          data/*.txt 로더 (스프라이트, 애니메이션, 스테이지)
-    Fighter.bas       캐릭터 2명: 대기/걷기/앉기/점프 애니메이션, 방향 전환, 밀어내기
+    Game.bas          순수 게임 로직 (GameInit / GameTick / GameRender) - 하니스와 공유
+    Fighter.bas       상태 머신: 대기/걷기/앉기/점프/공격/가드/피격/다운/잡기, 콤보 체인, 입력 버퍼
+    Combat.bas        히트박스 vs 허트박스, 상단/하단/중단 가드 판정, 데미지, 히트스톱, KO
+    FX.bas            히트/가드 스파크
+    Hud.bas           체력 바(빨간 잔상), KO 표시, 입력 모니터
+    WinApi.bas        Sleep (엑셀 전용)
     Gallery.bas       모든 스프라이트를 Gallery 시트에 펼쳐서 확인
     DevTools.bas      src <-> 워크북 동기화 (Import/Export)
   data/               <- 게임 데이터 (텍스트, 엑셀이 실행 시 읽음)
@@ -20,6 +25,7 @@ excel-fighter/
   tools/              <- 데이터 생성기 (Python)
     gen_sprites.py    관절 리그 -> 도트 스프라이트
     gen_stage.py      스테이지 배경
+    harness/          LibreOffice로 실제 VBA 코드를 헤드리스 실행하는 테스트 하니스
   docs/preview/       <- 생성된 스프라이트/배경 미리보기 PNG
 ```
 
@@ -49,7 +55,9 @@ Alt+F8 → `StartGame`
 | ↑ | 점프 |
 | ↓ | 앉기 |
 | A / S / Z / X | 약P / 강P / 약K / 강K (↓ 누르고 = 앉아 공격, 점프 중 = 공중 공격) |
-| 뒤로 (상대가 공격 중일 때) | 가드 (↓ 같이 = 앉아 가드) |
+| A + Z 동시 (근접) | 잡기 |
+| 뒤로 (상대가 공격 중일 때) | 가드 (↓ 같이 = 앉아 가드). 하단(앉은 킥)은 앉아서, 점프 공격은 서서 막아야 함 |
+| 약공격 적중 후 다시 공격 | 체인 콤보 (최대 3연결, 예: A → A → S) |
 | Esc | 종료 |
 
 디버그 키
@@ -57,9 +65,9 @@ Alt+F8 → `StartGame`
 | 키 | 동작 |
 |---|---|
 | Tab | 조작 캐릭터 전환 (단우 <-> 철산) |
-| D | 더미 모드: 상대가 30틱마다 스스로 공격 (가드 확인용) |
-| H / J | 상대 피격 / 다운 (4단계 전까지 피격 모션 확인용) |
-| F1 | 판정 박스 표시 (흰색 = 밀림 박스, 빨강 = 공격 판정) |
+| D | 더미 모드 전환: 끄기 → 가드(공격이 오면 서서 막음) → 공격(30틱마다 공격) |
+| H / J | 상대 피격 / 다운 모션 강제 재생 |
+| F1 | 판정 박스 표시 (초록 = 피격 판정, 빨강 = 공격 판정) |
 
 기술별 발생/지속/후딜/데미지/판정 박스는 `data/moves.txt`에서 수정한다 (코드 수정 불필요, `StartGame` 다시 실행).
 
@@ -68,11 +76,24 @@ Alt+F8 → `StartGame`
 - 상태 표시줄에 `FPS | ticks/s | paint calls/frame`이 표시된다.
 - 엑셀이 입력을 받지 않게 되면 VBE 직접 실행 창(Ctrl+G)에 `GameLoop.RestoreExcel`을 입력한다.
 
+## 헤드리스 테스트 (엑셀 없이)
+
+`src/*.bas`를 LibreOffice의 VBA 호환 모드로 그대로 실행한다. 키 입력은 스크립트(`tools/harness/scripts/*.txt`)로 대신하고,
+결과는 `tools/harness/out/<이름>.log`(틱별 상태)와 `.gif`(화면)로 나온다. 엑셀 속도와 실제 키 입력은 검증하지 못한다.
+
+```
+python3 -I tools/harness/run_harness.py            # 전체 시나리오
+python3 tools/harness/strip.py combo 8 9 10 22      # 특정 틱 화면을 PNG로
+```
+
+LibreOffice 호환을 위해 지키는 규칙: Collection은 `.Item(key)`로 조회, 한 줄 If의 양쪽에 인자 있는 Sub 호출 금지,
+`FX.Spawn (a) \ 2, ...`처럼 괄호로 시작하는 인자 금지, 함수 반환형 `As String()` 대신 `As Variant`.
+
 ## 단계
 
 - [x] ① 루프 + 입력 + 박스 이동
 - [x] ② 캐릭터 그리기 + 스테이지 배경
-- [ ] ③ 상태 머신 (공격 / 가드 / 피격 / 다운) ← **현재**
-- [ ] ④ 공격 판정 (히트박스/허트박스, 프레임 데이터)
+- [x] ③ 상태 머신 (공격 / 가드 / 피격 / 다운)
+- [ ] ④ 공격 판정, 체력 바, 콤보 체인, 잡기, KO ← **현재** (헤드리스 테스트 통과, 엑셀 확인 대기)
 - [ ] ⑤ CPU AI (3단계)
 - [ ] ⑥ 라운드 시스템 (3판 2선승, 체력 바, 타이머)

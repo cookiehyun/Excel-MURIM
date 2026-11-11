@@ -10,22 +10,25 @@
 #
 # char     move kind startup active recovery damage hitstun blockstun level kd  hbX  hbY hbW hbH sprStartup sprActive
 danwoo     lp   S    2       2      3        30     6       4         H     0   8   -26   7   5   lp_0       lp_1
-danwoo     hp   S    4       2      7        90     10      7         H     0   9   -24   7   5   hp_0       hp_1
+danwoo     hp   S    3       2      6        90     10      7         H     0   9   -25   7   5   hp_0       hp_1
 danwoo     lk   S    3       2      5        40     7       5         H     0   11  -18   8   6   lk_0       lk_1
 danwoo     hk   S    5       3      8        100    11      8         H     0   8   -28   8   6   hk_0       hk_1
 danwoo     clp  C    2       2      3        25     6       4         H     0   8   -20   7   5   crouch     clp
-danwoo     chp  C    3       3      8        80     10      7         H     0   0   -36   7   8   chp_0      chp_1
+danwoo     chp  C    3       3      8        80     10      7         H     0   -2  -36   7   8   chp_0      chp_1
 danwoo     clk  C    3       2      4        30     6       4         L     0   10  -6    8   6   crouch     clk
 danwoo     chk  C    5       3      10       90     12      8         L     1   10  -5    8   5   crouch     chk
 danwoo     jp   A    3       4      0        60     8       6         O     0   6   -19   7   6   jump       jp
 danwoo     jk   A    4       5      0        80     9       7         O     0   9   -11   8   6   jump       jk
 cheolsan   lp   S    3       2      4        40     6       4         H     0   11  -31   7   5   lp_0       lp_1
-cheolsan   hp   S    5       3      9        120    11      8         H     0   12  -29   8   6   hp_0       hp_1
+cheolsan   hp   S    4       3      8        120    11      8         H     0   12  -30   8   6   hp_0       hp_1
 cheolsan   lk   S    4       2      6        50     7       5         H     0   13  -21   8   6   lk_0       lk_1
 cheolsan   hk   S    6       3      10       130    12      9         H     0   10  -32   8   6   hk_0       hk_1
 cheolsan   clp  C    3       2      4        35     6       4         H     0   11  -25   7   5   crouch     clp
-cheolsan   chp  C    4       3      10       100    11      8         H     0   1   -43   8   9   chp_0      chp_1
+cheolsan   chp  C    4       3      10       100    11      8         H     0   -1  -44   8   9   chp_0      chp_1
 cheolsan   clk  C    4       2      5        40     6       4         L     0   12  -7    8   6   crouch     clk
 cheolsan   chk  C    6       3      12       110    12      9         L     1   12  -5    8   5   crouch     chk
 cheolsan   jp   A    4       4      0        80     8       6         O     0   8   -23   7   6   jump       jp
 cheolsan   jk   A    5       5      0        100    9       7         O     0   11  -13   8   6   jump       jk
+# throw: LP+LK together at close range. startup = tick the throw lands; hbX+hbW = reach from own anchor
+danwoo     throw S   3       1      8        110    0       0         H     1   0   -30   16  10  throw_0    throw_1
+cheolsan   throw S   3       1      8        150    0       0         H     1   0   -34   20  12  throw_0    throw_1

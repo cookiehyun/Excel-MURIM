@@ -3,8 +3,11 @@ Option Explicit
 
 ' Cell-pixel renderer.
 ' Draw into a back buffer, then Flush() paints only cells that differ from
-' what is already on the sheet (front buffer). Horizontal runs of the same
-' color are merged into one Range.Interior.Color call.
+' what is already on the sheet (front buffer).
+' Paint batching: horizontal runs of one color are merged, and all runs of the
+' same color are joined into one multi-area address ("A1:C1,F4:G4,...") so a
+' single Range(...).Interior.Color call paints many runs.
+' Headless = True (test harness) skips every sheet operation.
 
 Public Const SCREEN_W As Long = 120
 Public Const SCREEN_H As Long = 64
@@ -13,30 +16,43 @@ Private Const PIXEL_PT As Double = 5      ' cell size in points
 Private Const ORG_ROW As Long = 1         ' sheet row of pixel y = 0
 Private Const ORG_COL As Long = 1         ' sheet col of pixel x = 0
 Private Const GAME_SHEET As String = "Game"
+Private Const ADDR_MAX As Long = 240      ' Range() address strings must stay under 255 chars
+Private Const MAX_SLOTS As Long = 64
+
+Public Headless As Boolean
 
 Private mWs As Worksheet
 Private mBack() As Long
 Private mFront() As Long
 Private mBg() As Long
 Private mPaintCalls As Long
+Private mRuns As Long
+Private mColName(0 To SCREEN_W - 1) As String
+Private mSlotColor(0 To MAX_SLOTS - 1) As Long
+Private mSlotAddr(0 To MAX_SLOTS - 1) As String
+Private mSlots As Long
 
 Public Sub Init()
-    Set mWs = GetSheet(GAME_SHEET)
-    mWs.Cells.Interior.Color = RGB(16, 16, 20)     ' dark frame around the play area
-    SquareCells mWs, ORG_ROW, ORG_COL, SCREEN_H, SCREEN_W, PIXEL_PT
-    mWs.Activate
-    ActiveWindow.DisplayGridlines = False
-    ActiveWindow.DisplayHeadings = False
-    mWs.Cells(ORG_ROW + SCREEN_H + 2, ORG_COL).Select   ' keep selection box off the play area
-    ActiveWindow.ScrollRow = 1
-    ActiveWindow.ScrollColumn = 1
+    Dim x As Long, y As Long
+    If Not Headless Then
+        Set mWs = GetSheet(GAME_SHEET)
+        mWs.Cells.Interior.Color = RGB(16, 16, 20)     ' dark frame around the play area
+        SquareCells mWs, ORG_ROW, ORG_COL, SCREEN_H, SCREEN_W, PIXEL_PT
+        mWs.Activate
+        ActiveWindow.DisplayGridlines = False
+        ActiveWindow.DisplayHeadings = False
+        mWs.Cells(ORG_ROW + SCREEN_H + 2, ORG_COL).Select   ' keep selection box off the play area
+        ActiveWindow.ScrollRow = 1
+        ActiveWindow.ScrollColumn = 1
+    End If
+    For x = 0 To SCREEN_W - 1
+        mColName(x) = ColumnLetters(ORG_COL + x)
+    Next x
 
     ReDim mBack(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
     ReDim mFront(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
     ReDim mBg(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
     BuildBackground
-
-    Dim x As Long, y As Long
     For y = 0 To SCREEN_H - 1
         For x = 0 To SCREEN_W - 1
             mFront(x, y) = -1     ' force full paint on first frame
@@ -48,6 +64,14 @@ Public Property Get PaintCalls() As Long
     PaintCalls = mPaintCalls
 End Property
 
+Public Property Get RunCount() As Long
+    RunCount = mRuns
+End Property
+
+Public Function BackPixel(ByVal x As Long, ByVal y As Long) As Long
+    BackPixel = mBack(x, y)
+End Function
+
 Public Sub BeginFrame()
     Dim x As Long, y As Long
     For y = 0 To SCREEN_H - 1
@@ -55,6 +79,10 @@ Public Sub BeginFrame()
             mBack(x, y) = mBg(x, y)
         Next x
     Next y
+End Sub
+
+Public Sub PutPixel(ByVal x As Long, ByVal y As Long, ByVal color As Long)
+    If x >= 0 And x < SCREEN_W And y >= 0 And y < SCREEN_H Then mBack(x, y) = color
 End Sub
 
 Public Sub FillRect(ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h As Long, ByVal color As Long)
@@ -82,7 +110,9 @@ End Sub
 
 ' Draw sprite so that its anchor (ground point under the hip) lands on (x, y).
 ' Sprites face right; flip = True mirrors around the anchor.
-Public Sub DrawSprite(ByVal id As Long, ByVal x As Long, ByVal y As Long, ByVal flip As Boolean)
+' tint >= 0 paints every opaque pixel with that color (hit flash).
+Public Sub DrawSprite(ByVal id As Long, ByVal x As Long, ByVal y As Long, ByVal flip As Boolean, _
+                      Optional ByVal tint As Long = -1)
     Dim w As Long, h As Long, ax As Long, ay As Long, off As Long
     Dim sx As Long, sy As Long, px As Long, py As Long, c As Long
     w = Data.SprW(id): h = Data.SprH(id)
@@ -94,7 +124,9 @@ Public Sub DrawSprite(ByVal id As Long, ByVal x As Long, ByVal y As Long, ByVal 
                 c = Data.SprPix(off + sy * w + sx)
                 If c >= 0 Then
                     If flip Then px = x + ax - sx Else px = x - ax + sx
-                    If px >= 0 And px < SCREEN_W Then mBack(px, py) = c
+                    If px >= 0 And px < SCREEN_W Then
+                        If tint >= 0 Then mBack(px, py) = tint Else mBack(px, py) = c
+                    End If
                 End If
             Next sx
         End If
@@ -103,9 +135,9 @@ End Sub
 
 ' Paint differences to the sheet. Returns number of Range paint calls.
 Public Function Flush() As Long
-    Dim x As Long, y As Long, x0 As Long, c As Long
-    mPaintCalls = 0
-    Application.ScreenUpdating = False
+    Dim x As Long, y As Long, x0 As Long, c As Long, k As Long
+    mPaintCalls = 0: mRuns = 0: mSlots = 0
+    If Not Headless Then Application.ScreenUpdating = False
     For y = 0 To SCREEN_H - 1
         x = 0
         Do While x < SCREEN_W
@@ -118,17 +150,51 @@ Public Function Flush() As Long
                     mFront(x, y) = c
                     x = x + 1
                 Loop
-                mWs.Range(mWs.Cells(ORG_ROW + y, ORG_COL + x0), _
-                          mWs.Cells(ORG_ROW + y, ORG_COL + x - 1)).Interior.Color = c
-                mPaintCalls = mPaintCalls + 1
+                AddRun c, y, x0, x - 1
             Else
                 x = x + 1
             End If
         Loop
     Next y
-    Application.ScreenUpdating = True
+    For k = 0 To mSlots - 1
+        PaintSlot k
+    Next k
+    If Not Headless Then Application.ScreenUpdating = True
     Flush = mPaintCalls
 End Function
+
+Private Sub AddRun(ByVal c As Long, ByVal y As Long, ByVal x0 As Long, ByVal x1 As Long)
+    Dim a As String, k As Long, r As String
+    r = CStr(ORG_ROW + y)
+    If x0 = x1 Then a = mColName(x0) & r Else a = mColName(x0) & r & ":" & mColName(x1) & r
+    mRuns = mRuns + 1
+
+    For k = 0 To mSlots - 1
+        If mSlotColor(k) = c Then Exit For
+    Next k
+    If k = mSlots Then
+        If mSlots = MAX_SLOTS Then
+            ' too many colors this frame: flush everything and start over
+            For k = 0 To mSlots - 1
+                PaintSlot k
+            Next k
+            mSlots = 0
+            k = 0
+        End If
+        mSlotColor(k) = c
+        mSlotAddr(k) = ""
+        mSlots = mSlots + 1
+    End If
+    If Len(mSlotAddr(k)) + Len(a) + 1 > ADDR_MAX Then PaintSlot k
+    If Len(mSlotAddr(k)) = 0 Then mSlotAddr(k) = a Else mSlotAddr(k) = mSlotAddr(k) & "," & a
+End Sub
+
+Private Sub PaintSlot(ByVal k As Long)
+    If Len(mSlotAddr(k)) = 0 Then Exit Sub
+    If Not Headless Then mWs.Range(mSlotAddr(k)).Interior.Color = mSlotColor(k)
+    mPaintCalls = mPaintCalls + 1
+    mSlotAddr(k) = ""
+End Sub
 
 ' ---------- setup helpers (also used by Gallery) ----------
 
@@ -160,6 +226,16 @@ Public Sub SquareCells(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long
     Next i
     ws.Columns(c0).Resize(, nCols).ColumnWidth = cw
 End Sub
+
+Private Function ColumnLetters(ByVal col As Long) As String
+    Dim s As String, n As Long
+    n = col
+    Do While n > 0
+        s = Chr$(65 + ((n - 1) Mod 26)) & s
+        n = (n - 1) \ 26
+    Loop
+    ColumnLetters = s
+End Function
 
 Private Sub BuildBackground()
     Dim x As Long, y As Long, t As Double, c As Long

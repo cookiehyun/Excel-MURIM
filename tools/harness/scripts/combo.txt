@@ -1,0 +1,9 @@
+# Danwoo LP > LP > HP chain on an idle Cheolsan
+CMD place 50 66
+5 -
+1 A
+3 -
+1 A
+3 -
+1 S
+25 -

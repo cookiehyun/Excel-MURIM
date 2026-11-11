@@ -1,0 +1,10 @@
+# Cheolsan dummy holds back (stand guard). Danwoo: HP (blocked), then crouch LK (low, hits)
+CMD place 50 66
+CMD dummy 1
+5 -
+1 S
+20 -
+3 D
+1 D+Z
+20 D
+10 -

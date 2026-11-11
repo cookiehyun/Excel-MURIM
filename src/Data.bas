@@ -8,6 +8,8 @@ Option Explicit
 ' Names are "<file>.<sprite>", e.g. "danwoo.idle_0".
 
 Private Const DATA_DIR As String = "data"
+Private Const ERR_BASE As Long = -2147221504   ' = vbObjectError (not defined in every VBA host)
+Public BaseDir As String          ' optional override of the data folder (test harness)
 
 Public SprCount As Long
 Public SprW() As Long, SprH() As Long, SprAX() As Long, SprAY() As Long, SprOff() As Long
@@ -18,6 +20,7 @@ Private mPixUsed As Long
 Public AnimCount As Long
 Public AnimTPF() As Long, AnimStart() As Long, AnimLen() As Long
 Public AnimFrames() As Long
+Private mFrameNames() As String     ' resolved to sprite ids after all files are loaded
 Private mFramesUsed As Long
 
 Public StageW As Long, StageH As Long
@@ -49,6 +52,7 @@ Public Sub LoadAll()
     ReDim SprPix(0 To 65535)
     ReDim AnimTPF(0 To 31): ReDim AnimStart(0 To 31): ReDim AnimLen(0 To 31)
     ReDim AnimFrames(0 To 255)
+    ReDim mFrameNames(0 To 255)
     Set mSprIdx = New Collection
     Set mAnimIdx = New Collection
 
@@ -56,30 +60,38 @@ Public Sub LoadAll()
     LoadSpriteFile "cheolsan"
     LoadStageFile "stage_sanmun"
     LoadMoves
+    ResolveAnimFrames
+End Sub
+
+Private Sub ResolveAnimFrames()
+    Dim k As Long
+    For k = 0 To mFramesUsed - 1
+        AnimFrames(k) = SpriteId(mFrameNames(k))
+    Next k
 End Sub
 
 Public Function MoveId(ByVal nm As String) As Long
     On Error GoTo Missing
-    MoveId = mMoveIdx(nm)
+    MoveId = mMoveIdx.Item(nm)
     Exit Function
 Missing:
-    Err.Raise vbObjectError + 516, "Data", "Move not found: " & nm & " (data\moves.txt)"
+    Err.Raise ERR_BASE + 516, "Data", "Move not found: " & nm & " (data\moves.txt)"
 End Function
 
 Public Function SpriteId(ByVal nm As String) As Long
     On Error GoTo Missing
-    SpriteId = mSprIdx(nm)
+    SpriteId = mSprIdx.Item(nm)
     Exit Function
 Missing:
-    Err.Raise vbObjectError + 513, "Data", "Sprite not found: " & nm
+    Err.Raise ERR_BASE + 513, "Data", "Sprite not found: " & nm
 End Function
 
 Public Function AnimId(ByVal nm As String) As Long
     On Error GoTo Missing
-    AnimId = mAnimIdx(nm)
+    AnimId = mAnimIdx.Item(nm)
     Exit Function
 Missing:
-    Err.Raise vbObjectError + 514, "Data", "Anim not found: " & nm
+    Err.Raise ERR_BASE + 514, "Data", "Anim not found: " & nm
 End Function
 
 ' Sprite id of the frame shown at tick t of an animation (loops). reverse = play backwards.
@@ -192,8 +204,11 @@ Private Sub AddAnim(ByVal fileName As String, parts() As String)
     AnimStart(a) = mFramesUsed
     AnimLen(a) = UBound(parts) - 2
     For k = 3 To UBound(parts)
-        If mFramesUsed > UBound(AnimFrames) Then ReDim Preserve AnimFrames(0 To UBound(AnimFrames) * 2 + 1)
-        AnimFrames(mFramesUsed) = SpriteId(fileName & "." & parts(k))
+        If mFramesUsed > UBound(AnimFrames) Then
+            ReDim Preserve AnimFrames(0 To UBound(AnimFrames) * 2 + 1)
+            ReDim Preserve mFrameNames(0 To UBound(AnimFrames))
+        End If
+        mFrameNames(mFramesUsed) = fileName & "." & parts(k)
         mFramesUsed = mFramesUsed + 1
     Next k
     mAnimIdx.Add a, fileName & "." & parts(1)
@@ -220,7 +235,7 @@ Private Sub LoadMoves()
                 ln = Replace(ln, "  ", " ")
             Loop
             p = Split(ln, " ")
-            If UBound(p) < 16 Then Err.Raise vbObjectError + 517, "Data", "moves.txt line " & (i + 1) & ": expected 17 columns"
+            If UBound(p) < 16 Then Err.Raise ERR_BASE + 517, "Data", "moves.txt line " & (i + 1) & ": expected 17 columns"
             id = MvCount
             Select Case p(2)
                 Case "S": MvKind(id) = MK_STAND
@@ -247,16 +262,23 @@ End Sub
 ' ---------- helpers ----------
 
 Private Function DataPath(ByVal fileName As String) As String
-    DataPath = ThisWorkbook.Path & "\" & DATA_DIR & "\" & fileName
+    If Len(BaseDir) > 0 Then
+        DataPath = BaseDir & fileName
+    Else
+        DataPath = ThisWorkbook.Path & "\" & DATA_DIR & "\" & fileName
+    End If
 End Function
 
-Private Function ReadLines(ByVal fullPath As String) As String()
-    Dim f As Integer, s As String
-    If Len(Dir(fullPath)) = 0 Then Err.Raise vbObjectError + 515, "Data", "File not found: " & fullPath
+Private Function ReadLines(ByVal fullPath As String) As Variant      ' String array
+    Dim f As Integer, s As String, b() As Byte
+    If Len(Dir(fullPath)) = 0 Then Err.Raise ERR_BASE + 515, "Data", "File not found: " & fullPath
     f = FreeFile
     Open fullPath For Binary Access Read As #f
-    s = Space$(LOF(f))
-    Get #f, , s
+    If LOF(f) > 0 Then
+        ReDim b(0 To LOF(f) - 1)
+        Get #f, , b
+        s = StrConv(b, vbUnicode)
+    End If
     Close #f
     s = Replace(s, vbCr, "")
     ReadLines = Split(s, vbLf)
