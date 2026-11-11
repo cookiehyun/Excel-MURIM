@@ -69,7 +69,7 @@ Public Sub StartGame()
             If statFrames > 0 Then
                 Application.StatusBar = "FPS " & statFrames & " | ticks/s " & statTicks & _
                     " | paint calls/frame " & Format(statPaints / statFrames, "0.0") & _
-                    " | P1 " & Fighter.ControlledName & " (Tab = switch) | Esc = quit"
+                    " | " & Fighter.StatusText & " | Esc = quit"
             End If
             statT = nowT: statFrames = 0: statTicks = 0: statPaints = 0
         End If

@@ -71,6 +71,15 @@ Public Sub FillRect(ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h A
     Next j
 End Sub
 
+' 1px rectangle outline (debug boxes).
+Public Sub DrawRectOutline(ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h As Long, ByVal color As Long)
+    If w <= 0 Or h <= 0 Then Exit Sub
+    FillRect x, y, w, 1, color
+    FillRect x, y + h - 1, w, 1, color
+    FillRect x, y, 1, h, color
+    FillRect x + w - 1, y, 1, h, color
+End Sub
+
 ' Draw sprite so that its anchor (ground point under the hip) lands on (x, y).
 ' Sprites face right; flip = True mirrors around the anchor.
 Public Sub DrawSprite(ByVal id As Long, ByVal x As Long, ByVal y As Long, ByVal flip As Boolean)

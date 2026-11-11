@@ -26,8 +26,12 @@ Public Const BTN_HP As Long = 5   ' heavy punch
 Public Const BTN_LK As Long = 6   ' light kick
 Public Const BTN_HK As Long = 7   ' heavy kick
 Public Const BTN_QUIT As Long = 8
-Public Const BTN_SWAP As Long = 9   ' debug: switch controlled fighter
-Public Const BTN_COUNT As Long = 10
+Public Const BTN_SWAP As Long = 9       ' debug: switch controlled fighter (Tab)
+Public Const BTN_DBG_HIT As Long = 10   ' debug: hit the other fighter (H)
+Public Const BTN_DBG_DOWN As Long = 11  ' debug: knock the other fighter down (J)
+Public Const BTN_DBG_DUMMY As Long = 12 ' debug: toggle dummy attacks (D)
+Public Const BTN_DBG_BOX As Long = 13   ' debug: toggle hitbox display (F1)
+Public Const BTN_COUNT As Long = 14
 
 Private mVK(0 To BTN_COUNT - 1) As Long
 Private mCur(0 To BTN_COUNT - 1) As Boolean
@@ -45,6 +49,10 @@ Public Sub Init()
     mVK(BTN_HK) = &H58      ' X
     mVK(BTN_QUIT) = &H1B    ' Esc
     mVK(BTN_SWAP) = &H9     ' Tab
+    mVK(BTN_DBG_HIT) = &H48   ' H
+    mVK(BTN_DBG_DOWN) = &H4A  ' J
+    mVK(BTN_DBG_DUMMY) = &H44 ' D
+    mVK(BTN_DBG_BOX) = &H70   ' F1
     mPid = GetCurrentProcessId()
 
     Dim i As Long

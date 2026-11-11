@@ -144,8 +144,10 @@ BASE_POSES = {
     "hk_0": P(lean=-15, lf=(120, 30), lb=(-5, 0), af=(60, 150)),
     "hk_1": P(lean=-28, lf=(122, 128), lb=(-5, 0), af=(40, 160), ab=(-30, 20)),
     "clp": P(lean=20, lf=CROUCH_F, lb=CROUCH_B, af=(88, 86)),
-    "clk": P(lean=10, lf=(86, 90), lb=CROUCH_B, ground="hip_low"),
-    "chk": P(lean=45, lf=(96, 98), lb=(55, -65), af=(25, 15), ab=(35, 25), ground="hip_low"),
+    "chp_0": P(lean=22, lf=CROUCH_F, lb=CROUCH_B, ab=(-20, 40)),
+    "chp_1": P(lean=5, lf=(45, -5), lb=(10, -50), ab=(150, 172), af=(30, 120)),
+    "clk": P(lean=14, lf=(68, 74), lb=(55, -75), ground="hip_low"),
+    "chk": P(lean=45, lf=(70, 78), lb=(88, -88), af=(25, 15), ab=(35, 25), ground="hip_low"),
     "jp": P(lean=12, lf=TUCK_F, lb=TUCK_B, af=(60, 55), ground="air"),
     "jk": P(lean=-12, lf=(68, 64), lb=(92, -30), ground="air"),
     "guard": P(lean=-6, lf=(20, 5), lb=(-30, -15), af=(30, 165), ab=(45, 150)),
@@ -406,8 +408,12 @@ def generate(spec, overrides):
     for ch, hx in spec["palette"].items():
         out.append(f"PAL {ch} {hx}")
     previews = []
+    points = []
     for name, pose in poses.items():
-        grid, _ = build(spec, pose)
+        grid, pt = build(spec, pose)
+        if pose["ground"] != "bbox":
+            rel = lambda k: (round(pt[k][0] - AX, 1), round(pt[k][1] - AY, 1))
+            points.append(f"{name}: hF={rel('hF')} hB={rel('hB')} fF={rel('fF')} fB={rel('fB')} head={rel('head')}")
         g, ax, ay = crop(grid)
         h, w = g.shape
         out.append(f"SPRITE {name} {w} {h} {ax} {ay}")
@@ -419,6 +425,10 @@ def generate(spec, overrides):
     path = os.path.join(ROOT, "data", f"{spec['name']}.txt")
     with open(path, "w", newline="\r\n") as f:
         f.write("\n".join(out) + "\n")
+
+    with open(os.path.join(ROOT, "docs", f"{spec['name']}_points.txt"), "w") as f:
+        f.write("# limb end positions relative to anchor (x right, y down) - reference for hitboxes\n")
+        f.write("\n".join(points) + "\n")
 
     # contact sheet preview
     scale = 6
