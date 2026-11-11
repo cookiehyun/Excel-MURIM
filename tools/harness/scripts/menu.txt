@@ -1,0 +1,12 @@
+# menu: move to LEVEL, raise to HARD, back up, start (A)
+5 -
+1 D
+2 -
+1 R
+2 -
+1 R
+2 -
+1 U
+3 -
+1 A
+20 -

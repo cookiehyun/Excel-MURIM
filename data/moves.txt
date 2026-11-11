@@ -39,5 +39,5 @@ cheolsan   jp    A    4       4      0        80     8       6         O     0  
 cheolsan   jk    A    5       5      0        100    9       7         O     0  11  -13 8   6   jump       jk        N    0    0  -
 cheolsan   throw S    3       1      8        150    0       0         H     1  0   -34 20  12  throw_0    throw_1   T    0    0  -
 cheolsan   sp1   S    2       1      14       200    0       0         H     1  0   -34 24  12  throw_0    throw_1   G    0    0  624P
-cheolsan   sp2   S    4       4      12       120    14      10        H     1  8   -30 12  20  rush_0     rush_1    R    3.5  0  26P
+cheolsan   sp2   S    4       5      12       120    14      10        H     1  8   -30 12  20  rush_0     rush_1    R    4.5  0  26P
 cheolsan   super S    3       1      16       380    0       0         H     1  0   -36 40  14  throw_0    throw_1   SG   0    0  2626P

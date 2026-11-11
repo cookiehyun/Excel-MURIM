@@ -13,6 +13,7 @@ Private mMv(0 To 1) As Long
 Private mHits(0 To 1) As Long
 Private mCD(0 To 1) As Long          ' ticks until it can hit again (multi-hit)
 Private mAge(0 To 1) As Long
+Private mStall(0 To 1) As Long       ' multi-hit: hold position while hitting
 Private mAnimSmall As Long
 Private mAnimBig As Long
 
@@ -36,6 +37,7 @@ Public Sub Spawn(ByVal owner As Long, ByVal mv As Long)
     mHits(owner) = Data.MvP2(mv)
     If mHits(owner) < 1 Then mHits(owner) = 1
     mCD(owner) = 0
+    mStall(owner) = 0
     mAge(owner) = 0
     mOn(owner) = True
 End Sub
@@ -54,7 +56,11 @@ Public Sub Update()
     Dim k As Long
     For k = 0 To 1
         If mOn(k) Then
-            mX(k) = mX(k) + mVX(k)
+            If mStall(k) > 0 Then
+                mStall(k) = mStall(k) - 1
+            Else
+                mX(k) = mX(k) + mVX(k)
+            End If
             mAge(k) = mAge(k) + 1
             If mCD(k) > 0 Then mCD(k) = mCD(k) - 1
             If mX(k) < -20 Or mX(k) > SCREEN_W + 20 Then mOn(k) = False
@@ -90,7 +96,12 @@ Private Sub CheckHit(ByVal k As Long)
     mHits(k) = mHits(k) - 1
     lastHit = (mHits(k) <= 0)
     Combat.ApplyAttack k, d, mMv(k), Int(mX(k)), Int(mY(k)), True, lastHit
-    If lastHit Then mOn(k) = False Else mCD(k) = 3
+    If lastHit Then
+        mOn(k) = False
+    Else
+        mCD(k) = 3
+        mStall(k) = 3
+    End If
 End Sub
 
 Public Sub Draw()
