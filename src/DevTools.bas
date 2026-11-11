@@ -35,7 +35,23 @@ Public Sub ImportSrc()
             proj.VBComponents.Import srcPath & nm & ".bas"
         End If
     Next nm
-    MsgBox names.Count & " file(s) found, imported from " & srcPath, vbInformation, "DevTools"
+    ' remove standard modules that no longer exist in src\ (renamed / deleted)
+    Dim stale As New Collection, keep As Boolean, removed As Long
+    For Each comp In proj.VBComponents
+        If comp.Type = 1 And StrComp(comp.Name, SELF_NAME, vbTextCompare) <> 0 Then
+            keep = False
+            For Each nm In names
+                If StrComp(nm, comp.Name, vbTextCompare) = 0 Then keep = True
+            Next nm
+            If Not keep Then stale.Add comp
+        End If
+    Next comp
+    For Each comp In stale
+        proj.VBComponents.Remove comp
+        removed = removed + 1
+    Next comp
+    MsgBox names.Count & " file(s) imported from " & srcPath & IIf(removed > 0, vbCrLf & removed & " old module(s) removed", ""), _
+           vbInformation, "DevTools"
 End Sub
 
 Public Sub ExportSrc()

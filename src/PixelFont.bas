@@ -1,4 +1,4 @@
-Attribute VB_Name = "Font"
+Attribute VB_Name = "PixelFont"
 Option Explicit
 
 ' 3x5 pixel font (A-Z, 0-9, a few symbols). Text is drawn with a 1px dark shadow.

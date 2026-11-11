@@ -31,8 +31,8 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                 Case "start"
                     ' CMD start <human 0/1> <level 0-2> <watch 0/1> <seed>
                     Game.HumanIndex = CLng(p(2))
-                    Game.Level = CLng(p(3))
-                    Game.Watch = (p(4) = "1")
+                    Game.CpuLevel = CLng(p(3))
+                    Game.WatchMode = (p(4) = "1")
                     Game.AutoRestart = True
                     Game.StartMatch CLng(p(5))
                 Case "meter"
@@ -59,7 +59,7 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                     Game.GameRender
                     tick = tick + 1
                     Print #f, "T " & tick & " " & Renderer.PaintCalls & " " & Renderer.RunCount & " " & Combat.HitStop & _
-                              " " & Game.State & " " & Combat.ComboCount(0) & " " & Combat.ComboCount(1) & _
+                              " " & Game.GameState & " " & Combat.ComboCount(0) & " " & Combat.ComboCount(1) & _
                               " | " & FighterLine(0) & " | " & FighterLine(1)
                     If dumpEvery > 0 Then
                         If tick Mod dumpEvery = 0 Then DumpFrame f, tick

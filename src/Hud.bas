@@ -48,21 +48,21 @@ Public Sub Draw()
     Dim t As String, owner As Long
     DrawBar 0, P1_X, False
     DrawBar 1, P2_X, True
-    Font.DrawText UCase$(Fighter.F(0).prefix), P1_X + 1, 8, RGB(230, 230, 240)
-    Font.DrawText UCase$(Fighter.F(1).prefix), P2_X + BAR_W + 1, 8, RGB(230, 230, 240), 1, 2
+    PixelFont.DrawText UCase$(Fighter.F(0).prefix), P1_X + 1, 8, RGB(230, 230, 240)
+    PixelFont.DrawText UCase$(Fighter.F(1).prefix), P2_X + BAR_W + 1, 8, RGB(230, 230, 240), 1, 2
     DrawMeter 0, P1_X, False
     DrawMeter 1, SCREEN_W - P1_X - METER_W - 2, True
-    If Combat.ComboCount(0) >= 2 Then Font.DrawText Combat.ComboCount(0) & " HITS", P1_X + 1, 15, RGB(255, 220, 90)
-    If Combat.ComboCount(1) >= 2 Then Font.DrawText Combat.ComboCount(1) & " HITS", P2_X + BAR_W + 1, 15, RGB(255, 220, 90), 1, 2
+    If Combat.ComboCount(0) >= 2 Then PixelFont.DrawText Combat.ComboCount(0) & " HITS", P1_X + 1, 15, RGB(255, 220, 90)
+    If Combat.ComboCount(1) >= 2 Then PixelFont.DrawText Combat.ComboCount(1) & " HITS", P2_X + BAR_W + 1, 15, RGB(255, 220, 90), 1, 2
     t = Combat.BannerText
     If Len(t) > 0 Then
         owner = Combat.BannerOwner
         If owner = 0 Then
-            Font.DrawText t, P1_X + 1, 22, RGB(255, 140, 70)
+            PixelFont.DrawText t, P1_X + 1, 22, RGB(255, 140, 70)
         ElseIf owner = 1 Then
-            Font.DrawText t, P2_X + BAR_W + 1, 22, RGB(255, 140, 70), 1, 2
+            PixelFont.DrawText t, P2_X + BAR_W + 1, 22, RGB(255, 140, 70), 1, 2
         Else
-            Font.DrawText t, SCREEN_W \ 2, 22, RGB(150, 220, 255), 1, 1
+            PixelFont.DrawText t, SCREEN_W \ 2, 22, RGB(150, 220, 255), 1, 1
         End If
     End If
     If Combat.IsKO Then DrawKO
@@ -103,10 +103,10 @@ Private Sub DrawMeter(ByVal i As Long, ByVal ox As Long, ByVal fromRight As Bool
     End If
     If fromRight Then
         Renderer.FillRect ox + 1 + METER_W - w, METER_Y + 1, w, 1, c
-        If full Then Font.DrawText "MAX", ox - 2, METER_Y - 2, cMeterFull, 1, 2
+        If full Then PixelFont.DrawText "MAX", ox - 2, METER_Y - 2, cMeterFull, 1, 2
     Else
         Renderer.FillRect ox + 1, METER_Y + 1, w, 1, c
-        If full Then Font.DrawText "MAX", ox + METER_W + 5, METER_Y - 2, cMeterFull
+        If full Then PixelFont.DrawText "MAX", ox + METER_W + 5, METER_Y - 2, cMeterFull
     End If
 End Sub
 

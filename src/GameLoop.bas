@@ -60,7 +60,7 @@ Public Sub StartGame()
                 Application.StatusBar = "FPS " & statFrames & " | ticks/s " & statTicks & _
                     " | paint calls/frame " & Format(statPaints / statFrames, "0.0") & _
                     " | render ms/frame " & Format(1000 * statRender / statFrames, "0") & _
-                    " | LV " & CpuAI.LevelName(Game.Level) & " | " & Fighter.StatusText & " | Esc = quit"
+                    " | LV " & CpuAI.LevelName(Game.CpuLevel) & " | " & Fighter.StatusText & " | Esc = quit"
             End If
             statT = nowT: statFrames = 0: statTicks = 0: statPaints = 0: statRender = 0
         End If

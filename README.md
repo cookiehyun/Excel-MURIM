@@ -15,7 +15,7 @@ excel-fighter/
     Game.bas          메뉴 + 순수 게임 로직 (GameInit / GameTick / GameRender) - 하니스와 공유
     CpuAI.bas         CPU: 반응 지연·확률 기반 판단, 실제 커맨드 입력으로 필살기 사용, 난이도 3단계
     Projectile.bas    장풍 (상쇄, 다단히트)
-    Font.bas          3x5 픽셀 폰트
+    PixelFont.bas     3x5 픽셀 폰트
     Fighter.bas       상태 머신: 대기/걷기/앉기/점프/공격/가드/피격/다운/잡기, 콤보 체인, 입력 버퍼
     Combat.bas        히트박스 vs 허트박스, 상단/하단/중단 가드 판정, 데미지, 히트스톱, KO
     FX.bas            히트/가드 스파크

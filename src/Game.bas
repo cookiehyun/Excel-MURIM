@@ -7,10 +7,10 @@ Option Explicit
 Public Const GS_MENU As Long = 0
 Public Const GS_FIGHT As Long = 1
 
-Public State As Long
-Public Level As Long                 ' CpuAI.LV_EASY / LV_NORMAL / LV_HARD
+Public GameState As Long
+Public CpuLevel As Long                 ' CpuAI.LV_EASY / LV_NORMAL / LV_HARD
 Public HumanIndex As Long            ' 0 = Danwoo, 1 = Cheolsan
-Public Watch As Boolean              ' CPU vs CPU
+Public WatchMode As Boolean              ' CPU vs CPU
 Public AutoRestart As Boolean        ' harness: start a new match after KO instead of the menu
 
 Private mCursor As Long
@@ -23,11 +23,11 @@ Public Sub GameInit(ByVal headless As Boolean)
     Renderer.Init
     FX.Init
     Hud.Init
-    Level = LV_NORMAL
+    CpuLevel = LV_NORMAL
     HumanIndex = 0
-    Watch = False
+    WatchMode = False
     StartMatch 0                       ' build fighters so the menu can show them
-    State = GS_MENU
+    GameState = GS_MENU
 End Sub
 
 Public Sub StartMatch(Optional ByVal seed As Long = 0)
@@ -35,14 +35,14 @@ Public Sub StartMatch(Optional ByVal seed As Long = 0)
     Combat.Init
     Projectile.Init
     FX.Init
-    CpuAI.Init Level, seed
-    State = GS_FIGHT
+    CpuAI.Init CpuLevel, seed
+    GameState = GS_FIGHT
 End Sub
 
 Public Sub GameTick()
     Dim i As Long
     KeyInput.Poll
-    If State = GS_MENU Then
+    If GameState = GS_MENU Then
         MenuTick
         Exit Sub
     End If
@@ -75,13 +75,13 @@ Public Sub GameTick()
         If AutoRestart Then
             StartMatch
         Else
-            State = GS_MENU
+            GameState = GS_MENU
         End If
     End If
 End Sub
 
 Public Function IsCpu(ByVal i As Long) As Boolean
-    If Watch Then
+    If WatchMode Then
         IsCpu = True
     ElseIf i <> Fighter.Controlled Then
         IsCpu = (Fighter.DummyMode = DUMMY_CPU)
@@ -90,7 +90,7 @@ End Function
 
 Public Sub GameRender()
     Dim dark As Boolean
-    If State = GS_MENU Then
+    If GameState = GS_MENU Then
         MenuRender
     Else
         dark = (Combat.SuperFreeze > 0)
@@ -114,9 +114,9 @@ Private Sub MenuTick()
         Case 0
             HumanIndex = 1 - HumanIndex
         Case 1
-            If KeyInput.IsPressed(BTN_RIGHT) Then Level = (Level + 1) Mod 3 Else Level = (Level + 2) Mod 3
+            If KeyInput.IsPressed(BTN_RIGHT) Then CpuLevel = (CpuLevel + 1) Mod 3 Else CpuLevel = (CpuLevel + 2) Mod 3
         Case Else
-            Watch = Not Watch
+            WatchMode = Not WatchMode
         End Select
     End If
     If KeyInput.IsPressed(BTN_LP) Then StartMatch
@@ -130,7 +130,7 @@ Private Sub MenuRender()
     Renderer.DrawSprite Data.AnimFrame(Fighter.F(1).aIdle, mMenuTick), SCREEN_W - 13, GROUND_Y, True
     Renderer.FillRect 25, 19, 70, 29, RGB(18, 14, 30)
     Renderer.DrawRectOutline 25, 19, 70, 29, RGB(90, 70, 120)
-    Font.DrawText "EXCEL MUHYEOP", SCREEN_W \ 2, 5, RGB(255, 214, 120), 2, 1
+    PixelFont.DrawText "EXCEL MUHYEOP", SCREEN_W \ 2, 5, RGB(255, 214, 120), 2, 1
     For k = 0 To 2
         y = 22 + k * 9
         Select Case k
@@ -139,15 +139,15 @@ Private Sub MenuRender()
             If HumanIndex = 0 Then v = "DANWOO" Else v = "CHEOLSAN"
         Case 1
             lbl = "LEVEL"
-            v = (Level + 1) & " " & CpuAI.LevelName(Level)
+            v = (CpuLevel + 1) & " " & CpuAI.LevelName(CpuLevel)
         Case Else
             lbl = "MODE"
-            If Watch Then v = "WATCH CPU" Else v = "VS CPU"
+            If WatchMode Then v = "WATCH CPU" Else v = "VS CPU"
         End Select
         If k = mCursor Then c = RGB(255, 255, 255) Else c = RGB(140, 130, 160)
-        Font.DrawText lbl, 28, y, c
+        PixelFont.DrawText lbl, 28, y, c
         If k = mCursor Then v = "<" & v & ">"
-        Font.DrawText v, 75, y, c, 1, 1
+        PixelFont.DrawText v, 75, y, c, 1, 1
     Next k
-    If (mMenuTick \ 8) Mod 2 = 0 Then Font.DrawText "A = START", SCREEN_W \ 2, 52, RGB(255, 200, 90), 1, 1
+    If (mMenuTick \ 8) Mod 2 = 0 Then PixelFont.DrawText "A = START", SCREEN_W \ 2, 52, RGB(255, 200, 90), 1, 1
 End Sub
