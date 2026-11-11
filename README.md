@@ -10,10 +10,20 @@ excel-fighter/
   src/                <- VBA 모듈(.bas), git으로 관리
     GameLoop.bas      고정 타임스텝 루프, 세션 설정/복구
     KeyInput.bas      GetAsyncKeyState 입력 (held/pressed), 포커스 없으면 무시
-    Renderer.bas      셀 픽셀 프레임버퍼, 바뀐 셀만 칠하기, 가로 런 병합
-    Fighter.bas       1단계용 테스트 박스 (걷기/점프/앉기)
+    Renderer.bas      셀 픽셀 프레임버퍼, 스프라이트(좌우 반전), 바뀐 셀만 칠하기
+    Data.bas          data/*.txt 로더 (스프라이트, 애니메이션, 스테이지)
+    Fighter.bas       캐릭터 2명: 대기/걷기/앉기/점프 애니메이션, 방향 전환, 밀어내기
+    Gallery.bas       모든 스프라이트를 Gallery 시트에 펼쳐서 확인
     DevTools.bas      src <-> 워크북 동기화 (Import/Export)
+  data/               <- 게임 데이터 (텍스트, 엑셀이 실행 시 읽음)
+    danwoo.txt, cheolsan.txt, stage_sanmun.txt
+  tools/              <- 데이터 생성기 (Python)
+    gen_sprites.py    관절 리그 -> 도트 스프라이트
+    gen_stage.py      스테이지 배경
+  docs/preview/       <- 생성된 스프라이트/배경 미리보기 PNG
 ```
+
+> `data/`의 스프라이트는 생성기 출력물이라 직접 고치지 않는다. 포즈나 색을 바꾸려면 `tools/`의 스크립트를 수정한 뒤 `python tools/gen_sprites.py`를 실행한다.
 
 > `.bas` 파일은 ASCII만 쓴다. VBE가 시스템 코드페이지(CP949)로 읽기 때문에 한글 주석을 넣으면 깨진다.
 
@@ -38,16 +48,19 @@ Alt+F8 → `StartGame`
 | ← → | 이동 |
 | ↑ | 점프 |
 | ↓ | 앉기 |
-| A / S / Z / X | 약P / 강P / 약K / 강K (1단계에서는 박스 색만 바뀜) |
+| A / S / Z / X | 약P / 강P / 약K / 강K (3단계부터 동작) |
+| Tab | 조작 캐릭터 전환 (단우 <-> 철산, 디버그용) |
 | Esc | 종료 |
+
+전체 도트 확인: Alt+F8 → `ShowGallery`
 
 - 상태 표시줄에 `FPS | ticks/s | paint calls/frame`이 표시된다.
 - 엑셀이 입력을 받지 않게 되면 VBE 직접 실행 창(Ctrl+G)에 `GameLoop.RestoreExcel`을 입력한다.
 
 ## 단계
 
-- [ ] ① 루프 + 입력 + 박스 이동 ← **현재**
-- [ ] ② 캐릭터 그리기 (숨긴 시트의 스프라이트 데이터)
+- [x] ① 루프 + 입력 + 박스 이동
+- [ ] ② 캐릭터 그리기 + 스테이지 배경 ← **현재**
 - [ ] ③ 상태 머신
 - [ ] ④ 공격 판정 (히트박스/허트박스, 프레임 데이터)
 - [ ] ⑤ CPU AI (3단계)

@@ -6,10 +6,10 @@ Option Explicit
 ' what is already on the sheet (front buffer). Horizontal runs of the same
 ' color are merged into one Range.Interior.Color call.
 
-Public Const SCREEN_W As Long = 96
-Public Const SCREEN_H As Long = 54
-Public Const GROUND_Y As Long = 46        ' first ground row (feet stand on GROUND_Y - 1)
-Private Const PIXEL_PT As Double = 6      ' cell size in points
+Public Const SCREEN_W As Long = 120
+Public Const SCREEN_H As Long = 64
+Public Const GROUND_Y As Long = 56        ' first floor row; feet stand on GROUND_Y - 1
+Private Const PIXEL_PT As Double = 5      ' cell size in points
 Private Const ORG_ROW As Long = 1         ' sheet row of pixel y = 0
 Private Const ORG_COL As Long = 1         ' sheet col of pixel x = 0
 Private Const GAME_SHEET As String = "Game"
@@ -21,8 +21,16 @@ Private mBg() As Long
 Private mPaintCalls As Long
 
 Public Sub Init()
-    Set mWs = GetGameSheet()
-    SetupGrid
+    Set mWs = GetSheet(GAME_SHEET)
+    mWs.Cells.Interior.Color = RGB(16, 16, 20)     ' dark frame around the play area
+    SquareCells mWs, ORG_ROW, ORG_COL, SCREEN_H, SCREEN_W, PIXEL_PT
+    mWs.Activate
+    ActiveWindow.DisplayGridlines = False
+    ActiveWindow.DisplayHeadings = False
+    mWs.Cells(ORG_ROW + SCREEN_H + 2, ORG_COL).Select   ' keep selection box off the play area
+    ActiveWindow.ScrollRow = 1
+    ActiveWindow.ScrollColumn = 1
+
     ReDim mBack(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
     ReDim mFront(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
     ReDim mBg(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
@@ -63,6 +71,27 @@ Public Sub FillRect(ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h A
     Next j
 End Sub
 
+' Draw sprite so that its anchor (ground point under the hip) lands on (x, y).
+' Sprites face right; flip = True mirrors around the anchor.
+Public Sub DrawSprite(ByVal id As Long, ByVal x As Long, ByVal y As Long, ByVal flip As Boolean)
+    Dim w As Long, h As Long, ax As Long, ay As Long, off As Long
+    Dim sx As Long, sy As Long, px As Long, py As Long, c As Long
+    w = Data.SprW(id): h = Data.SprH(id)
+    ax = Data.SprAX(id): ay = Data.SprAY(id): off = Data.SprOff(id)
+    For sy = 0 To h - 1
+        py = y - ay + sy
+        If py >= 0 And py < SCREEN_H Then
+            For sx = 0 To w - 1
+                c = Data.SprPix(off + sy * w + sx)
+                If c >= 0 Then
+                    If flip Then px = x + ax - sx Else px = x - ax + sx
+                    If px >= 0 And px < SCREEN_W Then mBack(px, py) = c
+                End If
+            Next sx
+        End If
+    Next sy
+End Sub
+
 ' Paint differences to the sheet. Returns number of Range paint calls.
 Public Function Flush() As Long
     Dim x As Long, y As Long, x0 As Long, c As Long
@@ -92,54 +121,52 @@ Public Function Flush() As Long
     Flush = mPaintCalls
 End Function
 
-' ---------- setup ----------
+' ---------- setup helpers (also used by Gallery) ----------
 
-Private Function GetGameSheet() As Worksheet
+Public Function GetSheet(ByVal sheetName As String) As Worksheet
     Dim ws As Worksheet
     On Error Resume Next
-    Set ws = ThisWorkbook.Worksheets(GAME_SHEET)
+    Set ws = ThisWorkbook.Worksheets(sheetName)
     On Error GoTo 0
     If ws Is Nothing Then
         Set ws = ThisWorkbook.Worksheets.Add(Before:=ThisWorkbook.Worksheets(1))
-        ws.Name = GAME_SHEET
+        ws.Name = sheetName
     End If
-    Set GetGameSheet = ws
+    Set GetSheet = ws
 End Function
 
-Private Sub SetupGrid()
+' Make an nRows x nCols block of square cells, pt points per side.
+Public Sub SquareCells(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long, _
+                       ByVal nRows As Long, ByVal nCols As Long, ByVal pt As Double)
     Dim cw As Double, w As Double, i As Long
-    With mWs
-        .Cells.Interior.Color = RGB(16, 16, 20)   ' dark frame around the play area
-        .Rows(ORG_ROW).Resize(SCREEN_H).RowHeight = PIXEL_PT
-
-        ' ColumnWidth is in character units; iterate until Width (points) ~= PIXEL_PT
-        cw = 1
-        For i = 1 To 6
-            .Columns(ORG_COL).ColumnWidth = cw
-            w = .Columns(ORG_COL).Width
-            If w <= 0 Then Exit For
-            cw = cw * PIXEL_PT / w
-            If cw < 0.05 Then cw = 0.05
-        Next i
-        .Columns(ORG_COL).Resize(, SCREEN_W).ColumnWidth = cw
-    End With
-
-    mWs.Activate
-    ActiveWindow.DisplayGridlines = False
-    ActiveWindow.DisplayHeadings = False
-    mWs.Cells(ORG_ROW + SCREEN_H + 2, ORG_COL).Select   ' keep selection box off the play area
-    ActiveWindow.ScrollRow = 1
-    ActiveWindow.ScrollColumn = 1
+    ws.Rows(r0).Resize(nRows).RowHeight = pt
+    ' ColumnWidth is in character units; iterate until Width (points) ~= pt
+    cw = 1
+    For i = 1 To 6
+        ws.Columns(c0).ColumnWidth = cw
+        w = ws.Columns(c0).Width
+        If w <= 0 Then Exit For
+        cw = cw * pt / w
+        If cw < 0.05 Then cw = 0.05
+    Next i
+    ws.Columns(c0).Resize(, nCols).ColumnWidth = cw
 End Sub
 
 Private Sub BuildBackground()
     Dim x As Long, y As Long, t As Double, c As Long
+    If Data.StageW = SCREEN_W And Data.StageH = SCREEN_H Then
+        For y = 0 To SCREEN_H - 1
+            For x = 0 To SCREEN_W - 1
+                mBg(x, y) = Data.StagePix(x, y)
+            Next x
+        Next y
+        Exit Sub
+    End If
+    ' fallback: plain gradient if no stage data matches the screen size
     For y = 0 To SCREEN_H - 1
         If y < GROUND_Y Then
-            t = y / (GROUND_Y - 1)                      ' sky gradient top -> horizon
+            t = y / (GROUND_Y - 1)
             c = RGB(40 + 60 * t, 60 + 80 * t, 120 + 90 * t)
-        ElseIf y = GROUND_Y Then
-            c = RGB(90, 70, 50)                         ' ground edge
         Else
             c = RGB(60, 45, 35)
         End If

@@ -26,6 +26,7 @@ Public Sub StartGame()
 
     BeginSession
     KeyInput.Init
+    Data.LoadAll
     Renderer.Init
     Fighter.Init
     mRunning = True
@@ -68,7 +69,7 @@ Public Sub StartGame()
             If statFrames > 0 Then
                 Application.StatusBar = "FPS " & statFrames & " | ticks/s " & statTicks & _
                     " | paint calls/frame " & Format(statPaints / statFrames, "0.0") & _
-                    " | tick " & mTick & " | Esc = quit"
+                    " | P1 " & Fighter.ControlledName & " (Tab = switch) | Esc = quit"
             End If
             statT = nowT: statFrames = 0: statTicks = 0: statPaints = 0
         End If
@@ -107,7 +108,7 @@ End Sub
 ' Tiny input monitor in the top-left corner: one 2x2 square per button.
 Private Sub DrawInputDisplay()
     Dim b As Long, c As Long
-    For b = 0 To BTN_COUNT - 2          ' skip Quit
+    For b = BTN_LEFT To BTN_HK          ' direction + 4 attack buttons
         If KeyInput.IsDown(b) Then c = RGB(255, 255, 255) Else c = RGB(30, 40, 70)
         Renderer.FillRect 1 + b * 3, 1, 2, 2, c
     Next b

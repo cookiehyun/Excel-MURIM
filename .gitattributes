@@ -3,3 +3,6 @@
 *.cls text eol=crlf
 *.frm text eol=crlf
 *.xlsm binary
+data/*.txt text eol=crlf
+*.py text eol=lf
+*.png binary
