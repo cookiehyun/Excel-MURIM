@@ -38,6 +38,9 @@ excel-fighter/
 
 ## 최초 세팅 (1회)
 
+자세한 단계별 안내: [docs/SETUP_KO.md](docs/SETUP_KO.md)
+
+
 1. 엑셀에서 새 통합 문서를 만들고 `src/`와 같은 폴더에 `ExcelFighter.xlsm`으로 저장한다.
    (OneDrive 동기화 폴더에 두면 `ThisWorkbook.Path`가 URL이 되므로 로컬 경로를 쓴다.)
 2. 파일 > 옵션 > 보안 센터 > 보안 센터 설정 > 매크로 설정
