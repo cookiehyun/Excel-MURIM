@@ -3,7 +3,7 @@ Option Explicit
 
 ' Excel session + fixed-timestep loop. Logic runs at exactly LOGIC_HZ,
 ' rendering happens once per loop iteration if at least one tick ran.
-' Entry point: StartGame. Esc quits.
+' Entry point: StartGame. Esc = pause menu in a fight, quit on the title screen.
 ' If Excel ever gets stuck (no input), run RestoreExcel from the Immediate window.
 
 Public Const LOGIC_HZ As Long = 20                 ' 1 tick = 1 "frame" for frame data
@@ -19,6 +19,7 @@ Public Sub StartGame()
 
     BeginSession
     Game.GameInit False
+    Game.QuitRequested = False
     mRunning = True
 
     Dim prevT As Double, nowT As Double, frameT As Double, acc As Double
@@ -38,7 +39,7 @@ Public Sub StartGame()
         steps = 0
         Do While acc >= DT And steps < MAX_STEPS
             Game.GameTick
-            If KeyInput.IsPressed(BTN_QUIT) Then mRunning = False
+            If Game.QuitRequested Then mRunning = False
             acc = acc - DT
             steps = steps + 1
         Loop
@@ -60,7 +61,7 @@ Public Sub StartGame()
                 Application.StatusBar = "FPS " & statFrames & " | ticks/s " & statTicks & _
                     " | paint calls/frame " & Format(statPaints / statFrames, "0.0") & _
                     " | render ms/frame " & Format(1000 * statRender / statFrames, "0") & _
-                    " | LV " & CpuAI.LevelName(Game.CpuLevel) & " | " & Fighter.StatusText & " | Esc = quit"
+                    " | LV " & CpuAI.LevelName(Game.CpuLevel) & " | " & Fighter.StatusText & " | Esc = pause"
             End If
             statT = nowT: statFrames = 0: statTicks = 0: statPaints = 0: statRender = 0
         End If

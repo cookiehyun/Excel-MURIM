@@ -128,7 +128,7 @@ Public Sub Tick(ByVal frozen As Boolean)
         If Game.AutoRestart Then
             If mT >= 30 Then Game.StartMatch
         ElseIf KeyInput.IsPressed(BTN_LP) Then
-            Game.StartMatch                              ' rematch, same settings
+            Game.Restart                                 ' rematch, same settings
         ElseIf KeyInput.IsPressed(BTN_HP) Then
             Game.GameState = GS_MENU
         End If

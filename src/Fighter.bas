@@ -123,6 +123,10 @@ Public Type TFighter
     sDown1 As Long
     sDash As Long
     sBDash As Long
+    sPunchA As Long          ' super grab sequence poses
+    sPunchB As Long
+    sLift As Long
+    sSlam As Long
     moves(0 To 13) As Long
     spOrder(0 To 2) As Long  ' special slots sorted by command length (longest first)
 End Type
@@ -212,6 +216,10 @@ Private Sub Setup(ByVal i As Long, ByVal prefix As String, ByVal x As Double, By
         .sDown1 = Data.SpriteId(prefix & ".down_1")
         .sDash = Data.SpriteId(prefix & ".dash")
         .sBDash = Data.SpriteId(prefix & ".bdash")
+        .sPunchA = Data.SpriteId(prefix & ".lp_1")
+        .sPunchB = Data.SpriteId(prefix & ".hp_1")
+        .sLift = Data.SpriteId(prefix & ".throw_1")
+        .sSlam = Data.SpriteId(prefix & ".sp_1")
         For k = 0 To 13
             .moves(k) = Data.MoveId(prefix & "." & names(k))
         Next k
@@ -533,14 +541,16 @@ Private Sub UpdateFighter(ByVal i As Long)
             End Select
 
         Case ST_THROW
-            If .stTick = Data.MvStartup(.mv) Then
+            If Data.MvType(.mv) = MT_SUPER_GRAB Then
+                SuperGrabStep i
+            ElseIf .stTick = Data.MvStartup(.mv) Then
                 Combat.DealDamage 1 - i, Data.MvDamage(.mv)
                 Combat.AddMeter i, 80
                 ApplyHit 1 - i, 0, 2.5, True
                 FX.Spawn Int(F(1 - i).x + 0.5), Int(F(1 - i).footY) - 18, FX_HEAVY
                 Combat.HitStop = 4
             End If
-            If .stTick >= MoveTotal(.mv) Then SetState i, ST_IDLE
+            If Data.MvType(.mv) <> MT_SUPER_GRAB And .stTick >= MoveTotal(.mv) Then SetState i, ST_IDLE
 
         Case ST_THROWN
             .vx = 0
@@ -730,10 +740,58 @@ Private Function TryGrab(ByVal i As Long, ByVal mv As Long) As Boolean
     SetState o, ST_THROWN
     F(o).crouch = False
     F(o).bufAtk = -1
-    F(o).x = F(i).x + F(i).facing * (F(i).halfW + F(o).halfW - 2)
+    If Data.MvType(mv) <> MT_SUPER_GRAB Then F(o).x = F(i).x + F(i).facing * (F(i).halfW + F(o).halfW - 2)
     If Data.MvType(mv) = MT_SUPER_GRAB Then FX.Spawn Int(F(o).x + 0.5), Int(F(o).footY) - 20, FX_HEAVY
     TryGrab = True
 End Function
+
+' Super grab: lunge in, four punches, lift overhead, slam into the ground.
+Private Const SG_END As Long = 46
+Private Sub SuperGrabStep(ByVal i As Long)
+    Dim o As Long, t As Long, tx As Double, hx As Long, hy As Long, slamDmg As Long
+    o = 1 - i
+    With F(i)
+        t = .stTick
+        If t <= 4 Then                                         ' close the distance
+            tx = F(o).x - .facing * (.halfW + F(o).halfW - 2)
+            .x = .x + (tx - .x) * 0.5
+        End If
+        hx = Int(F(o).x + 0.5) - .facing * 2
+        hy = Int(F(o).footY) - 22
+        Select Case t
+        Case 6, 10, 14, 18                                     ' rapid punches
+            Combat.DealDamage o, 40
+            Combat.AddComboHit i
+            F(o).flash = 1
+            If t = 18 Then
+                FX.Spawn hx, hy, FX_HEAVY
+            Else
+                FX.Spawn hx, hy, FX_HIT
+            End If
+            Combat.HitStop = 2
+        Case 34                                                 ' slam it down in front of him
+            F(o).footY = GROUND_Y
+            F(o).x = .x + .facing * (.halfW + F(o).halfW + 6)
+            slamDmg = Data.MvDamage(.mv) - 160
+            If slamDmg < 0 Then slamDmg = 0
+            Combat.DealDamage o, slamDmg
+            Combat.AddComboHit i
+            ApplyHit o, 0, 1.2, True
+            F(o).vy = -2
+            F(o).flash = 2
+            FX.Spawn Int(F(o).x + 0.5), GROUND_Y - 3, FX_SLAM
+            FX.Spawn Int(F(o).x + 0.5) - 8, GROUND_Y - 6, FX_HEAVY
+            FX.Spawn Int(F(o).x + 0.5) + 8, GROUND_Y - 6, FX_HEAVY
+            Combat.HitStop = 8
+            Combat.ShowText "NAHAN BOKMA", 40, i
+        End Select
+        If t >= 22 And t < 34 And F(o).state = ST_THROWN Then   ' lifted overhead, then swung forward
+            F(o).x = .x + .facing * IIf(t < 30, 3, 3 + (t - 29) * 4)
+            F(o).footY = GROUND_Y - IIf(t < 28, (t - 21) * 5, IIf(t < 30, 30, 30 - (t - 29) * 6))
+        End If
+        If t >= SG_END Then SetState i, ST_IDLE
+    End With
+End Sub
 
 Private Sub TechThrow(ByVal i As Long)
     Dim o As Long
@@ -980,7 +1038,17 @@ Private Function CurrentSprite(ByVal i As Long) As Long
         Case ST_DASH
             If .backward Then CurrentSprite = .sBDash Else CurrentSprite = .sDash
         Case ST_ATTACK, ST_THROW
-            If .state = ST_THROW Then
+            If .state = ST_THROW And Data.MvType(.mv) = MT_SUPER_GRAB Then
+                If t < 6 Then
+                    CurrentSprite = Data.MvSprS(.mv)
+                ElseIf t < 21 Then
+                    If (t \ 4) Mod 2 = 0 Then CurrentSprite = .sPunchB Else CurrentSprite = .sPunchA
+                ElseIf t < 34 Then
+                    CurrentSprite = .sLift
+                Else
+                    CurrentSprite = .sSlam
+                End If
+            ElseIf .state = ST_THROW Then
                 If t >= Data.MvStartup(.mv) Then CurrentSprite = Data.MvSprA(.mv) Else CurrentSprite = Data.MvSprS(.mv)
             ElseIf Data.MvType(.mv) = MT_RISE And Not .onGround Then
                 CurrentSprite = Data.MvSprA(.mv)
@@ -1001,6 +1069,15 @@ Private Function CurrentSprite(ByVal i As Long) As Long
             End If
         Case ST_THROWN
             CurrentSprite = .sHit0
+            If F(1 - i).state = ST_THROW Then
+                If Data.MvType(F(1 - i).mv) = MT_SUPER_GRAB Then
+                    If F(1 - i).stTick >= 22 Then
+                        CurrentSprite = .sDown0                 ' held overhead
+                    ElseIf (F(1 - i).stTick \ 4) Mod 2 = 1 Then
+                        CurrentSprite = .sHit1
+                    End If
+                End If
+            End If
         Case ST_DOWN
             Select Case .downPhase
             Case 0: CurrentSprite = .sDown0

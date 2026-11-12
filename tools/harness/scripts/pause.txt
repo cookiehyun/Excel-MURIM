@@ -1,0 +1,20 @@
+# title -> TRAINING -> pick -> pick -> stage -> fight; Esc = pause; MAIN MENU
+4 -
+1 A
+4 -
+1 A
+4 -
+1 A
+4 -
+1 A
+20 -
+1 ESC
+4 -
+1 D
+3 -
+1 D
+3 -
+1 D
+6 -
+1 A
+10 -

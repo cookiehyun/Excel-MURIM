@@ -22,7 +22,11 @@ Public P2Char As String
 Public StageIndex As Long            ' Data stage (0 = mountain gate)
 Public WatchMode As Boolean              ' CPU vs CPU
 Public GameMode As Long              ' MODE_TRAINING / MODE_VSCPU
+Public QuitRequested As Boolean       ' title screen Esc -> GameLoop stops
 Public AutoRestart As Boolean        ' harness: start a new match after KO instead of the menu
+
+Private mPaused As Boolean
+Private mPauseSel As Long
 
 
 Public Sub GameInit(ByVal headless As Boolean)
@@ -48,6 +52,7 @@ Public Sub StartMatch(Optional ByVal seed As Long = 0)
     Combat.Init
     Projectile.Init
     FX.Init
+    mPaused = False
     CpuAI.Init CpuLevel, seed
     Dim rounds As Boolean, training As Boolean
     rounds = (GameMode = MODE_VSCPU)
@@ -59,6 +64,17 @@ End Sub
 Public Sub GameTick()
     Dim i As Long, frozen As Boolean
     KeyInput.Poll
+    If GameState = GS_FIGHT Then
+        If KeyInput.IsPressed(BTN_QUIT) Then                ' Esc = pause menu
+            mPaused = Not mPaused
+            mPauseSel = 0
+            Exit Sub
+        End If
+        If mPaused Then
+            PauseTick
+            Exit Sub
+        End If
+    End If
     If GameState = GS_MENU Then
         Screens.TitleTick
         Exit Sub
@@ -128,7 +144,54 @@ Public Sub GameRender()
         FX.Draw
         Hud.Draw
         Match.Draw
+        If mPaused Then PauseRender
     End If
     Renderer.Flush
 End Sub
 
+
+' ---------------------------------------------------------------- pause menu (Esc during a fight)
+
+' Start the same match again (training keeps its idle dummy).
+Public Sub Restart()
+    StartMatch
+    If GameMode = MODE_TRAINING Then Fighter.SetDummy DUMMY_IDLE
+End Sub
+
+Private Sub PauseTick()
+    If KeyInput.IsPressed(BTN_UP) Then mPauseSel = (mPauseSel + 3) Mod 4
+    If KeyInput.IsPressed(BTN_DOWN) Then mPauseSel = (mPauseSel + 1) Mod 4
+    If KeyInput.IsPressed(BTN_HP) Then mPaused = False             ' S = resume
+    If KeyInput.IsPressed(BTN_LP) Then
+        mPaused = False
+        Select Case mPauseSel
+        Case 1: Restart
+        Case 2: Screens.SelectBegin
+        Case 3: GameState = GS_MENU
+        End Select
+    End If
+End Sub
+
+Private Sub PauseRender()
+    Dim k As Long, y As Long, c As Long, lbl As String, cx As Long
+    cx = SCREEN_W \ 2
+    Renderer.FillRect cx - 40, 22, 80, 58, RGB(14, 10, 22)
+    Renderer.DrawRectOutline cx - 40, 22, 80, 58, RGB(230, 180, 80)
+    PixelFont.DrawBig "PAUSE", cx, 26, RGB(255, 204, 92), 1
+    For k = 0 To 3
+        y = 39 + k * 9
+        Select Case k
+        Case 0: lbl = "RESUME"
+        Case 1: lbl = "RESTART"
+        Case 2: lbl = "CHARACTER SELECT"
+        Case Else: lbl = "MAIN MENU"
+        End Select
+        If k = mPauseSel Then
+            Renderer.FillRect cx - 36, y - 2, 72, 9, RGB(60, 40, 20)
+            c = RGB(255, 236, 180)
+        Else
+            c = RGB(140, 130, 160)
+        End If
+        PixelFont.DrawText lbl, cx, y, c, 1, 1
+    Next k
+End Sub

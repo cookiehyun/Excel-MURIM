@@ -56,6 +56,15 @@ Public Sub ShowText(ByVal s As String, ByVal ticks As Long, Optional ByVal owner
     mTextOwner = owner
 End Sub
 
+' A hit landed outside ApplyAttack (super grab sequence): count it in the combo.
+Public Sub AddComboHit(ByVal a As Long)
+    mCombo(a) = mCombo(a) + 1
+    If mCombo(a) >= 2 Then
+        mComboShown(a) = mCombo(a)
+        mComboShow(a) = 40
+    End If
+End Sub
+
 Public Sub StartSuper(ByVal i As Long)
     SuperFreeze = 12
     SuperOwner = i

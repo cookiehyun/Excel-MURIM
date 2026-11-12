@@ -6,9 +6,11 @@ Option Explicit
 Public Const FX_HIT As Long = 0
 Public Const FX_HEAVY As Long = 1
 Public Const FX_BLOCK As Long = 2
+Public Const FX_SLAM As Long = 3       ' ground impact (shock ring + dust)
 
 Private Const MAX_FX As Long = 8
 Private Const FX_LIFE As Long = 4
+Private Const SLAM_LIFE As Long = 8
 
 Private mX(0 To MAX_FX - 1) As Long
 Private mY(0 To MAX_FX - 1) As Long
@@ -26,7 +28,7 @@ Public Sub Spawn(ByVal x As Long, ByVal y As Long, ByVal kind As Long)
     Dim k As Long, oldest As Long
     oldest = 0
     For k = 0 To MAX_FX - 1
-        If mAge(k) >= FX_LIFE Then Exit For
+        If mAge(k) >= Life(k) Then Exit For
         If mAge(k) > mAge(oldest) Then oldest = k
     Next k
     If k = MAX_FX Then k = oldest
@@ -36,15 +38,43 @@ End Sub
 Public Sub Update()
     Dim k As Long
     For k = 0 To MAX_FX - 1
-        If mAge(k) < FX_LIFE Then mAge(k) = mAge(k) + 1
+        If mAge(k) < Life(k) Then mAge(k) = mAge(k) + 1
     Next k
 End Sub
 
 Public Sub Draw()
     Dim k As Long
     For k = 0 To MAX_FX - 1
-        If mAge(k) < FX_LIFE Then Spark mX(k), mY(k), mAge(k), mType(k)
+        If mAge(k) < Life(k) Then
+            If mType(k) = FX_SLAM Then
+                Slam mX(k), mY(k), mAge(k)
+            Else
+                Spark mX(k), mY(k), mAge(k), mType(k)
+            End If
+        End If
     Next k
+End Sub
+
+Private Function Life(ByVal k As Long) As Long
+    If mType(k) = FX_SLAM Then Life = SLAM_LIFE Else Life = FX_LIFE
+End Function
+
+' Ground impact: flattened shock ring that widens, plus dust puffs and a white core.
+Private Sub Slam(ByVal x As Long, ByVal y As Long, ByVal age As Long)
+    Dim r As Long, k As Long, a As Double, c As Long, dx As Long
+    r = 4 + age * 4
+    If age < 3 Then c = RGB(255, 255, 255) Else c = RGB(255, 210, 120)
+    For k = 0 To 31
+        a = k * 3.14159 / 16
+        Renderer.PutPixel x + Int(Cos(a) * r), y + Int(Sin(a) * r * 0.35), c
+    Next k
+    If age < 2 Then Renderer.FillRect x - 6, y - 10, 13, 10, RGB(255, 255, 255)
+    For dx = -2 To 2
+        If dx <> 0 Then
+            Renderer.FillRect x + dx * (6 + age * 3), y - 2 - age \ 2, 3, 2, RGB(170, 150, 120)
+            Renderer.PutPixel x + dx * (5 + age * 3), y - 4 - age, RGB(200, 185, 150)
+        End If
+    Next dx
 End Sub
 
 Private Sub Spark(ByVal x As Long, ByVal y As Long, ByVal age As Long, ByVal kind As Long)

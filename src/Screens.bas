@@ -43,6 +43,7 @@ End Function
 Public Sub TitleTick()
     mMenuTick = mMenuTick + 1
     If KeyInput.IsPressed(BTN_UP) Or KeyInput.IsPressed(BTN_DOWN) Then mCursor = 1 - mCursor
+    If KeyInput.IsPressed(BTN_QUIT) Then Game.QuitRequested = True       ' Esc on the title = quit
     If KeyInput.IsPressed(BTN_LP) Then
         Game.GameMode = mCursor
         Game.WatchMode = False
@@ -126,8 +127,7 @@ Private Sub SelectDone()
 End Sub
 
 Private Sub LaunchMatch()
-    Game.StartMatch
-    If Game.GameMode = MODE_TRAINING Then Fighter.SetDummy DUMMY_IDLE
+    Game.Restart
 End Sub
 
 Private Function BoxX(ByVal k As Long) As Long
