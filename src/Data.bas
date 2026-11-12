@@ -24,7 +24,9 @@ Private mFrameNames() As String     ' resolved to sprite ids after all files are
 Private mFramesUsed As Long
 
 Public StageW As Long, StageH As Long
-Public StagePix() As Long          ' (x, y)
+Public StageCount As Long
+Public StagePix() As Long          ' (stage, x, y)
+Public StageName() As String       ' display names
 
 ' Moves (data\moves.txt)
 Public Const MK_STAND As Long = 0
@@ -56,7 +58,7 @@ Private mMoveIdx As Collection
 
 Public Sub LoadAll()
     SprCount = 0: mPixUsed = 0: AnimCount = 0: mFramesUsed = 0
-    StageW = 0: StageH = 0
+    StageW = 0: StageH = 0: StageCount = 0
     ReDim SprW(0 To 63): ReDim SprH(0 To 63): ReDim SprAX(0 To 63): ReDim SprAY(0 To 63)
     ReDim SprOff(0 To 63): ReDim SprName(0 To 63)
     ReDim SprPix(0 To 65535)
@@ -69,7 +71,16 @@ Public Sub LoadAll()
     LoadSpriteFile "danwoo"
     LoadSpriteFile "cheolsan"
     LoadSpriteFile "fx"
-    LoadStageFile "stage_sanmun"
+    ' stages: file name, display name (order = stage select order)
+    Dim st As Variant, k As Long
+    st = Array("sanmun", "MOUNTAIN GATE", "bamboo", "BAMBOO FOREST", "inn", "NIGHT INN", _
+               "snow", "SNOW PEAK", "waterfall", "WATERFALL")
+    StageCount = (UBound(st) + 1) \ 2
+    ReDim StageName(0 To StageCount - 1)
+    For k = 0 To StageCount - 1
+        StageName(k) = st(k * 2 + 1)
+        LoadStageFile "stage_" & st(k * 2), k
+    Next k
     LoadMoves
     ResolveAnimFrames
 End Sub
@@ -151,7 +162,7 @@ Private Sub LoadSpriteFile(ByVal fileName As String)
     Loop
 End Sub
 
-Private Sub LoadStageFile(ByVal fileName As String)
+Private Sub LoadStageFile(ByVal fileName As String, ByVal idx As Long)
     Dim lines() As String, parts() As String, ln As String
     Dim pal(0 To 255) As Long, b() As Byte
     Dim i As Long, k As Long, x As Long, y As Long
@@ -168,13 +179,17 @@ Private Sub LoadStageFile(ByVal fileName As String)
             Case "PAL"
                 pal(Asc(parts(1))) = HexColor(parts(2))
             Case "STAGE"
-                StageW = CLng(parts(2)): StageH = CLng(parts(3))
-                ReDim StagePix(0 To StageW - 1, 0 To StageH - 1)
+                If idx = 0 Then
+                    StageW = CLng(parts(2)): StageH = CLng(parts(3))
+                    ReDim StagePix(0 To StageCount - 1, 0 To StageW - 1, 0 To StageH - 1)
+                ElseIf CLng(parts(2)) <> StageW Or CLng(parts(3)) <> StageH Then
+                    Err.Raise ERR_BASE + 518, "Data", fileName & ": stage size differs from the first stage"
+                End If
                 For y = 0 To StageH - 1
                     i = i + 1
                     b = StrConv(lines(i), vbFromUnicode)
                     For x = 0 To StageW - 1
-                        StagePix(x, y) = pal(b(x))
+                        StagePix(idx, x, y) = pal(b(x))
                     Next x
                 Next y
             End Select

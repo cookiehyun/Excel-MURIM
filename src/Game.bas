@@ -8,6 +8,7 @@ Public Const GS_MENU As Long = 0       ' title screen
 Public Const GS_FIGHT As Long = 1
 Public Const GS_SELECT As Long = 2
 Public Const GS_LEVEL As Long = 3
+Public Const GS_STAGE As Long = 4
 
 Public Const MODE_TRAINING As Long = 0
 Public Const MODE_VSCPU As Long = 1
@@ -17,6 +18,7 @@ Public CpuLevel As Long                 ' CpuAI.LV_EASY / LV_NORMAL / LV_HARD
 Public HumanIndex As Long            ' which fighter the keyboard controls (0 = left)
 Public P1Char As String              ' character names picked on the select screen
 Public P2Char As String
+Public StageIndex As Long            ' Data stage (0 = mountain gate)
 Public WatchMode As Boolean              ' CPU vs CPU
 Public GameMode As Long              ' MODE_TRAINING / MODE_VSCPU
 Public AutoRestart As Boolean        ' harness: start a new match after KO instead of the menu
@@ -40,6 +42,7 @@ Public Sub GameInit(ByVal headless As Boolean)
 End Sub
 
 Public Sub StartMatch(Optional ByVal seed As Long = 0)
+    Renderer.SetStage StageIndex
     Fighter.Init P1Char, P2Char, HumanIndex
     Combat.Init
     Projectile.Init
@@ -59,6 +62,9 @@ Public Sub GameTick()
         Exit Sub
     ElseIf GameState = GS_LEVEL Then
         Screens.LevelTick
+        Exit Sub
+    ElseIf GameState = GS_STAGE Then
+        Screens.StageTick
         Exit Sub
     End If
 
@@ -111,6 +117,8 @@ Public Sub GameRender()
         Screens.SelectRender
     ElseIf GameState = GS_LEVEL Then
         Screens.LevelRender
+    ElseIf GameState = GS_STAGE Then
+        Screens.StageRender
     Else
         dark = (Combat.SuperFreeze > 0)
         Renderer.BeginFrame dark

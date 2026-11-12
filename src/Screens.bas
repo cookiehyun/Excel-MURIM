@@ -17,6 +17,7 @@ Private mPhase As Long           ' select: 0 = player, 1 = opponent
 Private mSel(0 To 1) As Long     ' cursor per phase
 Private mPick(0 To 1) As Long    ' chosen roster slot per phase
 Private mLevelSel As Long
+Private mStageSel As Long
 
 Private cGold As Long, cDim As Long, cP1 As Long, cP2 As Long
 
@@ -120,7 +121,7 @@ Private Sub SelectDone()
         mLevelSel = Game.CpuLevel
         Game.GameState = GS_LEVEL
     Else
-        LaunchMatch
+        StageBegin
     End If
 End Sub
 
@@ -235,7 +236,7 @@ Public Sub LevelTick()
     If KeyInput.IsPressed(BTN_DOWN) Then mLevelSel = (mLevelSel + 1) Mod 3
     If KeyInput.IsPressed(BTN_LP) Then
         Game.CpuLevel = mLevelSel
-        LaunchMatch
+        StageBegin
     ElseIf KeyInput.IsPressed(BTN_HP) Then
         mPhase = 1
         Game.GameState = GS_SELECT
@@ -288,4 +289,54 @@ Private Sub Star(ByVal x As Long, ByVal y As Long, ByVal c As Long)
     Renderer.FillRect x, y - 2, 1, 5, c
     Renderer.FillRect x - 2, y, 5, 1, c
     Renderer.FillRect x - 1, y - 1, 3, 3, c
+End Sub
+
+' ---------------------------------------------------------------- stage select
+
+Private Sub StageBegin()
+    mStageSel = Game.StageIndex
+    Game.GameState = GS_STAGE
+End Sub
+
+Public Sub StageTick()
+    Dim n As Long
+    mMenuTick = mMenuTick + 1
+    n = Data.StageCount
+    If KeyInput.IsPressed(BTN_LEFT) Then mStageSel = (mStageSel + n - 1) Mod n
+    If KeyInput.IsPressed(BTN_RIGHT) Then mStageSel = (mStageSel + 1) Mod n
+    If KeyInput.IsPressed(BTN_LP) Then
+        Game.StageIndex = mStageSel
+        LaunchMatch
+    ElseIf KeyInput.IsPressed(BTN_HP) Then
+        If Game.GameMode = MODE_VSCPU Then
+            Game.GameState = GS_LEVEL
+        Else
+            mPhase = 1
+            Game.GameState = GS_SELECT
+        End If
+    End If
+End Sub
+
+Public Sub StageRender()
+    Dim k As Long, cx As Long, x0 As Long, y0 As Long, c As Long, blink As Boolean
+    cx = SCREEN_W \ 2
+    Renderer.FillRect 0, 0, SCREEN_W, SCREEN_H, RGB(12, 10, 22)
+    PixelFont.DrawBig "SELECT STAGE", cx, 2, cGold, 1
+    ' half-size preview with a frame
+    x0 = cx - SCREEN_W \ 4: y0 = 14
+    Renderer.DrawRectOutline x0 - 2, y0 - 2, SCREEN_W \ 2 + 4, SCREEN_H \ 2 + 4, cGold
+    Renderer.DrawRectOutline x0 - 1, y0 - 1, SCREEN_W \ 2 + 2, SCREEN_H \ 2 + 2, RGB(60, 44, 20)
+    Renderer.DrawStageThumb mStageSel, x0, y0, 2
+    ' arrows
+    blink = ((mMenuTick \ 6) Mod 2 = 0)
+    If blink Then c = cGold Else c = RGB(120, 90, 40)
+    PixelFont.DrawBig "<", x0 - 12, y0 + SCREEN_H \ 4 - 7, c, 2
+    PixelFont.DrawBig ">", x0 + SCREEN_W \ 2 + 12, y0 + SCREEN_H \ 4 - 7, c, 2
+    ' name + position dots
+    PixelFont.DrawBig Data.StageName(mStageSel), cx, 70, RGB(255, 240, 210), 1
+    For k = 0 To Data.StageCount - 1
+        If k = mStageSel Then c = cGold Else c = RGB(60, 52, 76)
+        Renderer.FillRect cx - (Data.StageCount * 6) \ 2 + k * 6 + 1, 81, 4, 3, c
+    Next k
+    PixelFont.DrawText "LEFT RIGHT = SELECT  A = FIGHT  S = BACK", cx, 92, RGB(110, 100, 130), 1, 1
 End Sub

@@ -54,12 +54,7 @@ Public Sub Init()
     ReDim mFront(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
     ReDim mBg(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
     ReDim mBgDark(0 To SCREEN_W - 1, 0 To SCREEN_H - 1)
-    BuildBackground
-    For y = 0 To SCREEN_H - 1
-        For x = 0 To SCREEN_W - 1
-            mBgDark(x, y) = Darken(mBg(x, y))
-        Next x
-    Next y
+    SetStage 0
     For y = 0 To SCREEN_H - 1
         For x = 0 To SCREEN_W - 1
             mFront(x, y) = -1     ' force full paint on first frame
@@ -293,12 +288,33 @@ Private Function ColumnLetters(ByVal col As Long) As String
     ColumnLetters = s
 End Function
 
-Private Sub BuildBackground()
+' Switch the background to stage k (the diff renderer repaints what changed).
+Public Sub SetStage(ByVal k As Long)
+    Dim x As Long, y As Long
+    BuildBackground k
+    For y = 0 To SCREEN_H - 1
+        For x = 0 To SCREEN_W - 1
+            mBgDark(x, y) = Darken(mBg(x, y))
+        Next x
+    Next y
+End Sub
+
+' Half-size (or 1/stp) preview of stage k with its top-left at (x0, y0).
+Public Sub DrawStageThumb(ByVal k As Long, ByVal x0 As Long, ByVal y0 As Long, ByVal stp As Long)
+    Dim x As Long, y As Long
+    For y = 0 To SCREEN_H \ stp - 1
+        For x = 0 To SCREEN_W \ stp - 1
+            PutPixel x0 + x, y0 + y, Data.StagePix(k, x * stp, y * stp)
+        Next x
+    Next y
+End Sub
+
+Private Sub BuildBackground(ByVal k As Long)
     Dim x As Long, y As Long, t As Double, c As Long
-    If Data.StageW = SCREEN_W And Data.StageH = SCREEN_H Then
+    If Data.StageW = SCREEN_W And Data.StageH = SCREEN_H And k < Data.StageCount Then
         For y = 0 To SCREEN_H - 1
             For x = 0 To SCREEN_W - 1
-                mBg(x, y) = Data.StagePix(x, y)
+                mBg(x, y) = Data.StagePix(k, x, y)
             Next x
         Next y
         Exit Sub
