@@ -404,7 +404,17 @@ def to_png(grid, palette, scale=8):
     return img.resize((w * scale, h * scale), Image.NEAREST)
 
 
+SCALE_KEYS = ("thigh", "shin", "torso", "upper", "fore", "head_r", "w_thigh", "w_shin", "w_upper",
+              "w_fore", "w_hand", "chest", "waist", "skirt")
+SPRITE_SCALE = float(os.environ.get("SPRITE_SCALE", "1"))   # experiment: uniform rig scale
+OUT_DIR = os.environ.get("OUT_DIR")                          # experiment: write data/previews elsewhere
+
+
 def generate(spec, overrides):
+    if SPRITE_SCALE != 1:
+        spec = dict(spec)
+        for k in SCALE_KEYS:
+            spec[k] = spec[k] * SPRITE_SCALE
     poses = dict(BASE_POSES)
     poses.update(overrides)
     out = []
@@ -428,11 +438,11 @@ def generate(spec, overrides):
         previews.append((name, g))
     for name, tpf, frames in ANIMS:
         out.append(f"ANIM {name} {tpf} " + " ".join(frames))
-    path = os.path.join(ROOT, "data", f"{spec['name']}.txt")
+    path = os.path.join(OUT_DIR or os.path.join(ROOT, "data"), f"{spec['name']}.txt")
     with open(path, "w", newline="\r\n") as f:
         f.write("\n".join(out) + "\n")
 
-    with open(os.path.join(ROOT, "docs", f"{spec['name']}_points.txt"), "w") as f:
+    with open(os.path.join(OUT_DIR or os.path.join(ROOT, "docs"), f"{spec['name']}_points.txt"), "w") as f:
         f.write("# limb end positions relative to anchor (x right, y down) - reference for hitboxes\n")
         f.write("\n".join(points) + "\n")
 
@@ -448,7 +458,7 @@ def generate(spec, overrides):
         cx = (i % cols) * cell_w * scale + (cell_w * scale - im.width) // 2
         cy = (i // cols) * cell_h * scale + (cell_h * scale - im.height) - 2 * scale
         sheet.alpha_composite(im, (cx, cy))
-    sheet.save(os.path.join(ROOT, "docs", "preview", f"{spec['name']}_sheet.png"))
+    sheet.save(os.path.join(OUT_DIR or os.path.join(ROOT, "docs", "preview"), f"{spec['name']}_sheet.png"))
     return [n for n, _ in previews]
 
 
