@@ -461,120 +461,84 @@ def snow(W, H):
 
 
 def waterfall(W, H):
-    """Rock ledge in front of a waterfall between mossy cliffs."""
+    """Fight right in front of a huge waterfall that fills the background."""
     import random
     rnd = random.Random(5)
     s = Stage(W, H, {
-        "0": "5E9CC4", "1": "74AED2", "2": "8CC0DE", "3": "A6D2EA",        # day sky
-        "f": "7FA4BA", "F": "98BCCC",                                       # distant mountains
-        "c": "5A625E", "C": "666E68", "D": "434A48", "k": "2C3230", "K": "8A928A",   # rock: mid / texture / shade / seam / lit
-        "g": "4E7A3E", "G": "6A9A4C",                                       # moss / grass
-        "b": "46545A", "B": "54626A",                                       # back cliff behind the falls
-        "w": "D8EEF6", "W": "A8D4EA", "v": "7FBCDC", "u": "FFFFFF",          # falling water
-        "p": "3E86B0", "P": "5AA2C8", "o": "8CC8E4",                        # pool / ripples
-        "s": "5E6462", "S": "4C5250", "e": "7A807C", "d": "3A3E3C", "m": "4E6A40",   # wet stone floor
+        "0": "5E9CC4", "1": "74AED2",                                       # sky strip
+        "c": "3C4648", "C": "4E5A5C", "k": "262C2E", "K": "6A7678", "G": "4E7A3E",   # rock edges
+        "w": "E4F4FA", "W": "B6DCEE", "v": "88C2E0", "V": "6AAED4", "u": "FFFFFF",   # water tones
+        "z": "EEF7FA", "Z": "D2E8F2",                                       # mist / spray
+        "p": "4A92BA", "P": "6CB0D4",                                       # plunge pool
+        "s": "5E6462", "S": "4C5250", "e": "8A928E", "d": "3A3E3C", "m": "4E6A40", "o": "7AA8C0",  # wet floor
     })
-    s.sky("0123", 0, s.Y(44))
-    s.ridge("f", "F", 21, [(5, 0.07, 0.5), (2.5, 0.19, 1.2), (0.8, 0.6, 0.3)], bottom=s.Y(44))
-    # low back cliff the water falls from
-    lip = lambda dx: 21 + 1.5 * math.sin(dx * 0.17) + 0.7 * math.sin(dx * 0.5)
-    for x in range(W):
+    s.sky("01", 0, s.Y(6))
+    lip = lambda dx: 3 + 1.2 * math.sin(dx * 0.11) + 0.6 * math.sin(dx * 0.37)
+    # water curtain: vertical bands 2-4 px wide, brighter in the middle, darker toward the edges
+    x = 0
+    while x < W:
+        bw = rnd.choice((2, 3, 3, 4))
         dx = x / s.sx
-        for y in range(s.Y(lip(dx)), s.Y(46)):
-            s.g[y][x] = "B" if rnd.random() < 0.07 else "b"
-        s.put(x, s.Y(lip(dx)), "G")
-        s.put(x, s.Y(lip(dx)) + 1, "g")
-    # waterfall
-    fx0, fx1 = 47, 73
-    for x in range(s.X(fx0), s.X(fx1)):
-        dx = x / s.sx
-        k = int(dx * 1.7) % 7
-        col = "w" if k in (0, 3) else ("W" if k in (1, 4, 5) else "v")
-        for y in range(s.Y(lip(dx)) - 1, s.Y(46)):
-            s.g[y][x] = col
-        s.put(x, s.Y(lip(dx)) - 1, "u")
-    # pool, ripples, foam
-    for y in range(s.Y(45), s.Y(51)):
+        centre = 1 - abs(dx - DW / 2) / (DW / 2)            # 1 in the middle, 0 at the edges
+        r = rnd.random() + centre * 0.6
+        col = "w" if r > 1.15 else ("W" if r > 0.75 else ("v" if r > 0.35 else "V"))
+        for xx in range(x, min(W, x + bw)):
+            for y in range(s.Y(lip(xx / s.sx)), s.Y(50)):
+                s.g[y][xx] = col
+            s.put(xx, s.Y(lip(xx / s.sx)), "u")
+        # a few long bright streaks running down inside the band
+        if rnd.random() < 0.35:
+            sx = x + bw // 2
+            y0 = rnd.randrange(s.Y(6), s.Y(30))
+            for y in range(y0, min(s.Y(50), y0 + rnd.randrange(s.Y(6), s.Y(18)))):
+                s.put(sx, y, "u")
+        x += bw
+    # dark rock peeking at both edges, behind the spray
+    for side in (0, 1):
+        for y in range(s.Y(lip(0)) - 1, s.Y(50)):
+            wdt = 3 + 2.2 * math.sin(y * 0.09 + side * 2) + 1.2 * math.sin(y * 0.31)
+            for k in range(int(wdt * s.sx)):
+                x = k if side == 0 else W - 1 - k
+                depth = int(wdt * s.sx) - k
+                s.g[y][x] = "k" if depth <= 1 else ("K" if depth <= 2 and side == 1 else ("C" if rnd.random() < 0.1 else "c"))
+        for k in range(int(6 * s.sx)):
+            x = k if side == 0 else W - 1 - k
+            s.put(x, s.Y(lip(0)) - 1, "G")
+    # plunge pool + churning foam + mist bank
+    for y in range(s.Y(46), s.Y(51)):
         s.g[y] = ["p"] * W
-    for y in range(s.Y(46), s.Y(51), 2):
         for x in range(W):
-            if math.sin(x * 0.45 + y * 1.7) > 0.8:
+            if math.sin(x * 0.5 + y * 1.9) > 0.7:
                 s.g[y][x] = "P"
-    fx = fx0 - 2
-    while fx < fx1 + 2:                                          # foam: overlapping round puffs
-        r = rnd.uniform(1.6, 2.6)
-        cy = 45 + rnd.uniform(-0.6, 0.6)
+    fx = -2.0
+    while fx < DW + 2:
+        r = rnd.uniform(2.2, 3.6)
+        cy = 46 + rnd.uniform(-1.2, 0.6)
         for y in range(s.Y(cy - r), s.Y(cy + r) + 1):
             for x in range(s.X(fx - r), s.X(fx + r) + 1):
                 d = math.hypot((x + 0.5) / s.sx - fx, (y + 0.5) / s.sy - cy)
                 if d <= r:
-                    s.put(x, y, "u" if d < r * 0.65 else "o")
-        fx += rnd.uniform(2.2, 3.4)
-
-    # framing cliffs: stacked angular boulders with lit top facets, shaded sides, dark seams
-    def boulder(pts):
-        """pts in design units; fill polygon with 3-tone faceted shading"""
-        spts = [(px * s.sx, py * s.sy) for px, py in pts]
-        mask = set()
-        ys = [p[1] for p in spts]
-        for y in range(max(0, int(min(ys))), min(s.ground, int(max(ys)) + 1)):
-            yc = y + 0.5
-            xs = []
-            for k in range(len(spts)):
-                (x1, y1), (x2, y2) = spts[k], spts[(k + 1) % len(spts)]
-                if (y1 <= yc < y2) or (y2 <= yc < y1):
-                    xs.append(x1 + (yc - y1) * (x2 - x1) / (y2 - y1))
-            xs.sort()
-            for a, b in zip(xs[0::2], xs[1::2]):
-                for x in range(int(round(a)), int(round(b))):
-                    if 0 <= x < W:
-                        mask.add((x, y))
-        def depth(x, y, dx, dy, lim):
-            n = 0
-            while n < lim and (x + dx * (n + 1), y + dy * (n + 1)) in mask:
-                n += 1
-            return n
-        for (x, y) in mask:
-            edge = not ((x, y - 1) in mask and (x, y + 1) in mask and (x - 1, y) in mask and (x + 1, y) in mask)
-            if edge:
-                col = "k"                                   # outline / seam
-                if (x, y - 1) not in mask and rnd.random() < 0.55:
-                    col = "G"                               # moss on top edges
-            elif depth(x, y, 0, -1, 4) < 1:
-                col = "G"                                   # moss on the very top
-            elif depth(x, y, 0, -1, 4) < 4 or depth(x, y, -1, 0, 3) < 2:
-                col = "K"                                   # lit top / left facet
-            elif depth(x, y, 1, 0, 6) < 5 or depth(x, y, 0, 1, 3) < 2:
-                col = "D"                                   # shaded right / bottom facet
-            else:
-                col = "C" if rnd.random() < 0.06 else "c"
-            s.g[y][x] = col
-        # a couple of cracks
-        cells = sorted(mask)
-        for _ in range(max(1, len(cells) // 900)):
-            x, y = rnd.choice(cells)
-            for _ in range(rnd.randint(3, 7)):
-                if (x, y) in mask and s.g[y][x] in "cCDK":
-                    s.g[y][x] = "k"
-                y += 1; x += rnd.choice((-1, 0, 0, 1))
-
-    left_blocks = [
-        [(-2, 30), (14, 27), (24, 31), (30, 40), (33, 52), (-2, 52)],
-        [(-2, 13), (9, 9), (21, 12), (27, 22), (24, 32), (12, 30), (-2, 33)],
-        [(-2, 0), (6, -2), (15, 1), (19, 10), (12, 14), (-2, 15)],
-    ]
-    right_blocks = [[(DW - x, y) for x, y in reversed(b)] for b in left_blocks]
-    right_blocks[0] = [(DW + 2, 28), (104, 26), (93, 31), (88, 41), (86, 52), (DW + 2, 52)]
-    right_blocks[1] = [(DW + 2, 11), (110, 8), (99, 12), (92, 21), (95, 30), (106, 28), (DW + 2, 31)]
-    for b in left_blocks[::-1] + right_blocks[::-1]:            # top blocks first, lower ones overlap them
-        boulder(b)
-    # wet rock ledge
+                    s.put(x, y, "u" if d < r * 0.6 else "Z")
+        fx += rnd.uniform(2.5, 4.0)
+    for y in range(s.Y(37), s.Y(44)):                          # mist rising from the pool: two soft solid layers
+        edge = s.Y(40) + int(1.5 * math.sin(y))
+        for x in range(W):
+            if s.g[y][x] in "vVWwu":
+                wave = int(1.2 * math.sin(x * 0.15) + 0.8 * math.sin(x * 0.41))
+                if y >= s.Y(41) + wave:
+                    s.g[y][x] = "z"
+                elif y >= s.Y(38.5) + wave:
+                    s.g[y][x] = "Z"
+    # wet rock ledge with puddles
     for y in range(s.Y(51), s.ground):
         s.g[y] = ["s"] * W
     s.rect(0, 51, DW, 0.8, "e")
     floor(s, "s", "S", "e", "d")
-    for x in range(W):                                           # moss tufts on the ground line
-        if math.sin(x * 0.19) + math.sin(x * 0.53) > 1.3:
+    for _ in range(6):                                        # puddles reflecting the water
+        px, py = rnd.uniform(6, DW - 14), rnd.uniform(DGROUND + 1.5, 62)
+        s.rect(px, py, rnd.uniform(5, 10), 0.8, "o")
+    for x in range(W):
+        if math.sin(x * 0.19) + math.sin(x * 0.53) > 1.4:
             s.put(x, s.ground - 1, "m")
     return s
 
