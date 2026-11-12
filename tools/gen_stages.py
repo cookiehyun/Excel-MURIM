@@ -280,97 +280,130 @@ def floor_dirt(s):
 
 
 def inn(W, H):
-    """Inn courtyard at night, paper lanterns strung across."""
+    """Wuxia inn (kezhan) at night: double sweeping roofs, red pillars, wine flag, lanterns under the eaves."""
     import random
     rnd = random.Random(3)
     s = Stage(W, H, {
-        "0": "0B1026", "1": "121938", "2": "1B2349", "*": "C8D0F0",        # sky, stars
-        "m": "E8E2C0",                                                       # moon
-        "r": "2A1E2A", "R": "3A2A36", "x": "4A3A48",                         # roof tiles / ridge / eave tips
-        "w": "4A3024", "W": "5E3E2C", "q": "3A251C",                         # timber wall / beams
-        "y": "F2C46A", "Y": "D89A40", "p": "8A5A30",                         # lit paper window / frame
-        "o": "1A1014",                                                       # open doorway (dark)
-        "h": "6A2A20", "H": "C89A40",                                        # plaque / plaque rim
-        "l": "D83A2A", "L": "FF7A4A", "t": "1A1218",                         # lanterns / glow / string
-        "b": "5A3A22", "B": "7A5230", "k": "2E1E14",                         # barrels
-        "s": "4E4038", "S": "3E322C", "e": "7A6248", "d": "2E2620", "u": "6A5444",  # floor (warm lit)
+        "0": "0B1026", "1": "121938", "2": "1B2349", "*": "C8D0F0", "m": "E8E2C0",
+        "M": "232B52", "N": "2C3560",                                         # distant mountains
+        "r": "2E4450", "R": "22343E", "x": "6A8494", "z": "18242C",           # roof tiles / grooves / eave edge / ridge
+        "g": "D4A848",                                                        # gold ornaments
+        "p": "A02C22", "P": "6E1C18", "b": "B8402C",                          # red pillars / shadow / beams
+        "c": "2F7A6A", "C": "48A08A",                                         # teal brackets
+        "w": "3E2820", "y": "F2C46A", "Y": "B07A34",                          # wall / lit lattice / lattice bars
+        "o": "1A1014",                                                        # doorway
+        "h": "141018",                                                        # plaque
+        "l": "D8342A", "L": "FF8A50", "t": "1A1218",                          # lanterns / glow / cord
+        "f": "E6DAB8", "F": "B8342A", "k": "4A3424",                          # wine flag cloth / border / pole
+        "s": "6E6658", "S": "5A5348", "e": "8E8676", "d": "3E3830", "u": "7E7060",   # stone
     })
     s.sky("012", 0, s.ground)
-    for _ in range(40):
-        x, y = rnd.randrange(W), rnd.randrange(s.Y(12))
-        s.put(x, y, "*")
-    s.disc(104, 7, 3.5, "m")
-    # distant rooftops beside the inn
-    for bx, bw, top in ((-4, 18, 30), (104, 20, 26)):
-        s.rect(bx, top, bw, DGROUND - top, "q")
-        s.rect(bx - 2, top - 2, bw + 4, 2, "r")
-        s.rect(bx - 3, top - 3, 2, 1, "x"); s.rect(bx + bw + 1, top - 3, 2, 1, "x")
-        s.rect(bx + 4, top + 4, 4, 3, "Y")
-    # building
-    left, right = 10, 110
-    s.rect(left, 16, right - left, DGROUND - 16, "w")                       # walls
-    for dy in (16, 30, 31):                                                  # floor beams
-        s.rect(left, dy, right - left, 1, "q")
-    for dx in range(left, right + 1, 20):                                    # posts
-        s.rect(dx - 0.6, 16, 1.3, DGROUND - 16, "q")
-    # upper roof with curved eaves
-    for dy in range(0, 6):
-        inset = 6 - dy
-        s.rect(left - 6 + inset * 0.6, 10 + dy, right - left + 12 - inset * 1.2, 1, "r" if dy % 2 else "R")
-    for k in range(3):                                                       # upturned eave tips
-        s.rect(left - 6 - k * 1.2, 14 - k * 1.6, 2, 1.6, "x")
-        s.rect(right + 4 + k * 1.2, 14 - k * 1.6, 2, 1.6, "x")
-    s.rect(left - 2, 9, right - left + 4, 1, "R")                            # ridge
-    s.rect(46, 7.5, 28, 1.5, "R")
-    # lower roof over the balcony
-    for dy in range(0, 3):
-        s.rect(left - 3 + dy, 32 + dy, right - left + 6 - dy * 2, 1, "r" if dy % 2 else "R")
-    for k in range(2):
-        s.rect(left - 4 - k, 33 - k * 1.2, 1.6, 1.2, "x")
-        s.rect(right + 2.4 + k, 33 - k * 1.2, 1.6, 1.2, "x")
-    # upper windows (lit paper, lattice)
-    for dx in (16, 36, 76, 96):
-        s.rect(dx, 19, 9, 8, "p")
-        s.rect(dx + 0.8, 19.8, 7.4, 6.4, "y")
-        for k in (3, 5.7):
-            s.rect(dx + k, 19.8, 0.6, 6.4, "Y")
-        s.rect(dx + 0.8, 22.8, 7.4, 0.6, "Y")
-    # plaque in the middle
-    s.rect(52, 19, 16, 7, "H")
-    s.rect(53, 20, 14, 5, "h")
-    for k in range(3):
-        s.rect(55.5 + k * 3.5, 21.2, 1.6, 2.6, "H")
-    # ground floor: doorway + lit windows
-    s.rect(54, 39, 12, DGROUND - 39, "o")
-    s.rect(53, 38, 14, 1, "q")
-    for dx in (20, 82):
-        s.rect(dx, 40, 14, 9, "p")
-        s.rect(dx + 0.8, 40.8, 12.4, 7.4, "y")
-        for k in (4, 8.3):
-            s.rect(dx + k, 40.8, 0.6, 7.4, "Y")
-    # lantern string + lanterns
-    for x in range(W):                                                       # continuous string
-        s.put(x, s.Y(26 + 5 * math.sin(math.pi * (x / s.sx) / DW)), "t")
-    for dx in range(0, DW):
-        sag = 26 + 5 * math.sin(math.pi * dx / DW)
-        if dx % 16 == 8:
-            cx, cy = dx, sag + 1
-            s.rect(cx - 1.6, cy, 3.2, 4.2, "l")
-            s.rect(cx - 0.6, cy + 0.8, 1.2, 2.6, "L")
-            s.rect(cx - 1.0, cy - 0.4, 2, 0.6, "t")
-            s.rect(cx - 0.3, cy + 4.2, 0.6, 1.2, "Y")
-    # barrels (left) and a stack (right)
-    for bx, by in ((2, DGROUND - 7), (8, DGROUND - 7), (5, DGROUND - 13), (113, DGROUND - 7)):
-        s.rect(bx, by, 5, 7, "b")
-        s.rect(bx + 0.6, by, 1.2, 7, "B")
-        for k in (1, 5.4):
-            s.rect(bx, by + k, 5, 0.6, "k")
+    for _ in range(36):
+        s.put(rnd.randrange(W), rnd.randrange(s.Y(14)), "*")
+    s.disc(16, 8, 3.5, "m")
+    s.ridge("M", "N", 34, [(4, 0.06, 1.0), (2, 0.17, 0.3)], bottom=s.Y(46))
+
+    cx = 60
+    def roof(half, top, height, overhang, lift):
+        """sweeping roof centred on cx: ridge at top, eave line curving up at both ends"""
+        x0, x1 = s.X(cx - half - overhang), s.X(cx + half + overhang)
+        hw = (half + overhang) * s.sx
+        for x in range(x0, x1 + 1):
+            t = abs(x + 0.5 - s.X(cx)) / hw                  # 0 centre .. 1 tip
+            curl = max(0.0, (t - 0.55) / 0.45) ** 2
+            yb = s.Y(top + height) - int(round(lift * s.sy * curl))
+            yt = s.Y(top) + int(round((height * 0.35) * s.sy * t)) - int(round(lift * 0.6 * s.sy * curl))
+            for y in range(max(0, yt), yb + 1):
+                groove = (int(x / s.sx) % 3 == 0)
+                s.put(x, y, "R" if groove else "r")
+            s.put(x, yb, "x")                                # tile ends along the eave
+            if yb + 1 < s.ground:
+                s.put(x, yb + 1, "z")
+        # ridge + end ornaments
+        s.rect(cx - half * 0.75, top - 1.2, half * 1.5, 1.2, "z")
+        for sgn in (-1, 1):
+            ex = cx + sgn * half * 0.75
+            s.rect(ex - 0.8, top - 3, 1.6, 2, "g")
+            s.rect(ex + sgn * 0.8 - 0.4, top - 3.6, 0.9, 1, "g")
+            tip = cx + sgn * (half + overhang)
+            s.rect(tip - 0.8, top + height - lift - 1.2, 1.6, 1.2, "g")
+
+    def brackets(x0, x1, y):
+        s.rect(x0, y, x1 - x0, 1, "b")
+        dx = x0 + 1
+        while dx < x1 - 1:
+            s.rect(dx, y + 1, 2, 1, "c")
+            s.rect(dx + 0.5, y + 2, 1, 0.8, "C")
+            dx += 4
+
+    def lattice(x0, y0, w, h):
+        s.rect(x0, y0, w, h, "Y")
+        s.rect(x0 + 0.6, y0 + 0.6, w - 1.2, h - 1.2, "y")
+        k = x0 + 2
+        while k < x0 + w - 1:
+            s.rect(k, y0 + 0.6, 0.5, h - 1.2, "Y")
+            k += 2
+        k = y0 + 2
+        while k < y0 + h - 1:
+            s.rect(x0 + 0.6, k, w - 1.2, 0.5, "Y")
+            k += 2.4
+
+    # ---- upper storey
+    s.rect(cx - 30, 15, 60, 13, "w")
+    for px in (-30, -15, 15, 29):
+        s.rect(cx + px, 15, 1.4, 13, "p")
+    for wx in (-26, -12, 6, 20):
+        lattice(cx + wx, 18, 7, 8)
+    s.rect(cx - 6, 17, 12, 6, "g")                            # plaque
+    s.rect(cx - 5.2, 17.8, 10.4, 4.4, "h")
+    s.rect(cx - 3.2, 19.4, 1.4, 1.2, "g"); s.rect(cx + 1.8, 19.4, 1.4, 1.2, "g")
+    brackets(cx - 31, cx + 31, 13.5)
+    roof(28, 4, 10, 8, 4.5)
+    # ---- lower storey (taller, wider)
+    s.rect(cx - 42, 33, 84, DGROUND - 33 - 3, "w")
+    for px in (-42, -26, -10, 9, 25, 40.6):
+        s.rect(cx + px, 33, 1.6, DGROUND - 36, "p")
+        s.rect(cx + px + 1.1, 33, 0.5, DGROUND - 36, "P")
+    for wx in (-37, -21, 14, 30):
+        lattice(cx + wx, 38, 8, 9)
+    s.rect(cx - 7, 37, 14, DGROUND - 40, "o")                 # doorway
+    s.rect(cx - 8, 36, 16, 1.2, "b")
+    s.rect(cx - 8, 36, 1.2, DGROUND - 39, "p"); s.rect(cx + 6.8, 36, 1.2, DGROUND - 39, "p")
+    brackets(cx - 43, cx + 43, 31.5)
+    roof(40, 26, 5.5, 7, 3.5)
+    # stone platform + steps
+    s.rect(cx - 46, DGROUND - 3, 92, 3, "S")
+    s.rect(cx - 46, DGROUND - 3, 92, 0.8, "e")
+    s.rect(cx - 9, DGROUND - 2, 18, 1, "e")
+    s.rect(cx - 10, DGROUND - 1, 20, 1, "e")
+
+    # lanterns hanging under the upper eaves (well above head height)
+    for lx in (cx - 34, cx - 22, cx + 22, cx + 34):
+        top = 14 if abs(lx - cx) > 30 else 15
+        s.rect(lx - 0.25, top, 0.5, 2.5, "t")
+        y0 = top + 2.5
+        s.rect(lx - 1.4, y0, 2.8, 0.7, "g")
+        s.rect(lx - 2, y0 + 0.7, 4, 3.2, "l")
+        s.rect(lx - 1.4, y0 + 0.2, 2.8, 4.2, "l")
+        s.rect(lx - 0.7, y0 + 1.2, 1.4, 2.2, "L")
+        s.rect(lx - 1.4, y0 + 3.9, 2.8, 0.7, "g")
+        s.rect(lx - 0.3, y0 + 4.6, 0.6, 1.6, "g")
+
+    # wine flag on a pole (right)
+    fx = 110
+    s.rect(fx, 6, 1.2, DGROUND - 6, "k")
+    s.rect(fx - 1, 6, 3.2, 1, "g")
+    s.rect(fx - 11, 8, 11, 1, "k")                            # cross arm
+    s.rect(fx - 10.5, 9, 9, 16, "F")
+    s.rect(fx - 9.8, 9.7, 7.6, 14.6, "f")
+    s.disc(fx - 6, 15.5, 2.2, "F")
+    for k in range(4):                                         # ragged bottom edge
+        s.rect(fx - 10.5 + k * 2.4, 25, 1.2, 1.2, "F")
+
     floor(s, "s", "S", "e", "d")
-    # warm light pools under the windows / door
-    for cx in (27, 60, 89):
-        for y in range(s.ground + 1, min(s.H, s.ground + 4)):
-            half = s.X(7) + (y - s.ground) * 2
-            for x in range(s.X(cx) - half, s.X(cx) + half):
+    for lx in (cx - 30, cx, cx + 30):                         # warm light on the courtyard
+        for y in range(s.ground + 1, min(s.H, s.ground + 3)):
+            for x in range(s.X(lx - 8), s.X(lx + 8)):
                 if 0 <= x < W and s.g[y][x] == "s":
                     s.g[y][x] = "u"
     return s
