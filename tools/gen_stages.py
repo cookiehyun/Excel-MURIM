@@ -460,7 +460,102 @@ def snow(W, H):
     return s
 
 
-STAGES = {"sanmun": sanmun, "bamboo": bamboo, "inn": inn, "snow": snow}
+def waterfall(W, H):
+    """Rock ledge in front of a waterfall between mossy cliffs."""
+    import random
+    rnd = random.Random(5)
+    s = Stage(W, H, {
+        "0": "5E9CC4", "1": "74AED2", "2": "8CC0DE", "3": "A6D2EA",        # day sky
+        "f": "7FA4BA", "F": "98BCCC",                                       # distant mountains
+        "c": "4C5A58", "C": "5E6E6A", "k": "3C4846", "K": "707F7A",          # cliff strata
+        "g": "4E7A3E", "G": "6A9A4C",                                       # moss / grass
+        "b": "46545A", "B": "54626A",                                       # back cliff behind the falls
+        "w": "D8EEF6", "W": "A8D4EA", "v": "7FBCDC", "u": "FFFFFF",          # falling water
+        "p": "3E86B0", "P": "5AA2C8", "o": "8CC8E4",                        # pool / ripples
+        "s": "5E6462", "S": "4C5250", "e": "7A807C", "d": "3A3E3C", "m": "4E6A40",   # wet stone floor
+    })
+    s.sky("0123", 0, s.Y(44))
+    s.ridge("f", "F", 21, [(5, 0.07, 0.5), (2.5, 0.19, 1.2), (0.8, 0.6, 0.3)], bottom=s.Y(44))
+    # low back cliff the water falls from
+    lip = lambda dx: 21 + 1.5 * math.sin(dx * 0.17) + 0.7 * math.sin(dx * 0.5)
+    for x in range(W):
+        dx = x / s.sx
+        for y in range(s.Y(lip(dx)), s.Y(46)):
+            s.g[y][x] = "B" if ((y + int(2 * math.sin(x * 0.12))) // 3) % 3 == 0 else "b"
+        s.put(x, s.Y(lip(dx)), "G")
+        s.put(x, s.Y(lip(dx)) + 1, "g")
+    # waterfall
+    fx0, fx1 = 47, 73
+    for x in range(s.X(fx0), s.X(fx1)):
+        dx = x / s.sx
+        k = int(dx * 1.7) % 7
+        col = "w" if k in (0, 3) else ("W" if k in (1, 4, 5) else "v")
+        for y in range(s.Y(lip(dx)) - 1, s.Y(46)):
+            s.g[y][x] = col
+        s.put(x, s.Y(lip(dx)) - 1, "u")
+    # pool, ripples, foam
+    for y in range(s.Y(45), s.Y(51)):
+        s.g[y] = ["p"] * W
+    for y in range(s.Y(46), s.Y(51), 2):
+        for x in range(W):
+            if math.sin(x * 0.45 + y * 1.7) > 0.8:
+                s.g[y][x] = "P"
+    fx = fx0 - 2
+    while fx < fx1 + 2:                                          # foam: overlapping round puffs
+        r = rnd.uniform(1.6, 2.6)
+        cy = 45 + rnd.uniform(-0.6, 0.6)
+        for y in range(s.Y(cy - r), s.Y(cy + r) + 1):
+            for x in range(s.X(fx - r), s.X(fx + r) + 1):
+                d = math.hypot((x + 0.5) / s.sx - fx, (y + 0.5) / s.sy - cy)
+                if d <= r:
+                    s.put(x, y, "u" if d < r * 0.65 else "o")
+        fx += rnd.uniform(2.2, 3.4)
+
+    # framing cliffs: jagged inner edge (random walk), horizontal rock strata
+    def cliff(outer, inner):
+        step = 1 if inner > outer else -1
+        edge = inner
+        for y in range(0, s.Y(52)):
+            if y % 2 == 0:
+                edge = max(min(outer, inner) + 2, min(max(outer, inner) - 2, edge + rnd.choice((-1, 0, 0, 1))))
+            xa, xb = (s.X(outer), s.X(edge)) if step > 0 else (s.X(edge), s.X(outer))
+            for x in range(min(xa, xb), max(xa, xb)):
+                dx = x / s.sx
+                near = abs(dx - edge)                            # lower toward the inner edge
+                if y < s.Y(3 + 2.5 * math.sin(dx * 0.23) + 1.2 * math.sin(dx * 0.71) + max(0, 8 - near) * 0.9):
+                    continue
+                layer = (y + int(3 * math.sin(x * 0.07))) // 4
+                s.g[y][x] = ("c", "C", "c", "k")[layer % 4]
+                if rnd.random() < 0.04:
+                    s.g[y][x] = "K"
+            ex = s.X(edge) - (1 if step > 0 else 0)
+            if s.g[y][ex] in "cCkK":
+                s.put(ex, y, "k")
+            mx = ex - step
+            if 0 <= mx < s.W and s.g[y][mx] in "cCkK" and (y < s.Y(14) or rnd.random() < 0.08):
+                s.put(mx, y, "g")                              # moss on the upper part / ledges
+        # grassy top
+        for x in range(min(s.X(outer), s.X(inner)), max(s.X(outer), s.X(inner))):
+            for y in range(0, s.H):
+                if s.g[y][x] in "cCkK":
+                    s.g[y][x] = "G"
+                    if y + 1 < s.H and s.g[y + 1][x] in "cCkK":
+                        s.g[y + 1][x] = "g"
+                    break
+    cliff(0, 33)
+    cliff(DW, 87)
+    # wet rock ledge
+    for y in range(s.Y(51), s.ground):
+        s.g[y] = ["s"] * W
+    s.rect(0, 51, DW, 0.8, "e")
+    floor(s, "s", "S", "e", "d")
+    for x in range(W):                                           # moss tufts on the ground line
+        if math.sin(x * 0.19) + math.sin(x * 0.53) > 1.3:
+            s.put(x, s.ground - 1, "m")
+    return s
+
+
+STAGES = {"sanmun": sanmun, "bamboo": bamboo, "inn": inn, "snow": snow, "waterfall": waterfall}
 
 if __name__ == "__main__":
     args = sys.argv[1:]
