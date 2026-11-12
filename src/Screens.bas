@@ -8,7 +8,8 @@ Private rPrefix(0 To ROSTER - 1) As String
 Private rName(0 To ROSTER - 1) As String
 Private rStyle(0 To ROSTER - 1) As String
 Private rStat(0 To ROSTER - 1, 0 To 2) As Long     ' power, speed, range (1-5)
-Private rPortY(0 To ROSTER - 1) As Long           ' portrait vertical offset (centres the face)
+Private rHeadX(0 To ROSTER - 1) As Long           ' head centre in idle_0, relative to the anchor
+Private rHeadY(0 To ROSTER - 1) As Long           ' (from docs/<name>_points.txt) - centres the portrait
 
 Private mCursor As Long          ' title menu
 Private mMenuTick As Long
@@ -20,9 +21,9 @@ Private cGold As Long, cDim As Long, cP1 As Long, cP2 As Long
 
 Public Sub Init()
     rPrefix(0) = "danwoo": rName(0) = "DANWOO": rStyle(0) = "BALANCED"
-    rStat(0, 0) = 3: rStat(0, 1) = 4: rStat(0, 2) = 4: rPortY(0) = -6
+    rStat(0, 0) = 3: rStat(0, 1) = 4: rStat(0, 2) = 4: rHeadX(0) = 2: rHeadY(0) = -30
     rPrefix(1) = "cheolsan": rName(1) = "CHEOLSAN": rStyle(1) = "GRAPPLER"
-    rStat(1, 0) = 5: rStat(1, 1) = 2: rStat(1, 2) = 3: rPortY(1) = 1
+    rStat(1, 0) = 5: rStat(1, 1) = 2: rStat(1, 2) = 3: rHeadX(1) = 4: rHeadY(1) = -35
     rPrefix(2) = "": rName(2) = "???": rStyle(2) = "COMING SOON"
     rPrefix(3) = "": rName(3) = "???": rStyle(3) = "COMING SOON"
     cGold = RGB(240, 190, 80)
@@ -195,8 +196,8 @@ Private Sub Portrait(ByVal k As Long)
         PixelFont.DrawBig "?", x + 11, y + 4, RGB(70, 64, 90), 2
     Else
         id = Data.SpriteId(rPrefix(k) & ".idle_0")
-        ' head and shoulders: sprite top near the box top, enlarged x2, head centred
-        Renderer.DrawSpriteScaled id, x + 6, y + 3 + rPortY(k) + Data.SprAY(id) * 2, False, 2, x + 1, y + 1, x + 20, y + 20
+        ' head and shoulders, enlarged x2, head centred in the box
+        Renderer.DrawSpriteScaled id, x + 11 - rHeadX(k) * 2, y + 10 - rHeadY(k) * 2, False, 2, x + 1, y + 1, x + 20, y + 20
     End If
     ' frames: chosen player slot (blue), cursor (gold for player, red for opponent)
     frameC = RGB(70, 60, 90)
