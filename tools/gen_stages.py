@@ -467,7 +467,7 @@ def waterfall(W, H):
     s = Stage(W, H, {
         "0": "5E9CC4", "1": "74AED2", "2": "8CC0DE", "3": "A6D2EA",        # day sky
         "f": "7FA4BA", "F": "98BCCC",                                       # distant mountains
-        "c": "4C5A58", "C": "5E6E6A", "k": "3C4846", "K": "707F7A",          # cliff strata
+        "c": "5A625E", "C": "666E68", "D": "434A48", "k": "2C3230", "K": "8A928A",   # rock: mid / texture / shade / seam / lit
         "g": "4E7A3E", "G": "6A9A4C",                                       # moss / grass
         "b": "46545A", "B": "54626A",                                       # back cliff behind the falls
         "w": "D8EEF6", "W": "A8D4EA", "v": "7FBCDC", "u": "FFFFFF",          # falling water
@@ -481,7 +481,7 @@ def waterfall(W, H):
     for x in range(W):
         dx = x / s.sx
         for y in range(s.Y(lip(dx)), s.Y(46)):
-            s.g[y][x] = "B" if ((y + int(2 * math.sin(x * 0.12))) // 3) % 3 == 0 else "b"
+            s.g[y][x] = "B" if rnd.random() < 0.07 else "b"
         s.put(x, s.Y(lip(dx)), "G")
         s.put(x, s.Y(lip(dx)) + 1, "g")
     # waterfall
@@ -511,39 +511,63 @@ def waterfall(W, H):
                     s.put(x, y, "u" if d < r * 0.65 else "o")
         fx += rnd.uniform(2.2, 3.4)
 
-    # framing cliffs: jagged inner edge (random walk), horizontal rock strata
-    def cliff(outer, inner):
-        step = 1 if inner > outer else -1
-        edge = inner
-        for y in range(0, s.Y(52)):
-            if y % 2 == 0:
-                edge = max(min(outer, inner) + 2, min(max(outer, inner) - 2, edge + rnd.choice((-1, 0, 0, 1))))
-            xa, xb = (s.X(outer), s.X(edge)) if step > 0 else (s.X(edge), s.X(outer))
-            for x in range(min(xa, xb), max(xa, xb)):
-                dx = x / s.sx
-                near = abs(dx - edge)                            # lower toward the inner edge
-                if y < s.Y(3 + 2.5 * math.sin(dx * 0.23) + 1.2 * math.sin(dx * 0.71) + max(0, 8 - near) * 0.9):
-                    continue
-                layer = (y + int(3 * math.sin(x * 0.07))) // 4
-                s.g[y][x] = ("c", "C", "c", "k")[layer % 4]
-                if rnd.random() < 0.04:
-                    s.g[y][x] = "K"
-            ex = s.X(edge) - (1 if step > 0 else 0)
-            if s.g[y][ex] in "cCkK":
-                s.put(ex, y, "k")
-            mx = ex - step
-            if 0 <= mx < s.W and s.g[y][mx] in "cCkK" and (y < s.Y(14) or rnd.random() < 0.08):
-                s.put(mx, y, "g")                              # moss on the upper part / ledges
-        # grassy top
-        for x in range(min(s.X(outer), s.X(inner)), max(s.X(outer), s.X(inner))):
-            for y in range(0, s.H):
-                if s.g[y][x] in "cCkK":
-                    s.g[y][x] = "G"
-                    if y + 1 < s.H and s.g[y + 1][x] in "cCkK":
-                        s.g[y + 1][x] = "g"
-                    break
-    cliff(0, 33)
-    cliff(DW, 87)
+    # framing cliffs: stacked angular boulders with lit top facets, shaded sides, dark seams
+    def boulder(pts):
+        """pts in design units; fill polygon with 3-tone faceted shading"""
+        spts = [(px * s.sx, py * s.sy) for px, py in pts]
+        mask = set()
+        ys = [p[1] for p in spts]
+        for y in range(max(0, int(min(ys))), min(s.ground, int(max(ys)) + 1)):
+            yc = y + 0.5
+            xs = []
+            for k in range(len(spts)):
+                (x1, y1), (x2, y2) = spts[k], spts[(k + 1) % len(spts)]
+                if (y1 <= yc < y2) or (y2 <= yc < y1):
+                    xs.append(x1 + (yc - y1) * (x2 - x1) / (y2 - y1))
+            xs.sort()
+            for a, b in zip(xs[0::2], xs[1::2]):
+                for x in range(int(round(a)), int(round(b))):
+                    if 0 <= x < W:
+                        mask.add((x, y))
+        def depth(x, y, dx, dy, lim):
+            n = 0
+            while n < lim and (x + dx * (n + 1), y + dy * (n + 1)) in mask:
+                n += 1
+            return n
+        for (x, y) in mask:
+            edge = not ((x, y - 1) in mask and (x, y + 1) in mask and (x - 1, y) in mask and (x + 1, y) in mask)
+            if edge:
+                col = "k"                                   # outline / seam
+                if (x, y - 1) not in mask and rnd.random() < 0.55:
+                    col = "G"                               # moss on top edges
+            elif depth(x, y, 0, -1, 4) < 1:
+                col = "G"                                   # moss on the very top
+            elif depth(x, y, 0, -1, 4) < 4 or depth(x, y, -1, 0, 3) < 2:
+                col = "K"                                   # lit top / left facet
+            elif depth(x, y, 1, 0, 6) < 5 or depth(x, y, 0, 1, 3) < 2:
+                col = "D"                                   # shaded right / bottom facet
+            else:
+                col = "C" if rnd.random() < 0.06 else "c"
+            s.g[y][x] = col
+        # a couple of cracks
+        cells = sorted(mask)
+        for _ in range(max(1, len(cells) // 900)):
+            x, y = rnd.choice(cells)
+            for _ in range(rnd.randint(3, 7)):
+                if (x, y) in mask and s.g[y][x] in "cCDK":
+                    s.g[y][x] = "k"
+                y += 1; x += rnd.choice((-1, 0, 0, 1))
+
+    left_blocks = [
+        [(-2, 30), (14, 27), (24, 31), (30, 40), (33, 52), (-2, 52)],
+        [(-2, 13), (9, 9), (21, 12), (27, 22), (24, 32), (12, 30), (-2, 33)],
+        [(-2, 0), (6, -2), (15, 1), (19, 10), (12, 14), (-2, 15)],
+    ]
+    right_blocks = [[(DW - x, y) for x, y in reversed(b)] for b in left_blocks]
+    right_blocks[0] = [(DW + 2, 28), (104, 26), (93, 31), (88, 41), (86, 52), (DW + 2, 52)]
+    right_blocks[1] = [(DW + 2, 11), (110, 8), (99, 12), (92, 21), (95, 30), (106, 28), (DW + 2, 31)]
+    for b in left_blocks[::-1] + right_blocks[::-1]:            # top blocks first, lower ones overlap them
+        boulder(b)
     # wet rock ledge
     for y in range(s.Y(51), s.ground):
         s.g[y] = ["s"] * W
