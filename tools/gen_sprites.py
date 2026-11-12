@@ -251,6 +251,51 @@ HEUKRIM = dict(
     head="heukrim",
 )
 
+HONGRYEON = dict(
+    name="hongryeon",
+    thigh=7.7, shin=7.9, torso=9.8, upper=5.1, fore=4.7, head_r=3.3,
+    w_thigh=1.8, w_shin=1.45, w_upper=1.4, w_fore=1.25, w_hand=1.35,
+    chest=3.4, waist=2.4, skirt=9.0,
+    palette={
+        "k": "1E1018",
+        "s": "F2CCB0", "S": "CC9F86",
+        "h": "1A1018",
+        "b": "B8283A", "B": "7E1828",          # crimson robe / shade
+        "w": "E8B84A",                          # gold trim
+        "d": "2A1A2A",                          # dark sash
+        "p": "4A1A28", "P": "36121E",
+        "n": "2A1418",
+        "r": "FF7AA0",                          # flower ornament
+        "F": "E04050", "f": "A82838",          # fan cloth (front / back)
+        "y": "F0C850", "Q": "FFE6A0",          # fan ribs / edge
+    },
+    look=dict(arm_front="b", arm_back="B", arm_front2="b", arm_back2="B",
+              leg_front="p", leg_back="P", boot="n",
+              torso="b", torso_dark="B", skirt="b", skirt_dark="B",
+              belt="d", trim="w", cuff="w"),
+    head="hongryeon",
+    weapon=dict(kind="fan", length=6, twin=True),
+)
+
+HONGRYEON_OVERRIDES = {
+    "idle_0": P(lean=4, lf=(20, 4), lb=(-24, -10), af=(70, 150), ab=(25, 60), wa=165),
+    "idle_1": P(lean=5, lf=(22, 6), lb=(-26, -12), af=(68, 146), ab=(23, 58), wa=160),
+    "walk_0": P(lean=4, lf=(25, 5), lb=(-20, -25), af=(70, 150), ab=(25, 60), wa=165),
+    "walk_1": P(lean=4, lf=(8, 0), lb=(-5, -40), af=(70, 150), ab=(25, 60), wa=165),
+    "walk_2": P(lean=4, lf=(-18, -25), lb=(25, 5), af=(70, 150), ab=(25, 60), wa=165),
+    "walk_3": P(lean=4, lf=(-5, -40), lb=(8, 0), af=(70, 150), ab=(25, 60), wa=165),
+    "lp_1": P(lean=14, af=(95, 92), ab=(20, 60), wa=90),                     # fan slash
+    "hp_0": P(lean=-10, af=(-30, 160), ab=(40, 140), wa=200),
+    "hp_1": P(lean=22, lf=(38, 2), lb=(-38, -35), af=(102, 112), ab=(-20, 40), wa=120),   # wide sweep
+    "chp_1": P(lean=0, lf=(45, -5), lb=(10, -50), af=(160, 176), ab=(-10, 30), wa=178),
+    "sp_0": P(lean=-8, af=(-40, 170), ab=(30, 80), wa=210),                  # fan throw wind-up
+    "sp_1": P(lean=20, lf=(38, 2), lb=(-38, -30), af=(100, 96), ab=(-10, 40), wa=95),
+    "dp_0": P(lean=20, lf=CROUCH_F, lb=CROUCH_B, af=(40, 80), ab=(30, 70), wa=100),
+    "dp_1": P(lean=-6, lf=(60, -20), lb=(-20, -30), af=(150, 165), ab=(150, 165), ground="air", wa=175),   # lotus spin
+    "rush_0": P(lean=-6, af=(20, 160), ab=(10, 150), wa=170),
+    "rush_1": P(lean=26, lf=(45, 5), lb=(-45, -40), af=(100, 100), ab=(80, 90), wa=100),
+}
+
 CLAW_F = (70, 95)
 HEUKRIM_OVERRIDES = {
     "idle_0": P(lean=16, lf=(24, 6), lb=(-24, -10), af=CLAW_F, ab=(40, 110), open_hand=True),
@@ -469,7 +514,16 @@ def build(spec, pose):
     fx, fy = math.cos(ang), math.sin(ang)            # head forward
     hu = rel_x * ux + rel_y * uy
     hf = rel_x * fx + rel_y * fy
-    if spec["head"] == "heukrim":
+    if spec["head"] == "hongryeon":
+        hair = hm & ((hu > 0.8) | (hf < -0.9) | ((hu > -0.3) & (hf < -0.3)))
+        cv.c[hair] = "h"
+        back = (cx - fx * (r - 0.3), cy - fy * (r - 0.3))
+        cv.put(seg_mask(back, (back[0] - fx * 1.0 - ux * 8, back[1] - fy * 1.0 - uy * 8), 1.3) & ~hm, "h")   # long black hair
+        flower = (cx - fx * 1.5 + ux * (r - 0.2), cy - fy * 1.5 + uy * (r - 0.2))
+        cv.put(circle_mask(flower, 1.2), "r")
+        trim = seg_mask(pt["neck"], (pt["neck"][0] + fx * 1.5 - ux * 2.5, pt["neck"][1] + fy * 1.5 - uy * 2.5), 0.7) & tm
+        cv.c[trim] = "w"
+    elif spec["head"] == "heukrim":
         hair = hm & ((hu > 1.4) | (hf < -1.5))
         cv.c[hair] = "h"
         back = (cx - fx * (r - 0.3), cy - fy * (r - 0.3))
@@ -541,7 +595,29 @@ def build(spec, pose):
 
     # weapon held in the front hand
     wp = spec.get("weapon")
-    if wp:
+    if wp and wp["kind"] == "fan":
+        def fan(hand, ang, cloth):
+            r_ = wp["length"]
+            ys, xs = np.mgrid[0:CANVAS, 0:CANVAS]
+            dx_, dy_ = xs + 0.5 - hand[0], ys + 0.5 - hand[1]
+            dist = np.hypot(dx_, dy_)
+            pang = np.degrees(np.arctan2(dx_, dy_))           # angle from down, + toward +x
+            aw = math.degrees(math.atan2(*dirv(ang))) if False else ang
+            # rotate weapon angle by body rotation
+            a_ = ang + math.degrees(rot) * -1
+            diff = (pang - a_ + 540) % 360 - 180
+            m = (dist <= r_) & (np.abs(diff) <= 55) & (dist >= 0.8)
+            cv.put(m, cloth)
+            ribs = m & (np.abs(((diff + 55) % 22) - 11) > 9.5)
+            cv.c[ribs] = "y"
+            edge = m & (dist > r_ - 1.0)
+            cv.c[edge] = "Q"
+        fan(pt["hF"], pose["wa"] if pose["wa"] is not None else pose["af"][1], "F")
+        if wp.get("twin"):
+            fan(pt["hB"], pose["ab"][1], "f")
+        tipd = dirv(pose["wa"] if pose["wa"] is not None else pose["af"][1])
+        pt["tip"] = (pt["hF"][0] + tipd[0] * wp["length"], pt["hF"][1] + tipd[1] * wp["length"])
+    elif wp:
         wa = pose["wa"] if pose["wa"] is not None else pose["af"][1]
         d = dirv(wa)
         d = (d[0] * math.cos(rot) - d[1] * math.sin(rot), d[0] * math.sin(rot) + d[1] * math.cos(rot))
@@ -651,7 +727,8 @@ def generate(spec, overrides):
 if __name__ == "__main__":
     only = os.environ.get("ONLY")
     for spec, ov in ((DANWOO, {}), (CHEOLSAN, CHEOLSAN_OVERRIDES), (MUYEONG, MUYEONG_OVERRIDES),
-                     (SEOLHWA, SEOLHWA_OVERRIDES), (HEUKRIM, HEUKRIM_OVERRIDES)):
+                     (SEOLHWA, SEOLHWA_OVERRIDES), (HEUKRIM, HEUKRIM_OVERRIDES),
+                     (HONGRYEON, HONGRYEON_OVERRIDES)):
         if only and spec["name"] != only:
             continue
         names = generate(spec, ov)
