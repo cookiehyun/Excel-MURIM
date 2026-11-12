@@ -4,13 +4,17 @@ Option Explicit
 ' Pure game logic: menu, one tick of simulation and one render.
 ' No Excel session handling here, so the headless test harness can drive it.
 
-Public Const GS_MENU As Long = 0
+Public Const GS_MENU As Long = 0       ' title screen
 Public Const GS_FIGHT As Long = 1
+
+Public Const MODE_TRAINING As Long = 0
+Public Const MODE_VSCPU As Long = 1
 
 Public GameState As Long
 Public CpuLevel As Long                 ' CpuAI.LV_EASY / LV_NORMAL / LV_HARD
 Public HumanIndex As Long            ' 0 = Danwoo, 1 = Cheolsan
 Public WatchMode As Boolean              ' CPU vs CPU
+Public GameMode As Long              ' MODE_TRAINING / MODE_VSCPU
 Public AutoRestart As Boolean        ' harness: start a new match after KO instead of the menu
 
 Private mCursor As Long
@@ -43,7 +47,7 @@ Public Sub GameTick()
     Dim i As Long
     KeyInput.Poll
     If GameState = GS_MENU Then
-        MenuTick
+        TitleTick
         Exit Sub
     End If
 
@@ -91,7 +95,7 @@ End Function
 Public Sub GameRender()
     Dim dark As Boolean
     If GameState = GS_MENU Then
-        MenuRender
+        TitleRender
     Else
         dark = (Combat.SuperFreeze > 0)
         Renderer.BeginFrame dark
@@ -103,51 +107,51 @@ Public Sub GameRender()
     Renderer.Flush
 End Sub
 
-' ---------------------------------------------------------------- menu
+' ---------------------------------------------------------------- title screen
 
-Private Sub MenuTick()
+Private Sub TitleTick()
     mMenuTick = mMenuTick + 1
-    If KeyInput.IsPressed(BTN_UP) Then mCursor = (mCursor + 2) Mod 3
-    If KeyInput.IsPressed(BTN_DOWN) Then mCursor = (mCursor + 1) Mod 3
-    If KeyInput.IsPressed(BTN_LEFT) Or KeyInput.IsPressed(BTN_RIGHT) Then
-        Select Case mCursor
-        Case 0
-            HumanIndex = 1 - HumanIndex
-        Case 1
-            If KeyInput.IsPressed(BTN_RIGHT) Then CpuLevel = (CpuLevel + 1) Mod 3 Else CpuLevel = (CpuLevel + 2) Mod 3
-        Case Else
-            WatchMode = Not WatchMode
-        End Select
+    If KeyInput.IsPressed(BTN_UP) Or KeyInput.IsPressed(BTN_DOWN) Then mCursor = 1 - mCursor
+    If KeyInput.IsPressed(BTN_LP) Then
+        ' character / level / stage select come next; for now start with defaults
+        GameMode = mCursor
+        WatchMode = False
+        StartMatch
+        If GameMode = MODE_TRAINING Then Fighter.SetDummy DUMMY_IDLE
     End If
-    If KeyInput.IsPressed(BTN_LP) Then StartMatch
 End Sub
 
-Private Sub MenuRender()
-    Dim y As Long, k As Long, c As Long, v As String, lbl As String, sel As Long
+Private Sub TitleRender()
+    Dim k As Long, y As Long, c As Long, lbl As String, cx As Long
+    cx = SCREEN_W \ 2
     Renderer.BeginFrame True
-    ' both fighters idle on the sides
-    Renderer.DrawSprite Data.AnimFrame(Fighter.F(0).aIdle, mMenuTick), 13, GROUND_Y, False
-    Renderer.DrawSprite Data.AnimFrame(Fighter.F(1).aIdle, mMenuTick), SCREEN_W - 13, GROUND_Y, True
-    Renderer.FillRect 56, 32, 80, 29, RGB(18, 14, 30)
-    Renderer.DrawRectOutline 56, 32, 80, 29, RGB(90, 70, 120)
-    PixelFont.DrawText "EXCEL MUHYEOP", SCREEN_W \ 2, 5, RGB(255, 214, 120), 2, 1
-    For k = 0 To 2
-        y = 35 + k * 9
-        Select Case k
-        Case 0
-            lbl = "FIGHTER"
-            If HumanIndex = 0 Then v = "DANWOO" Else v = "CHEOLSAN"
-        Case 1
-            lbl = "LEVEL"
-            v = (CpuLevel + 1) & " " & CpuAI.LevelName(CpuLevel)
-        Case Else
-            lbl = "MODE"
-            If WatchMode Then v = "WATCH CPU" Else v = "VS CPU"
-        End Select
-        If k = mCursor Then c = RGB(255, 255, 255) Else c = RGB(140, 130, 160)
-        PixelFont.DrawText lbl, 60, y, c
-        If k = mCursor Then v = "<" & v & ">"
-        PixelFont.DrawText v, 110, y, c, 1, 1
+    ' fighters facing each other on both sides
+    Renderer.DrawSprite Data.AnimFrame(Fighter.F(0).aIdle, mMenuTick), 30, GROUND_Y, False
+    Renderer.DrawSprite Data.AnimFrame(Fighter.F(1).aIdle, mMenuTick), SCREEN_W - 30, GROUND_Y, True
+    ' title
+    PixelFont.DrawBig "EXCEL", cx, 5, RGB(230, 220, 200), 2
+    PixelFont.DrawBig "MUHYEOP", cx, 21, RGB(255, 204, 92), 3
+    Renderer.FillRect cx - 50, 46, 100, 1, RGB(200, 150, 60)
+    Renderer.FillRect cx - 38, 48, 76, 1, RGB(140, 100, 40)
+    Renderer.FillRect cx - 52, 45, 3, 3, RGB(200, 150, 60)
+    Renderer.FillRect cx + 49, 45, 3, 3, RGB(200, 150, 60)
+    ' menu
+    For k = 0 To 1
+        y = 57 + k * 13
+        If k = 0 Then lbl = "TRAINING" Else lbl = "VS CPU"
+        If k = mCursor Then
+            Renderer.FillRect cx - 30, y - 3, 60, 11, RGB(40, 28, 20)
+            Renderer.DrawRectOutline cx - 30, y - 3, 60, 11, RGB(230, 180, 80)
+            c = RGB(255, 236, 180)
+            If (mMenuTick \ 6) Mod 2 = 0 Then
+                PixelFont.DrawText ">", cx - 26, y, RGB(255, 200, 90)
+                PixelFont.DrawText "<", cx + 24, y, RGB(255, 200, 90)
+            End If
+        Else
+            Renderer.FillRect cx - 30, y - 3, 60, 11, RGB(20, 16, 26)
+            c = RGB(130, 120, 150)
+        End If
+        PixelFont.DrawText lbl, cx, y, c, 1, 1
     Next k
-    If (mMenuTick \ 8) Mod 2 = 0 Then PixelFont.DrawText "A = START", SCREEN_W \ 2, 70, RGB(255, 200, 90), 1, 1
+    PixelFont.DrawText "UP DOWN = SELECT    A = OK    ESC = QUIT", cx, 92, RGB(150, 140, 170), 1, 1
 End Sub

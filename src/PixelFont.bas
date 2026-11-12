@@ -5,6 +5,7 @@ Option Explicit
 
 Private mGlyph(0 To 127) As String       ' 15 chars of "0"/"1", row-major 3 wide x 5 tall
 Private mReady As Boolean
+Private mBig(0 To 127) As String         ' 35 chars, 5 wide x 7 tall (title letters)
 
 Private Sub Build()
     Dim i As Long
@@ -55,11 +56,71 @@ Private Sub Build()
     SetGlyph ":", "000010000010000"
     SetGlyph "/", "001001010100100"
     SetGlyph "=", "000111000111000"
+    For i = 0 To 127
+        mBig(i) = ""
+    Next i
+    SetBig "E", "11111100001000011110100001000011111"
+    SetBig "X", "10001100010101000100010101000110001"
+    SetBig "C", "01111100001000010000100001000001111"
+    SetBig "L", "10000100001000010000100001000011111"
+    SetBig "M", "10001110111010110101100011000110001"
+    SetBig "U", "10001100011000110001100011000101110"
+    SetBig "H", "10001100011000111111100011000110001"
+    SetBig "Y", "10001100010101000100001000010000100"
+    SetBig "O", "01110100011000110001100011000101110"
+    SetBig "P", "11110100011000111110100001000010000"
+    SetBig "A", "01110100011000111111100011000110001"
+    SetBig "T", "11111001000010000100001000010000100"
+    SetBig "R", "11110100011000111110101001001010001"
+    SetBig "N", "10001110011010110011100011000110001"
+    SetBig "I", "01110001000010000100001000010001110"
+    SetBig "G", "01111100001000010111100011000101111"
+    SetBig "S", "01111100001000001110000010000111110"
+    SetBig "V", "10001100011000110001100010101000100"
+    SetBig "W", "10001100011000110101101011101110001"
+    SetBig "K", "10001100101010011000101001001010001"
+    SetBig "D", "11110100011000110001100011000111110"
+    SetBig "F", "11111100001000011110100001000010000"
+    SetBig "B", "11110100011000111110100011000111110"
+    SetBig " ", "00000000000000000000000000000000000"
     mReady = True
 End Sub
 
 Private Sub SetGlyph(ByVal ch As String, ByVal bits As String)
     mGlyph(Asc(ch)) = bits
+End Sub
+
+Private Sub SetBig(ByVal ch As String, ByVal bits As String)
+    mBig(Asc(ch)) = bits
+End Sub
+
+' Large 5x7 letters (titles). Letters without a 5x7 shape fall back to 3x5. Centered on x.
+Public Sub DrawBig(ByVal s As String, ByVal x As Long, ByVal y As Long, ByVal clr As Long, ByVal px As Long, _
+                   Optional ByVal shadow As Long = -1)
+    Dim k As Long, ch As Long, bits As String, r As Long, c As Long, ox As Long, layer As Long, col As Long
+    If Not mReady Then Build
+    s = UCase$(s)
+    x = x - ((Len(s) * 6 - 1) * px) \ 2
+    If shadow < 0 Then shadow = RGB(12, 10, 18)
+    For layer = 0 To 1
+        If layer = 0 Then col = shadow Else col = clr
+        For k = 1 To Len(s)
+            ch = Asc(Mid$(s, k, 1))
+            ox = x + (k - 1) * 6 * px + (1 - layer) * px \ 2 + (1 - layer)
+            If ch < 128 Then
+                bits = mBig(ch)
+                If Len(bits) = 35 Then
+                    For r = 0 To 6
+                        For c = 0 To 4
+                            If Mid$(bits, r * 5 + c + 1, 1) = "1" Then
+                                Renderer.FillRect ox + c * px, y + r * px + (1 - layer) * (px \ 2 + 1), px + IIf(px >= 3, 1, 0), px, col
+                            End If
+                        Next c
+                    Next r
+                End If
+            End If
+        Next k
+    Next layer
 End Sub
 
 Public Function TextWidth(ByVal s As String, ByVal px As Long) As Long

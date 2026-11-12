@@ -1,12 +1,10 @@
-# menu: move to LEVEL, raise to HARD, back up, start (A)
-5 -
+# title: move to VS CPU, back to TRAINING, down again, start
+6 -
 1 D
-2 -
-1 R
-2 -
-1 R
-2 -
+4 -
 1 U
-3 -
+4 -
+1 D
+6 -
 1 A
 20 -

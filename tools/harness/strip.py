@@ -1,5 +1,5 @@
 """Make a PNG contact sheet of selected ticks from a harness log.
-usage: python3 tools/harness/strip.py <name> <tick> [<tick> ...]  -> out/<name>_strip.png"""
+usage: python3 tools/harness/strip.py <name> <tick> [<tick> ...]  -> out/<name>_strip.png  (STRIP_SCALE=5 for full size)"""
 import os, sys
 from PIL import Image, ImageDraw
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -22,7 +22,7 @@ while i < len(lines):
         i += H + 1
     else:
         i += 1
-S, cols = 3, min(4, len(ticks))
+S, cols = int(__import__("os").environ.get("STRIP_SCALE", "3")), min(4, len(ticks))
 rows = (len(ticks) + cols - 1) // cols
 sheet = Image.new("RGB", (cols * W * S, rows * (H * S + 14)), (0, 0, 0))
 d = ImageDraw.Draw(sheet)
