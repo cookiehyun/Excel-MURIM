@@ -182,7 +182,104 @@ def floor(s, base, seam, edge, joint):
                 s.g[y][x] = joint
 
 
-STAGES = {"sanmun": sanmun}
+def bamboo(W, H):
+    """Misty bamboo forest in the morning."""
+    s = Stage(W, H, {
+        "0": "2F5650", "1": "3F6B62", "2": "547F72", "3": "6C9483", "4": "88AA95", "5": "A6C2AB",
+        "a": "8FB09A", "A": "9DBBA4",                 # far bamboo (misty)
+        "b": "4E7A55", "B": "64905F", "n": "3A5E40",  # mid bamboo / node
+        "v": "3F6B3C", "V": "5A8A4A",                 # leaves
+        "c": "2F5A2E", "C": "4C7F3A", "D": "6E9F4F", "N": "1F3D20",   # foreground bamboo
+        "k": "6F7A70", "K": "8C978C", "j": "4F5A52", "w": "F2D27A",   # stone lantern
+        "s": "6B5A3E", "S": "58492F", "e": "7E7048", "d": "463A26",   # dirt floor
+        "g": "5C7A3A", "G": "7A9A48", "f": "A0743A",                  # grass / fallen leaves
+    })
+    s.sky("012345", 0, s.ground)
+
+    def stalk(dx, dw, top, col, hi, node, spacing, phase=0):
+        x0, x1 = s.X(dx), max(s.X(dx) + 1, s.X(dx + dw))
+        for y in range(s.Y(top), s.ground):
+            for x in range(x0, x1):
+                s.put(x, y, hi if (x == x0 and x1 - x0 >= 2) else col)
+        y = s.Y(top) + int(phase * s.sy)
+        while y < s.ground:
+            for x in range(x0 - (1 if x1 - x0 >= 3 else 0), x1 + (1 if x1 - x0 >= 3 else 0)):
+                s.put(x, y, node)
+            y += max(3, s.Y(spacing))
+
+    def leaves(dcx, dcy, n, col, hi, spread=7):
+        import random
+        rnd = random.Random(int(dcx * 31 + dcy))
+        for _ in range(n):
+            lx = dcx + rnd.uniform(-spread, spread)
+            ly = dcy + rnd.uniform(-spread * 0.45, spread * 0.45)
+            d = rnd.choice((-1, 1))
+            for k in range(4):                         # one diagonal leaf stroke
+                c = hi if k == 0 else col
+                s.put(s.X(lx + k * 0.9 * d), s.Y(ly + k * 0.45), c)
+                s.put(s.X(lx + k * 0.9 * d) + 1, s.Y(ly + k * 0.45), c)
+
+    # far misty bamboo
+    for dx in (4, 13, 21, 33, 41, 58, 66, 83, 92, 101, 113):
+        stalk(dx, 1.2, 0, "a", "a", "A", 9, dx % 5)
+    # mid bamboo with leaves
+    for dx, ph in ((9, 1), (27, 3), (47, 0), (71, 2), (88, 4), (107, 1)):
+        stalk(dx, 2.2, 0, "b", "B", "n", 11, ph)
+        for ly in (6, 18, 31):
+            leaves(dx + 1, ly + ph, 7, "v", "V")
+    # stone lantern (left of center)
+    lx = 36
+    s.rect(lx - 3.5, DGROUND - 14, 7, 1.5, "K")        # roof
+    s.rect(lx - 2.5, DGROUND - 15, 5, 1, "k")
+    s.rect(lx - 2, DGROUND - 12.5, 4, 3.5, "k")        # light box
+    s.rect(lx - 1, DGROUND - 11.5, 2, 1.8, "w")
+    s.rect(lx - 1, DGROUND - 9, 2, 6, "j")             # pillar
+    s.rect(lx - 3, DGROUND - 3, 6, 3, "k")             # base
+    s.rect(lx - 3, DGROUND - 3, 6, 0.8, "K")
+    # foreground bamboo at both edges
+    for dx, dw, ph in ((1, 4, 2), (7.5, 3, 6), (110, 3.5, 4), (115.5, 4.5, 0)):
+        stalk(dx, dw, 0, "c", "D", "N", 13, ph)
+        x0 = s.X(dx + dw * 0.6)
+        for y in range(0, s.ground):                    # inner highlight stripe
+            if s.g[y][x0] == "c":
+                s.g[y][x0] = "C"
+    for dx in (5, 113):
+        for ly in (3, 14):
+            leaves(dx, ly, 12, "c", "C", 9)
+    floor_dirt(s)
+    return s
+
+
+def floor_dirt(s):
+    """packed earth path with grass tufts and fallen leaves"""
+    import random
+    rnd = random.Random(7)
+    for y in range(s.ground, s.H):
+        s.g[y] = ["s"] * s.W
+    s.g[s.ground] = ["e"] * s.W
+    rows = s.H - s.ground
+    for y in (s.ground + max(2, round(rows * 0.45)),):
+        for x in range(s.W):
+            if (x // 3) % 4 != 0:
+                s.g[y][x] = "S"
+    for _ in range(s.W // 3):                           # pebbles / dark spots
+        x, y = rnd.randrange(s.W), rnd.randrange(s.ground + 2, s.H)
+        s.g[y][x] = "d"
+    for _ in range(s.W // 6):                           # fallen leaves
+        x, y = rnd.randrange(s.W - 1), rnd.randrange(s.ground + 1, s.H)
+        s.g[y][x] = "f"; s.g[y][x + 1] = "f"
+    x = 0
+    while x < s.W:                                      # grass tufts on the ground line
+        if rnd.random() < 0.35:
+            for k in range(rnd.randint(2, 4)):
+                if x + k < s.W:
+                    s.g[s.ground - 1][x + k] = "g" if k % 2 else "G"
+                    if k == 1:
+                        s.g[s.ground - 2][x + k] = "G"
+        x += rnd.randint(3, 7)
+
+
+STAGES = {"sanmun": sanmun, "bamboo": bamboo}
 
 if __name__ == "__main__":
     args = sys.argv[1:]
