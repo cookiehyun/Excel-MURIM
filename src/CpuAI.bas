@@ -318,7 +318,12 @@ Private Function Neutral(ByVal i As Long, ByVal o As Long, ByVal v As Long, ByVa
     ' 4. super when the gauge is full
     meFull = (Fighter.F(i).meter >= METER_MAX)
     If meFull And Rnd < 0.04 * (1 + pAggr) Then
-        If SpecialType(i, MV_SUPER) = MT_SUPER_PROJ Then
+        If SpecialType(i, MV_SUPER) = MT_SUPER_RUSH Then
+            If dist < 52 Then
+                QSpecial i, MV_SUPER, True
+                Exit Function
+            End If
+        ElseIf SpecialType(i, MV_SUPER) = MT_SUPER_PROJ Then
             If dist > 30 Then
                 QSpecial i, MV_SUPER, True
                 Exit Function

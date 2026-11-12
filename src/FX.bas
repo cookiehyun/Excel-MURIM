@@ -7,6 +7,7 @@ Public Const FX_HIT As Long = 0
 Public Const FX_HEAVY As Long = 1
 Public Const FX_BLOCK As Long = 2
 Public Const FX_SLAM As Long = 3       ' ground impact (shock ring + dust)
+Public Const FX_SLASH As Long = 4      ' sword cut streak
 
 Private Const MAX_FX As Long = 8
 Private Const FX_LIFE As Long = 4
@@ -48,6 +49,8 @@ Public Sub Draw()
         If mAge(k) < Life(k) Then
             If mType(k) = FX_SLAM Then
                 Slam mX(k), mY(k), mAge(k)
+            ElseIf mType(k) = FX_SLASH Then
+                SlashFx mX(k), mY(k), mAge(k), k
             Else
                 Spark mX(k), mY(k), mAge(k), mType(k)
             End If
@@ -58,6 +61,18 @@ End Sub
 Private Function Life(ByVal k As Long) As Long
     If mType(k) = FX_SLAM Then Life = SLAM_LIFE Else Life = FX_LIFE
 End Function
+
+' Diagonal cut streak that flashes and thins out; direction varies per slot.
+Private Sub SlashFx(ByVal x As Long, ByVal y As Long, ByVal age As Long, ByVal k As Long)
+    Dim d As Long, sx As Long, n As Long, c As Long
+    If k Mod 2 = 0 Then sx = 1 Else sx = -1
+    n = 9 - age * 2
+    If age = 0 Then c = RGB(255, 255, 255) Else c = RGB(190, 230, 255)
+    For d = -n To n
+        Renderer.PutPixel x + d, y + sx * (d \ 2), c
+        If age < 2 Then Renderer.PutPixel x + d, y + sx * (d \ 2) + 1, RGB(140, 200, 255)
+    Next d
+End Sub
 
 ' Ground impact: flattened shock ring that widens, plus dust puffs and a white core.
 Private Sub Slam(ByVal x As Long, ByVal y As Long, ByVal age As Long)

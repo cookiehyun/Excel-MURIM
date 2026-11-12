@@ -14,7 +14,7 @@ Option Explicit
 
 Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal outPath As String, ByVal dumpEvery As Long) As String
     Dim lines() As String, p() As String, ks() As String, ln As String, keys As String
-    Dim i As Long, n As Long, t As Long, k As Long, f As Integer, tick As Long
+    Dim i As Long, n As Long, t As Long, k As Long, f As Integer, tick As Long, noRender As Boolean, lastPhase As Long
 
     On Error GoTo Fail
     Data.BaseDir = dataDir
@@ -37,8 +37,14 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                     Game.GameMode = MODE_SANDBOX
                     If UBound(p) >= 6 Then Game.GameMode = CLng(p(6))      ' 0 training, 1 VS CPU
                     Game.StartMatch CLng(p(5))
+                Case "chars"
+                    Game.P1Char = p(2)
+                    Game.P2Char = p(3)
+                    Game.StartMatch 1
                 Case "roundtime"
                     Match.RoundTicks = CLng(p(2))
+                Case "norender"
+                    noRender = True
                 Case "dump"
                     dumpEvery = CLng(p(2))
                 Case "meter"
@@ -62,8 +68,16 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                         Next k
                     End If
                     Game.GameTick
-                    Game.GameRender
+                    If Not noRender Then Game.GameRender
                     tick = tick + 1
+                    If noRender Then
+                        ' balance runs: only log match results
+                        If Match.Phase = MP_MATCHEND And lastPhase <> MP_MATCHEND Then
+                            Print #f, "R " & tick & " " & Fighter.F(0).prefix & " " & Match.Wins(0) & " " & Fighter.F(1).prefix & " " & Match.Wins(1)
+                        End If
+                        lastPhase = Match.Phase
+                        GoTo NextTick
+                    End If
                     Print #f, "T " & tick & " " & Renderer.PaintCalls & " " & Renderer.RunCount & " " & Combat.HitStop & _
                               " " & Game.GameState & " " & Combat.ComboCount(0) & " " & Combat.ComboCount(1) & _
                               " M" & Match.Phase & "/" & Match.Wins(0) & "-" & Match.Wins(1) & _
@@ -71,6 +85,7 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                     If dumpEvery > 0 Then
                         If tick Mod dumpEvery = 0 Then DumpFrame f, tick
                     End If
+NextTick:
                 Next t
             End If
         End If

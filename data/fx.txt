@@ -4,6 +4,40 @@ PAL c 4FD8E8
 PAL C 9AF2F2
 PAL w FFFFFF
 PAL b 2A7FB8
+SPRITE blade_0 9 16 4 8
+.kwCwk...
+..kwwCk..
+c..kCwk..
+...kwwCk.
+...kwCwk.
+c...kwwk.
+....kwCk.
+....kCwwk
+c...kwwCk
+....kwCk.
+....kCwk.
+c..kCwwk.
+...kwwCk.
+...kwCk..
+..kwCwk..
+.kwCwk...
+SPRITE blade_1 9 16 4 8
+.kCwwk...
+..kwCwk..
+.c.kwwk..
+...kwCwk.
+...kCwwk.
+.c..kwCk.
+....kCwk.
+....kwwCk
+.c..kwCwk
+....kCwk.
+....kwwk.
+.c.kwwCk.
+...kwCwk.
+...kCwk..
+..kCwwk..
+.kCwwk...
 SPRITE wind_0 16 12 8 6
 ........kbbk....
 .......bcCCwb...
@@ -73,4 +107,5 @@ b.bbkcck....kwcccccccb....
 .............bbbbbbb......
 ...............bb.........
 ANIM wind 2 wind_0 wind_1
+ANIM proj_muyeong 2 blade_0 blade_1
 ANIM bigwind 2 bigwind_0 bigwind_1

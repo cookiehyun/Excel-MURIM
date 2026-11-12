@@ -16,11 +16,19 @@ Private mAge(0 To 1) As Long
 Private mStall(0 To 1) As Long       ' multi-hit: hold position while hitting
 Private mAnimSmall As Long
 Private mAnimBig As Long
+Private mAnimOwn(0 To 1) As Long      ' per-character projectile art (fx.proj_<name>) or -1
+
+Private Function OwnAnim(ByVal owner As Long) As Long
+    OwnAnim = -1
+    If Data.HasAnim("fx.proj_" & Fighter.F(owner).prefix) Then OwnAnim = Data.AnimId("fx.proj_" & Fighter.F(owner).prefix)
+End Function
 
 Public Sub Init()
     mOn(0) = False: mOn(1) = False
     mAnimSmall = Data.AnimId("fx.wind")
     mAnimBig = Data.AnimId("fx.bigwind")
+    mAnimOwn(0) = OwnAnim(0)
+    mAnimOwn(1) = OwnAnim(1)
 End Sub
 
 Public Function Alive(ByVal owner As Long) As Boolean
@@ -108,7 +116,13 @@ Public Sub Draw()
     Dim k As Long, a As Long
     For k = 0 To 1
         If mOn(k) Then
-            If Data.MvType(mMv(k)) = MT_SUPER_PROJ Then a = mAnimBig Else a = mAnimSmall
+            If Data.MvType(mMv(k)) = MT_SUPER_PROJ Then
+                a = mAnimBig
+            ElseIf mAnimOwn(k) >= 0 Then
+                a = mAnimOwn(k)
+            Else
+                a = mAnimSmall
+            End If
             Renderer.DrawSprite Data.AnimFrame(a, mAge(k)), Int(mX(k)), Int(mY(k)), (mVX(k) < 0)
         End If
     Next k

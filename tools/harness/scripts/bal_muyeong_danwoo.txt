@@ -1,0 +1,4 @@
+CMD norender
+CMD start 0 2 1 7 1
+CMD chars muyeong danwoo
+60000 -

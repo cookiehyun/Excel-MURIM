@@ -1,0 +1,28 @@
+CMD start 0 1 0 1
+CMD chars muyeong cheolsan
+CMD dummy 1
+CMD place 60 92
+3 -
+# poke at long range: thrust (A)
+1 A
+14 -
+# sword wave: down, down-forward, forward + A
+CMD place 40 110
+1 D
+1 D+R
+1 R+A
+40 -
+# dash slash: down, down-back, back + S
+CMD place 50 100
+1 D
+1 D+L
+1 L+S
+40 -
+# super: meter full, down forward down forward + S
+CMD meter 0 1000
+CMD place 50 100
+1 D
+1 R
+1 D
+1 R+S
+70 -

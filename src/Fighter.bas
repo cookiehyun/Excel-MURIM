@@ -127,6 +127,9 @@ Public Type TFighter
     sPunchB As Long
     sLift As Long
     sSlam As Long
+    sSlashA As Long          ' super slash sequence poses
+    sSlashB As Long
+    sSlashC As Long
     moves(0 To 13) As Long
     spOrder(0 To 2) As Long  ' special slots sorted by command length (longest first)
 End Type
@@ -182,6 +185,8 @@ Private Sub SetupCharacter(ByVal i As Long, ByVal prefix As String, ByVal x As D
     Case "cheolsan"
         '         prefix      x  walk dash  jumpVY jumpVX halfW  hp    hurtH hurtHC
         Setup i, prefix, x, 1.4, 2.6, -4#, 1.4, 8, 1150, 34, 25
+    Case "muyeong"
+        Setup i, prefix, x, 1.9, 3#, -4.4, 1.7, 6, 950, 30, 21
     Case Else
         Setup i, "danwoo", x, 2#, 3.2, -4.5, 1.8, 6, 1000, 30, 21
     End Select
@@ -220,6 +225,9 @@ Private Sub Setup(ByVal i As Long, ByVal prefix As String, ByVal x As Double, By
         .sPunchB = Data.SpriteId(prefix & ".hp_1")
         .sLift = Data.SpriteId(prefix & ".throw_1")
         .sSlam = Data.SpriteId(prefix & ".sp_1")
+        .sSlashA = Data.SpriteId(prefix & ".hp_1")
+        .sSlashB = Data.SpriteId(prefix & ".chp_1")
+        .sSlashC = Data.SpriteId(prefix & ".lp_1")
         For k = 0 To 13
             .moves(k) = Data.MoveId(prefix & "." & names(k))
         Next k
@@ -543,6 +551,8 @@ Private Sub UpdateFighter(ByVal i As Long)
         Case ST_THROW
             If Data.MvType(.mv) = MT_SUPER_GRAB Then
                 SuperGrabStep i
+            ElseIf Data.MvType(.mv) = MT_SUPER_RUSH Then
+                SuperSlashStep i
             ElseIf .stTick = Data.MvStartup(.mv) Then
                 Combat.DealDamage 1 - i, Data.MvDamage(.mv)
                 Combat.AddMeter i, 80
@@ -550,7 +560,7 @@ Private Sub UpdateFighter(ByVal i As Long)
                 FX.Spawn Int(F(1 - i).x + 0.5), Int(F(1 - i).footY) - 18, FX_HEAVY
                 Combat.HitStop = 4
             End If
-            If Data.MvType(.mv) <> MT_SUPER_GRAB And .stTick >= MoveTotal(.mv) Then SetState i, ST_IDLE
+            If Data.MvType(.mv) <> MT_SUPER_GRAB And Data.MvType(.mv) <> MT_SUPER_RUSH And .stTick >= MoveTotal(.mv) Then SetState i, ST_IDLE
 
         Case ST_THROWN
             .vx = 0
@@ -579,7 +589,7 @@ Private Sub UpdateAttack(ByVal i As Long, ByVal d As Boolean)
                 .vy = Data.MvP1(.mv)
                 .vx = .facing * 0.8
             End If
-        Case MT_RUSH
+        Case MT_RUSH, MT_SUPER_RUSH
             If t >= Data.MvStartup(.mv) And t < Data.MvStartup(.mv) + Data.MvActive(.mv) Then
                 .x = .x + .facing * Data.MvP1(.mv)
             End If
@@ -790,6 +800,51 @@ Private Sub SuperGrabStep(ByVal i As Long)
             F(o).footY = GROUND_Y - IIf(t < 28, (t - 21) * 5, IIf(t < 30, 30, 30 - (t - 29) * 6))
         End If
         If t >= SG_END Then SetState i, ST_IDLE
+    End With
+End Sub
+
+' Super rush connected: hold the opponent and run the slash sequence.
+Public Sub StartSuperSlash(ByVal a As Long, ByVal d As Long)
+    F(a).vx = 0
+    SetState a, ST_THROW
+    SetState d, ST_THROWN
+    F(d).crouch = False
+    F(d).bufAtk = -1
+    F(d).footY = GROUND_Y
+    F(d).onGround = True
+End Sub
+
+' Super slash: six quick cuts around the opponent, then a finishing slash that knocks down.
+Private Const SS_END As Long = 40
+Private Sub SuperSlashStep(ByVal i As Long)
+    Dim o As Long, t As Long, cx As Long, cy As Long, fin As Long
+    o = 1 - i
+    With F(i)
+        t = .stTick
+        cx = Int(F(o).x + 0.5)
+        cy = Int(F(o).footY) - 18
+        Select Case t
+        Case 2, 5, 8, 11, 14, 17
+            Combat.DealDamage o, 30
+            Combat.AddComboHit i
+            F(o).flash = 1
+            FX.Spawn cx + (t Mod 3) - 1, cy + ((t \ 3) Mod 3) * 3 - 3, FX_SLASH
+            Combat.HitStop = 1
+            .x = .x + .facing * IIf((t \ 3) Mod 2 = 0, 1, -1)     ' small footwork between cuts
+        Case 26
+            fin = Data.MvDamage(.mv) - 180
+            If fin < 0 Then fin = 0
+            Combat.DealDamage o, fin
+            Combat.AddComboHit i
+            ApplyHit o, 0, 3, True
+            F(o).flash = 2
+            FX.Spawn cx, cy, FX_SLASH
+            FX.Spawn cx, cy - 4, FX_HEAVY
+            FX.Spawn cx, cy + 4, FX_HEAVY
+            Combat.HitStop = 8
+            Combat.ShowText "MANGEOM GWIJONG", 40, i
+        End Select
+        If t >= SS_END Then SetState i, ST_IDLE
     End With
 End Sub
 
@@ -1048,6 +1103,18 @@ Private Function CurrentSprite(ByVal i As Long) As Long
                 Else
                     CurrentSprite = .sSlam
                 End If
+            ElseIf .state = ST_THROW And Data.MvType(.mv) = MT_SUPER_RUSH Then
+                If t < 20 Then
+                    Select Case (t \ 3) Mod 3
+                    Case 0: CurrentSprite = .sSlashA
+                    Case 1: CurrentSprite = .sSlashB
+                    Case Else: CurrentSprite = .sSlashC
+                    End Select
+                ElseIf t < 26 Then
+                    CurrentSprite = Data.MvSprS(.mv)
+                Else
+                    CurrentSprite = Data.MvSprA(.mv)
+                End If
             ElseIf .state = ST_THROW Then
                 If t >= Data.MvStartup(.mv) Then CurrentSprite = Data.MvSprA(.mv) Else CurrentSprite = Data.MvSprS(.mv)
             ElseIf Data.MvType(.mv) = MT_RISE And Not .onGround Then
@@ -1076,6 +1143,8 @@ Private Function CurrentSprite(ByVal i As Long) As Long
                     ElseIf (F(1 - i).stTick \ 4) Mod 2 = 1 Then
                         CurrentSprite = .sHit1
                     End If
+                ElseIf Data.MvType(F(1 - i).mv) = MT_SUPER_RUSH Then
+                    If (F(1 - i).stTick \ 3) Mod 2 = 1 Then CurrentSprite = .sHit1
                 End If
             End If
         Case ST_DOWN

@@ -51,6 +51,7 @@ Public Const MT_RUSH As Long = 4
 Public Const MT_GRAB As Long = 5
 Public Const MT_SUPER_PROJ As Long = 6
 Public Const MT_SUPER_GRAB As Long = 7
+Public Const MT_SUPER_RUSH As Long = 8      ' dash; on hit -> multi-slash sequence
 
 Private mSprIdx As Collection
 Private mAnimIdx As Collection
@@ -70,6 +71,7 @@ Public Sub LoadAll()
 
     LoadSpriteFile "danwoo"
     LoadSpriteFile "cheolsan"
+    LoadSpriteFile "muyeong"
     LoadSpriteFile "fx"
     ' stages: file name, display name (order = stage select order)
     Dim st As Variant, k As Long
@@ -91,6 +93,14 @@ Private Sub ResolveAnimFrames()
         AnimFrames(k) = SpriteId(mFrameNames(k))
     Next k
 End Sub
+
+Public Function HasAnim(ByVal nm As String) As Boolean
+    Dim v As Long
+    On Error GoTo Nope
+    v = mAnimIdx.Item(nm)
+    HasAnim = True
+Nope:
+End Function
 
 Public Function MoveId(ByVal nm As String) As Long
     On Error GoTo Missing
@@ -288,6 +298,7 @@ Private Sub LoadMoves()
                 Case "G": MvType(id) = MT_GRAB
                 Case "SP": MvType(id) = MT_SUPER_PROJ
                 Case "SG": MvType(id) = MT_SUPER_GRAB
+                Case "SR": MvType(id) = MT_SUPER_RUSH
                 Case Else: MvType(id) = MT_NORMAL
             End Select
             MvP1(id) = Val(p(18))

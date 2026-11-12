@@ -41,3 +41,18 @@ cheolsan   throw S    3       1      8        150    0       0         H     1  
 cheolsan   sp1   S    2       1      14       200    0       0         H     1  0   -34 24  12  throw_0    throw_1   G    0    0  624P
 cheolsan   sp2   S    4       5      12       120    14      10        H     1  8   -30 12  20  rush_0     rush_1    R    4.5  0  26P
 cheolsan   super S    3       1      16       380    0       0         H     1  0   -36 40  14  throw_0    throw_1   SG   0    0  2626P
+# muyeong (swordsman): longest reach, but every swing is a tick slower, weaker and easier to punish
+muyeong    lp    S    3       2      5        25     6       4         H     0  14  -27 15  5   lp_0       lp_1      N    0    0  -
+muyeong    hp    S    5       2      9        75     10      7         H     0  12  -32 17  10  hp_0       hp_1      N    0    0  -
+muyeong    lk    S    3       2      5        35     7       5         H     0  11  -18 8   6   lk_0       lk_1      N    0    0  -
+muyeong    hk    S    5       3      8        90     11      8         H     0  8   -28 8   6   hk_0       hk_1      N    0    0  -
+muyeong    clp   C    3       2      5        22     6       4         H     0  14  -21 15  5   crouch     clp       N    0    0  -
+muyeong    chp   C    4       3      9        70     10      7         H     0  -2  -50 9   26  chp_0      chp_1     N    0    0  -
+muyeong    clk   C    3       2      4        28     8       4         L     0  10  -6  8   6   crouch     clk       N    0    0  -
+muyeong    chk   C    6       3      11       80     12      8         L     1  14  -11 17  6   crouch     chk       N    0    0  -
+muyeong    jp    A    4       4      0        55     8       6         O     0  9   -14 13  8   jump       jp        N    0    0  -
+muyeong    jk    A    4       5      0        70     9       7         O     0  9   -11 8   6   jump       jk        N    0    0  -
+muyeong    throw S    3       1      8        100    0       0         H     1  0   -30 16  10  throw_0    throw_1   T    0    0  -
+muyeong    sp1   S    6       1      12       60     12      8         H     0  0   0   10  14  sp_0       sp_1      P    2.4  1  26P
+muyeong    sp2   S    4       4      16       100    14      6         H     0  10  -30 20  20  rush_0     rush_1    R    5    0  24P
+muyeong    super S    5       5      20       330    12      6         H     1  10  -32 20  24  rush_0     rush_1    SR   6    0  2626P

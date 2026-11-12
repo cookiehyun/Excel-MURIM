@@ -3,7 +3,8 @@ Option Explicit
 
 ' Front-end screens: title, character select (then level / stage select).
 
-Private Const ROSTER As Long = 4
+Private Const ROSTER As Long = 6
+Private Const GRID_COLS As Long = 3
 Private rPrefix(0 To ROSTER - 1) As String
 Private rName(0 To ROSTER - 1) As String
 Private rStyle(0 To ROSTER - 1) As String
@@ -26,8 +27,12 @@ Public Sub Init()
     rStat(0, 0) = 3: rStat(0, 1) = 4: rStat(0, 2) = 4: rHeadX(0) = 2: rHeadY(0) = -30
     rPrefix(1) = "cheolsan": rName(1) = "CHEOLSAN": rStyle(1) = "GRAPPLER"
     rStat(1, 0) = 5: rStat(1, 1) = 2: rStat(1, 2) = 3: rHeadX(1) = 4: rHeadY(1) = -35
-    rPrefix(2) = "": rName(2) = "???": rStyle(2) = "COMING SOON"
-    rPrefix(3) = "": rName(3) = "???": rStyle(3) = "COMING SOON"
+    rPrefix(2) = "muyeong": rName(2) = "MUYEONG": rStyle(2) = "SWORDSMAN"
+    rStat(2, 0) = 3: rStat(2, 1) = 3: rStat(2, 2) = 5: rHeadX(2) = 2: rHeadY(2) = -31
+    Dim k As Long
+    For k = 3 To ROSTER - 1
+        rPrefix(k) = "": rName(k) = "???": rStyle(k) = "COMING SOON"
+    Next k
     cGold = RGB(240, 190, 80)
     cDim = RGB(130, 120, 150)
     cP1 = RGB(90, 170, 255)
@@ -98,8 +103,10 @@ Public Sub SelectTick()
     Dim k As Long
     mMenuTick = mMenuTick + 1
     k = mSel(mPhase)
-    If KeyInput.IsPressed(BTN_LEFT) Or KeyInput.IsPressed(BTN_RIGHT) Then k = k Xor 1      ' 2 x 2 grid
-    If KeyInput.IsPressed(BTN_UP) Or KeyInput.IsPressed(BTN_DOWN) Then k = k Xor 2
+    ' 3 x 2 grid
+    If KeyInput.IsPressed(BTN_LEFT) Then k = (k \ GRID_COLS) * GRID_COLS + ((k Mod GRID_COLS) + GRID_COLS - 1) Mod GRID_COLS
+    If KeyInput.IsPressed(BTN_RIGHT) Then k = (k \ GRID_COLS) * GRID_COLS + ((k Mod GRID_COLS) + 1) Mod GRID_COLS
+    If KeyInput.IsPressed(BTN_UP) Or KeyInput.IsPressed(BTN_DOWN) Then k = (k + GRID_COLS) Mod ROSTER
     mSel(mPhase) = k
     If KeyInput.IsPressed(BTN_LP) And Not Locked(k) Then
         mPick(mPhase) = k
@@ -131,11 +138,11 @@ Private Sub LaunchMatch()
 End Sub
 
 Private Function BoxX(ByVal k As Long) As Long
-    BoxX = 72 + (k Mod 2) * 25
+    BoxX = 65 + (k Mod GRID_COLS) * 21
 End Function
 
 Private Function BoxY(ByVal k As Long) As Long
-    BoxY = 47 + (k \ 2) * 24
+    BoxY = 50 + (k \ GRID_COLS) * 22
 End Function
 
 Public Sub SelectRender()
@@ -169,9 +176,9 @@ Public Sub SelectRender()
     hover = mSel(mPhase)
     PixelFont.DrawBig rName(hover), cx, 13, RGB(255, 240, 210), 1
     PixelFont.DrawText rStyle(hover), cx, 23, cDim, 1, 1
-    StatRow "POW", rStat(hover, 0), 28
-    StatRow "SPD", rStat(hover, 1), 34
-    StatRow "RNG", rStat(hover, 2), 40
+    StatRow "POW", rStat(hover, 0), 29
+    StatRow "SPD", rStat(hover, 1), 35
+    StatRow "RNG", rStat(hover, 2), 41
 
     ' portrait grid
     For k = 0 To ROSTER - 1
@@ -209,13 +216,13 @@ End Sub
 Private Sub Portrait(ByVal k As Long)
     Dim x As Long, y As Long, id As Long, frameC As Long, blink As Boolean
     x = BoxX(k): y = BoxY(k)
-    Renderer.FillRect x, y, 22, 22, RGB(26, 22, 36)
+    Renderer.FillRect x, y, 20, 20, RGB(26, 22, 36)
     If Locked(k) Then
-        PixelFont.DrawBig "?", x + 11, y + 4, RGB(70, 64, 90), 2
+        PixelFont.DrawBig "?", x + 10, y + 3, RGB(70, 64, 90), 2
     Else
         id = Data.SpriteId(rPrefix(k) & ".idle_0")
         ' head and shoulders, enlarged x2, head centred in the box
-        Renderer.DrawSpriteScaled id, x + 11 - rHeadX(k) * 2, y + 10 - rHeadY(k) * 2, False, 2, x + 1, y + 1, x + 20, y + 20
+        Renderer.DrawSpriteScaled id, x + 10 - rHeadX(k) * 2, y + 9 - rHeadY(k) * 2, False, 2, x + 1, y + 1, x + 18, y + 18
     End If
     ' frames: chosen player slot (blue), cursor (gold for player, red for opponent)
     frameC = RGB(70, 60, 90)
@@ -224,8 +231,8 @@ Private Sub Portrait(ByVal k As Long)
     If k = mSel(mPhase) And blink Then
         If mPhase = 0 Then frameC = cGold Else frameC = cP2
     End If
-    Renderer.DrawRectOutline x, y, 22, 22, frameC
-    If k = mSel(mPhase) Then Renderer.DrawRectOutline x - 1, y - 1, 24, 24, frameC
+    Renderer.DrawRectOutline x, y, 20, 20, frameC
+    If k = mSel(mPhase) Then Renderer.DrawRectOutline x - 1, y - 1, 22, 22, frameC
 End Sub
 
 ' ---------------------------------------------------------------- level select (VS CPU)
