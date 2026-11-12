@@ -1,0 +1,32 @@
+CMD start 0 1 0 1
+CMD chars seolhwa cheolsan
+CMD dummy 1
+CMD place 50 80
+3 -
+# triple rush kick: down, down-back, back + X
+1 D
+1 D+L
+1 L+X
+40 -
+# rising spin kick: forward, down, down-forward + Z
+CMD place 60 76
+1 R
+1 D
+1 D+R+Z
+35 -
+# combo: Z -> Z -> X
+CMD place 60 76
+1 Z
+3 -
+1 Z
+3 -
+1 X
+30 -
+# super: meter full, down forward down forward + X
+CMD meter 0 1000
+CMD place 50 90
+1 D
+1 R
+1 D
+1 R+X
+70 -

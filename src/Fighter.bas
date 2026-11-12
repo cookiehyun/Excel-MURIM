@@ -130,6 +130,9 @@ Public Type TFighter
     sSlashA As Long          ' super slash sequence poses
     sSlashB As Long
     sSlashC As Long
+    seqFx As Long            ' effect used by the super sequence hits
+    superName As String
+    hitCount As Long         ' hits landed by the current multi-hit rush
     moves(0 To 13) As Long
     spOrder(0 To 2) As Long  ' special slots sorted by command length (longest first)
 End Type
@@ -184,12 +187,28 @@ Private Sub SetupCharacter(ByVal i As Long, ByVal prefix As String, ByVal x As D
     Select Case prefix
     Case "cheolsan"
         '         prefix      x  walk dash  jumpVY jumpVX halfW  hp    hurtH hurtHC
-        Setup i, prefix, x, 1.4, 2.6, -4#, 1.4, 8, 1150, 34, 25
+        Setup i, prefix, x, 1.4, 2.6, -4#, 1.4, 8, 1100, 34, 25
     Case "muyeong"
-        Setup i, prefix, x, 1.9, 3#, -4.4, 1.7, 6, 950, 30, 21
+        Setup i, prefix, x, 2#, 3#, -4.4, 1.7, 6, 1000, 30, 21
+    Case "seolhwa"
+        Setup i, prefix, x, 2.3, 3.6, -4.8, 2#, 5, 900, 29, 20
     Case Else
         Setup i, "danwoo", x, 2#, 3.2, -4.5, 1.8, 6, 1000, 30, 21
     End Select
+    With F(i)
+        .seqFx = FX_SLASH
+        Select Case .prefix
+        Case "cheolsan": .superName = "NAHAN BOKMA"
+        Case "muyeong": .superName = "MANGEOM GWIJONG"
+        Case "seolhwa"
+            .superName = "NAKHWA YUSU"
+            .seqFx = FX_HIT                              ' kicks instead of cuts
+            .sSlashA = Data.SpriteId("seolhwa.hk_1")
+            .sSlashB = Data.SpriteId("seolhwa.lk_1")
+            .sSlashC = Data.SpriteId("seolhwa.rush_1")
+        Case Else: .superName = "CHEONPUNG MANJANG"
+        End Select
+    End With
 End Sub
 
 Private Sub Setup(ByVal i As Long, ByVal prefix As String, ByVal x As Double, ByVal walkSpeed As Double, _
@@ -592,6 +611,10 @@ Private Sub UpdateAttack(ByVal i As Long, ByVal d As Boolean)
         Case MT_RUSH, MT_SUPER_RUSH
             If t >= Data.MvStartup(.mv) And t < Data.MvStartup(.mv) + Data.MvActive(.mv) Then
                 .x = .x + .facing * Data.MvP1(.mv)
+                ' multi-hit rush (p2 = hits): allow a new hit every active / hits ticks
+                If mt = MT_RUSH And Data.MvP2(.mv) > 1 And .hasHit And .hitCount < Data.MvP2(.mv) Then
+                    If (t - Data.MvStartup(.mv)) Mod (Data.MvActive(.mv) \ Data.MvP2(.mv)) = 0 Then .hasHit = False
+                End If
             End If
         Case MT_GRAB, MT_SUPER_GRAB
             If t = Data.MvStartup(.mv) Then
@@ -715,6 +738,7 @@ Private Function StartAttack(ByVal i As Long, ByVal atk As Long, ByVal crouching
         .crouch = crouching
         .vx = 0
         .hasHit = False
+        .hitCount = 0
         If Not chained Then .chain = 0
         SetState i, ST_ATTACK
     End With
@@ -793,7 +817,7 @@ Private Sub SuperGrabStep(ByVal i As Long)
             FX.Spawn Int(F(o).x + 0.5) - 8, GROUND_Y - 6, FX_HEAVY
             FX.Spawn Int(F(o).x + 0.5) + 8, GROUND_Y - 6, FX_HEAVY
             Combat.HitStop = 8
-            Combat.ShowText "NAHAN BOKMA", 40, i
+            Combat.ShowText .superName, 40, i
         End Select
         If t >= 22 And t < 34 And F(o).state = ST_THROWN Then   ' lifted overhead, then swung forward
             F(o).x = .x + .facing * IIf(t < 30, 3, 3 + (t - 29) * 4)
@@ -828,7 +852,7 @@ Private Sub SuperSlashStep(ByVal i As Long)
             Combat.DealDamage o, 30
             Combat.AddComboHit i
             F(o).flash = 1
-            FX.Spawn cx + (t Mod 3) - 1, cy + ((t \ 3) Mod 3) * 3 - 3, FX_SLASH
+            FX.Spawn cx + (t Mod 3) - 1, cy + ((t \ 3) Mod 3) * 3 - 3, .seqFx
             Combat.HitStop = 1
             .x = .x + .facing * IIf((t \ 3) Mod 2 = 0, 1, -1)     ' small footwork between cuts
         Case 26
@@ -838,11 +862,11 @@ Private Sub SuperSlashStep(ByVal i As Long)
             Combat.AddComboHit i
             ApplyHit o, 0, 3, True
             F(o).flash = 2
-            FX.Spawn cx, cy, FX_SLASH
+            FX.Spawn cx, cy, .seqFx
             FX.Spawn cx, cy - 4, FX_HEAVY
             FX.Spawn cx, cy + 4, FX_HEAVY
             Combat.HitStop = 8
-            Combat.ShowText "MANGEOM GWIJONG", 40, i
+            Combat.ShowText .superName, 40, i
         End Select
         If t >= SS_END Then SetState i, ST_IDLE
     End With

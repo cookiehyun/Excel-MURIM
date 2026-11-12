@@ -107,7 +107,7 @@ End Sub
 Private Sub CheckMelee(ByVal a As Long, ByVal d As Long)
     Dim hx As Long, hy As Long, hw As Long, hh As Long
     Dim ux As Long, uy As Long, uw As Long, uh As Long
-    Dim ix0 As Long, iy0 As Long, ix1 As Long, iy1 As Long, cx As Long, cy As Long
+    Dim ix0 As Long, iy0 As Long, ix1 As Long, iy1 As Long, cx As Long, cy As Long, mv As Long
 
     If Fighter.F(a).hasHit Then Exit Sub
     If Not Fighter.HitRect(a, hx, hy, hw, hh) Then Exit Sub
@@ -118,9 +118,15 @@ Private Sub CheckMelee(ByVal a As Long, ByVal d As Long)
     If ix1 <= ix0 Or iy1 <= iy0 Then Exit Sub
 
     Fighter.F(a).hasHit = True
+    Fighter.F(a).hitCount = Fighter.F(a).hitCount + 1
     cx = (ix0 + ix1) \ 2
     cy = (iy0 + iy1) \ 2
-    ApplyAttack a, d, Fighter.F(a).mv, cx, cy, False, True
+    mv = Fighter.F(a).mv
+    If Data.MvType(mv) = MT_RUSH And Data.MvP2(mv) > 1 Then
+        ApplyAttack a, d, mv, cx, cy, False, (Fighter.F(a).hitCount >= Data.MvP2(mv))
+    Else
+        ApplyAttack a, d, mv, cx, cy, False, True
+    End If
 End Sub
 
 ' Resolve one hit of move mv from attacker a on defender d at (cx, cy).
@@ -133,7 +139,7 @@ Public Sub ApplyAttack(ByVal a As Long, ByVal d As Long, ByVal mv As Long, ByVal
     mt = Data.MvType(mv)
     special = (mt <> MT_NORMAL)
     hits = 1
-    If isProj Then hits = Data.MvP2(mv)
+    If isProj Or mt = MT_RUSH Then hits = Data.MvP2(mv)
     If hits < 1 Then hits = 1
     heavy = (Data.MvDamage(mv) >= 80)
     If heavy Then push = 2.2 Else push = 1.3

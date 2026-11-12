@@ -72,6 +72,7 @@ Public Sub LoadAll()
     LoadSpriteFile "danwoo"
     LoadSpriteFile "cheolsan"
     LoadSpriteFile "muyeong"
+    LoadSpriteFile "seolhwa"
     LoadSpriteFile "fx"
     ' stages: file name, display name (order = stage select order)
     Dim st As Variant, k As Long

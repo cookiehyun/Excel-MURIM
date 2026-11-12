@@ -206,6 +206,47 @@ CHEOLSAN_OVERRIDES = {
     "sp_1": P(lean=30, lf=(40, 0), lb=(-40, -40), af=(95, 75), ab=(90, 80), open_hand=True),
 }
 
+SEOLHWA = dict(
+    name="seolhwa",
+    thigh=7.6, shin=8.0, torso=9.6, upper=5.0, fore=4.6, head_r=3.3,
+    w_thigh=1.8, w_shin=1.45, w_upper=1.35, w_fore=1.2, w_hand=1.35,
+    chest=3.3, waist=2.4, skirt=7.0,
+    palette={
+        "k": "1E1A2A",
+        "s": "F4D2B8", "S": "D0A48A",
+        "h": "2A1E22",                          # dark brown hair
+        "b": "EEF2F6", "B": "BAC8D8",          # white robe / shade
+        "w": "6AAEE0",                          # sky blue trim
+        "d": "4A8AC8",                          # sash
+        "p": "C8D0DC", "P": "A0AABA",          # light trousers
+        "n": "2E4A78",                          # dark blue shoes
+        "r": "E86A8A",                          # pink ribbons
+    },
+    look=dict(arm_front="b", arm_back="B", arm_front2="b", arm_back2="B",
+              leg_front="p", leg_back="P", boot="n",
+              torso="b", torso_dark="B", skirt="b", skirt_dark="B",
+              belt="d", trim="w", cuff="w"),
+    head="seolhwa",
+)
+
+KICK_GUARD_F = (55, 140)
+SEOLHWA_OVERRIDES = {
+    "idle_0": P(lean=4, lf=(18, 4), lb=(-26, -10), af=KICK_GUARD_F, ab=(25, 160), open_hand=True),
+    "idle_1": P(lean=5, lf=(21, 7), lb=(-29, -13), af=(53, 136), ab=(23, 156), open_hand=True),
+    "walk_0": P(lean=4, lf=(25, 5), lb=(-20, -25), af=KICK_GUARD_F, ab=(25, 160), open_hand=True),
+    "walk_1": P(lean=4, lf=(8, 0), lb=(-5, -40), af=KICK_GUARD_F, ab=(25, 160), open_hand=True),
+    "walk_2": P(lean=4, lf=(-18, -25), lb=(25, 5), af=KICK_GUARD_F, ab=(25, 160), open_hand=True),
+    "walk_3": P(lean=4, lf=(-5, -40), lb=(8, 0), af=KICK_GUARD_F, ab=(25, 160), open_hand=True),
+    "lk_1": P(lean=-12, lf=(84, 88), lb=(-6, 0), af=(60, 150), ab=(-20, 40)),
+    "hk_0": P(lean=-20, lf=(130, 20), lb=(-4, 0), af=(40, 160), ab=(-30, 30)),
+    "hk_1": P(lean=-34, lf=(132, 136), lb=(-4, 0), af=(30, 165), ab=(-40, 10)),       # head-high kick
+    "jk": P(lean=-18, lf=(80, 82), lb=(110, 20), af=(40, 160), ground="air"),         # flying kick
+    "dp_0": P(lean=24, lf=CROUCH_F, lb=CROUCH_B, af=(30, 70), ab=(-10, 60)),
+    "dp_1": P(lean=-28, lf=(158, 165), lb=(40, -20), af=(-20, 40), ab=(60, 140), ground="air"),   # rising spin kick
+    "rush_0": P(lean=-6, lf=(70, 10), lb=(-15, -5), af=(50, 150), ab=(-20, 40)),
+    "rush_1": P(lean=-24, lf=(94, 92), lb=(-12, -2), af=(40, 165), ab=(-30, 20)),     # driving side kick
+}
+
 SWORD_GUARD = (45, 115)
 MUYEONG_OVERRIDES = {
     "idle_0": P(lean=6, af=SWORD_GUARD, wa=125),
@@ -389,7 +430,18 @@ def build(spec, pose):
     fx, fy = math.cos(ang), math.sin(ang)            # head forward
     hu = rel_x * ux + rel_y * uy
     hf = rel_x * fx + rel_y * fy
-    if spec["head"] == "muyeong":
+    if spec["head"] == "seolhwa":
+        hair = hm & ((hu > 0.7) | (hf < -0.9) | ((hu > -0.2) & (hf < -0.2)))
+        cv.c[hair] = "h"
+        bun = circle_mask((cx - fx * 1.2 + ux * (r + 0.7), cy - fy * 1.2 + uy * (r + 0.7)), 1.7)
+        cv.put(bun, "h")
+        for k, (lx, ly) in enumerate(((4.2, 1.8), (3.6, 3.6))):          # two pink ribbons flowing back
+            a0 = (cx - fx * 2.4 + ux * (r + 0.6), cy - fy * 2.4 + uy * (r + 0.6))
+            a1 = (a0[0] - fx * lx - ux * ly, a0[1] - fy * lx - uy * ly)
+            cv.put(seg_mask(a0, a1, 0.55), "r")
+        trim = seg_mask(pt["neck"], (pt["neck"][0] + fx * 1.5 - ux * 2.5, pt["neck"][1] + fy * 1.5 - uy * 2.5), 0.7) & tm
+        cv.c[trim] = "w"
+    elif spec["head"] == "muyeong":
         hair = hm & ((hu > 0.9) | (hf < -0.8))
         cv.c[hair] = "h"
         tie = circle_mask((cx - fx * (r - 0.2) + ux * 1.6, cy - fy * (r - 0.2) + uy * 1.6), 0.8)
@@ -545,6 +597,10 @@ def generate(spec, overrides):
 
 
 if __name__ == "__main__":
-    for spec, ov in ((DANWOO, {}), (CHEOLSAN, CHEOLSAN_OVERRIDES), (MUYEONG, MUYEONG_OVERRIDES)):
+    only = os.environ.get("ONLY")
+    for spec, ov in ((DANWOO, {}), (CHEOLSAN, CHEOLSAN_OVERRIDES), (MUYEONG, MUYEONG_OVERRIDES),
+                     (SEOLHWA, SEOLHWA_OVERRIDES)):
+        if only and spec["name"] != only:
+            continue
         names = generate(spec, ov)
         print(spec["name"], len(names), "sprites")
