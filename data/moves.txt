@@ -79,11 +79,11 @@ heukrim  hk  S  5  3  9  100  12  9  H  0  9  -30  8  6  hk_0  hk_1  N  0  0  -
 heukrim    clp   C    3       2      5        28     6       4         H     0  10  -22 7   5   crouch     clp       N    0    0  -
 heukrim  chp  C  4  3  10  80  11  8  H  0  -2  -40  8  9  chp_0  chp_1  N  0  0  -
 heukrim    clk   C    4       2      5        32     8       4         L     0  11  -6  8   6   crouch     clk       N    0    0  -
-heukrim  chk  C  5  3  12  90  12  9  L  1  11  -5  8  5  crouch  chk  N  0  0  -
+heukrim  chk  C  5  3  10  90  12  9  L  1  11  -5  8  5  crouch  chk  N  0  0  -
 heukrim    jp    A    4       4      0        60     8       6         O     0  7   -22 7   6   jump       jp        N    0    0  -
 heukrim    jk    A    5       5      0        80     9       7         O     0  11  -12 8   6   jump       jk        N    0    0  -
 heukrim    throw S    3       1      8        110    0       0         H     1  0   -30 16  10  throw_0    throw_1   T    0    0  -
-heukrim  sp1  S  4  1  8  60  10  6  H  0  0  0  8  5  sp_0  sp_1  P  4.2  1  26P
+heukrim  sp1  S  4  1  8  65  10  6  H  0  0  0  8  5  sp_0  sp_1  P  4.2  1  26P
 heukrim  sp2  S  7  1  7  0  0  0  H  0  0  0  0  0  rush_0  rush_1  TP  0  0  24K
 heukrim    super S    6       4      18       320    12      6         H     1  8   -32 14  22  rush_0     sp_1      ST   0    0  2626P
 # hongryeon (fan dancer): mid-range fans, returning fan throw, lotus spin anti-air, fire-pillar super

@@ -193,7 +193,7 @@ Private Sub SetupCharacter(ByVal i As Long, ByVal prefix As String, ByVal x As D
     Case "seolhwa"
         Setup i, prefix, x, 2.1, 3.3, -4.8, 2#, 5, 850, 29, 20
     Case "heukrim"
-        Setup i, prefix, x, 1.8, 2.8, -4.2, 1.5, 6, 1000, 31, 22
+        Setup i, prefix, x, 1.8, 2.8, -4.2, 1.5, 6, 1040, 31, 22
     Case "hongryeon"
         Setup i, prefix, x, 2#, 3.2, -4.6, 1.8, 5, 980, 29, 20
     Case Else
