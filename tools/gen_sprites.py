@@ -229,6 +229,45 @@ SEOLHWA = dict(
     head="seolhwa",
 )
 
+HEUKRIM = dict(
+    name="heukrim",
+    thigh=8.2, shin=8.2, torso=11.2, upper=6.0, fore=5.6, head_r=3.4,
+    w_thigh=1.8, w_shin=1.5, w_upper=1.45, w_fore=1.3, w_hand=1.5,
+    chest=4.0, waist=3.0, skirt=10.0,
+    palette={
+        "k": "120E18",
+        "s": "E2C8AC", "S": "B4977C",          # pale, slightly warm skin
+        "h": "F2F2F4", "H": "B8B8C4",          # white hair / beard
+        "b": "34283E", "B": "201828",          # black-purple robe / shade
+        "w": "64C060",                          # poison-green trim
+        "d": "8A2AA8",                          # purple sash
+        "p": "2A2232", "P": "1C1622",
+        "n": "18141E",
+    },
+    look=dict(arm_front="b", arm_back="B", arm_front2="b", arm_back2="B",
+              leg_front="p", leg_back="P", boot="n",
+              torso="b", torso_dark="B", skirt="b", skirt_dark="B",
+              belt="d", trim="w", cuff="w"),
+    head="heukrim",
+)
+
+CLAW_F = (70, 95)
+HEUKRIM_OVERRIDES = {
+    "idle_0": P(lean=16, lf=(24, 6), lb=(-24, -10), af=CLAW_F, ab=(40, 110), open_hand=True),
+    "idle_1": P(lean=17, lf=(26, 8), lb=(-26, -12), af=(68, 92), ab=(38, 106), open_hand=True),
+    "walk_0": P(lean=16, lf=(22, 5), lb=(-18, -22), af=CLAW_F, ab=(40, 110), open_hand=True),
+    "walk_1": P(lean=16, lf=(8, 0), lb=(-5, -35), af=CLAW_F, ab=(40, 110), open_hand=True),
+    "walk_2": P(lean=16, lf=(-16, -22), lb=(22, 5), af=CLAW_F, ab=(40, 110), open_hand=True),
+    "walk_3": P(lean=16, lf=(-5, -35), lb=(8, 0), af=CLAW_F, ab=(40, 110), open_hand=True),
+    "lp_1": P(lean=20, af=(95, 92), ab=(40, 110), open_hand=True),                 # claw jab
+    "hp_0": P(lean=0, af=(-30, 140), ab=(30, 120), open_hand=True),
+    "hp_1": P(lean=26, lf=(40, 0), lb=(-40, -40), af=(96, 98), ab=(80, 90), open_hand=True),   # double palm
+    "sp_0": P(lean=4, af=(-40, 170), ab=(40, 110), open_hand=True),               # needle throw wind-up
+    "sp_1": P(lean=22, lf=(35, 2), lb=(-35, -25), af=(105, 100), ab=(30, 120), open_hand=True),
+    "rush_0": P(lean=30, lf=CROUCH_F, lb=CROUCH_B, af=(10, 170), ab=(-10, 170), open_hand=True),   # vanish
+    "rush_1": P(lean=-10, af=(150, 160), ab=(140, 170), open_hand=True),          # reappear, arms raised
+}
+
 KICK_GUARD_F = (55, 140)
 SEOLHWA_OVERRIDES = {
     "idle_0": P(lean=4, lf=(18, 4), lb=(-26, -10), af=KICK_GUARD_F, ab=(25, 160), open_hand=True),
@@ -430,7 +469,20 @@ def build(spec, pose):
     fx, fy = math.cos(ang), math.sin(ang)            # head forward
     hu = rel_x * ux + rel_y * uy
     hf = rel_x * fx + rel_y * fy
-    if spec["head"] == "seolhwa":
+    if spec["head"] == "heukrim":
+        hair = hm & ((hu > 1.4) | (hf < -1.5))
+        cv.c[hair] = "h"
+        back = (cx - fx * (r - 0.3), cy - fy * (r - 0.3))
+        cv.put(seg_mask(back, (back[0] - fx * 1.5 - ux * 7, back[1] - fy * 1.5 - uy * 7), 1.4) & ~hm, "h")   # long hair
+        chin = (cx + fx * 1.6 - ux * (r - 0.9), cy + fy * 1.6 - uy * (r - 0.9))
+        tipb = (chin[0] + fx * 1.2 - ux * 5.5, chin[1] + fy * 1.2 - uy * 5.5)
+        cv.put(seg_mask(chin, tipb, 0.9), "h")                                     # long beard hanging from the chin
+        cv.put(seg_mask(chin, tipb, 0.35), "H")
+        brow = hm & (hu > 0.2) & (hu <= 0.9) & (hf > 0.6)
+        cv.c[brow] = "h"
+        trim = seg_mask(pt["neck"], (pt["neck"][0] + fx * 1.5 - ux * 2.5, pt["neck"][1] + fy * 1.5 - uy * 2.5), 0.7) & tm
+        cv.c[trim] = "w"
+    elif spec["head"] == "seolhwa":
         hair = hm & ((hu > 0.7) | (hf < -0.9) | ((hu > -0.2) & (hf < -0.2)))
         cv.c[hair] = "h"
         bun = circle_mask((cx - fx * 1.2 + ux * (r + 0.7), cy - fy * 1.2 + uy * (r + 0.7)), 1.7)
@@ -599,7 +651,7 @@ def generate(spec, overrides):
 if __name__ == "__main__":
     only = os.environ.get("ONLY")
     for spec, ov in ((DANWOO, {}), (CHEOLSAN, CHEOLSAN_OVERRIDES), (MUYEONG, MUYEONG_OVERRIDES),
-                     (SEOLHWA, SEOLHWA_OVERRIDES)):
+                     (SEOLHWA, SEOLHWA_OVERRIDES), (HEUKRIM, HEUKRIM_OVERRIDES)):
         if only and spec["name"] != only:
             continue
         names = generate(spec, ov)
