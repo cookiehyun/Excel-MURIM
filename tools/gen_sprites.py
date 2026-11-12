@@ -110,6 +110,31 @@ CHEOLSAN = dict(
     head="cheolsan",
 )
 
+MUYEONG = dict(
+    name="muyeong",
+    thigh=7.8, shin=7.8, torso=10.6, upper=5.6, fore=5.2, head_r=3.4,
+    w_thigh=1.8, w_shin=1.5, w_upper=1.5, w_fore=1.3, w_hand=1.5,
+    chest=3.7, waist=2.7, skirt=6.5,
+    palette={
+        "k": "15141C",
+        "s": "EBC09C", "S": "C08A68",
+        "h": "1A1A22",
+        "g": "4C5668", "G": "343B4A",          # slate robe
+        "w": "E6E4DA",                          # white sash / collar / hair tie
+        "p": "34343E", "P": "26262E",
+        "n": "3A2C24",
+        "W": "DCE4EC", "Q": "FFFFFF",          # blade / glint
+        "y": "C9A040", "m": "5A2A20",          # guard / hilt
+        "r": "C23434",                          # tassel
+    },
+    look=dict(arm_front="g", arm_back="G", arm_front2="g", arm_back2="G",
+              leg_front="p", leg_back="P", boot="n",
+              torso="g", torso_dark="G", skirt="g", skirt_dark="G",
+              belt="w", trim="w", cuff="w"),
+    head="muyeong",
+    weapon=dict(kind="sword", length=14),
+)
+
 # ---------------------------------------------------------------- poses
 # legs: (thigh, shin) ; arms: (upper, fore) ; F = front/lead (drawn on top), B = back
 GUARD_F = (50, 135)
@@ -122,9 +147,10 @@ TUCK_F = (100, -10)
 TUCK_B = (60, -45)
 
 def P(lean=8, lf=STANCE_F, lb=STANCE_B, af=GUARD_F, ab=GUARD_B,
-      ground="feet", hip_y=None, rot=0, open_hand=False):
+      ground="feet", hip_y=None, rot=0, open_hand=False, wa=None):
+    """wa = weapon angle (absolute, from down, + forward); None = continue the front forearm"""
     return dict(lean=lean, lf=lf, lb=lb, af=af, ab=ab, ground=ground,
-                hip_y=hip_y, rot=rot, open_hand=open_hand)
+                hip_y=hip_y, rot=rot, open_hand=open_hand, wa=wa)
 
 BASE_POSES = {
     "idle_0": P(),
@@ -178,6 +204,33 @@ CHEOLSAN_OVERRIDES = {
     "walk_3": P(lean=12, lf=(-5, -40), lb=(10, 0), af=(60, 105), ab=(30, 120), open_hand=True),
     "sp_0": P(lean=10, af=(110, 120), ab=(100, 125), open_hand=True),
     "sp_1": P(lean=30, lf=(40, 0), lb=(-40, -40), af=(95, 75), ab=(90, 80), open_hand=True),
+}
+
+SWORD_GUARD = (45, 115)
+MUYEONG_OVERRIDES = {
+    "idle_0": P(lean=6, af=SWORD_GUARD, wa=125),
+    "idle_1": P(lf=(29, 9), lb=(-29, -14), af=(43, 112), ab=(18, 145), wa=122),
+    "walk_0": P(lf=(25, 5), lb=(-20, -25), af=SWORD_GUARD, wa=125),
+    "walk_1": P(lf=(8, 0), lb=(-5, -40), af=SWORD_GUARD, wa=125),
+    "walk_2": P(lf=(-18, -25), lb=(25, 5), af=SWORD_GUARD, wa=125),
+    "walk_3": P(lf=(-5, -40), lb=(8, 0), af=SWORD_GUARD, wa=125),
+    "crouch": P(lean=20, lf=CROUCH_F, lb=CROUCH_B, af=(50, 100), wa=110),
+    "jump": P(lean=10, lf=TUCK_F, lb=TUCK_B, af=(40, 120), ground="air", wa=135),
+    "lp_0": P(lean=8, af=(40, 80), wa=95),                                   # thrust
+    "lp_1": P(lean=18, lf=(32, 2), lb=(-32, -18), af=(92, 90), wa=90),
+    "hp_0": P(lean=-12, af=(-50, 170), ab=(30, 140), wa=205),               # big horizontal slash
+    "hp_1": P(lean=24, lf=(40, 0), lb=(-40, -40), af=(100, 100), ab=(10, 120), wa=100),
+    "clp": P(lean=20, lf=CROUCH_F, lb=CROUCH_B, af=(88, 86), wa=88),
+    "chp_0": P(lean=24, lf=CROUCH_F, lb=CROUCH_B, af=(-20, 30), wa=-30),
+    "chp_1": P(lean=2, lf=(45, -5), lb=(10, -50), af=(160, 176), wa=178),   # rising slash
+    "chk": P(lean=40, lf=(70, 78), lb=(88, -88), af=(70, 75), ab=(35, 25), ground="hip_low", wa=82),  # low slash
+    "jp": P(lean=12, lf=TUCK_F, lb=TUCK_B, af=(60, 55), ground="air", wa=45),
+    "guard": P(lean=-6, lf=(20, 5), lb=(-30, -15), af=(40, 150), ab=(45, 150), wa=172),
+    "cguard": P(lean=12, lf=CROUCH_F, lb=CROUCH_B, af=(45, 150), ab=(55, 150), wa=172),
+    "sp_0": P(lean=-8, af=(-40, 160), wa=215),                               # sword wave wind-up
+    "sp_1": P(lean=22, lf=(40, 0), lb=(-40, -40), af=(95, 95), wa=95),
+    "rush_0": P(lean=-10, lf=(30, 5), lb=(-35, -20), af=(10, 40), wa=-25),   # dash slash
+    "rush_1": P(lean=34, lf=(60, 5), lb=(-55, -45), af=(95, 88), wa=92),
 }
 
 ANIMS = [  # name, ticks per frame, frames
@@ -336,7 +389,17 @@ def build(spec, pose):
     fx, fy = math.cos(ang), math.sin(ang)            # head forward
     hu = rel_x * ux + rel_y * uy
     hf = rel_x * fx + rel_y * fy
-    if spec["head"] == "danwoo":
+    if spec["head"] == "muyeong":
+        hair = hm & ((hu > 0.9) | (hf < -0.8))
+        cv.c[hair] = "h"
+        tie = circle_mask((cx - fx * (r - 0.2) + ux * 1.6, cy - fy * (r - 0.2) + uy * 1.6), 0.8)
+        cv.put(tie & ~hm, "w")
+        tail_a = (cx - fx * (r + 0.4) + ux * 1.4, cy - fy * (r + 0.4) + uy * 1.4)
+        tail_b = (tail_a[0] - fx * 3.5 - ux * 5.5, tail_a[1] - fy * 3.5 - uy * 5.5)
+        cv.put(seg_mask(tail_a, tail_b, 0.9) & ~hm, "h")
+        trim = seg_mask(pt["neck"], (pt["neck"][0] + fx * 1.5 - ux * 2.5, pt["neck"][1] + fy * 1.5 - uy * 2.5), 0.7) & tm
+        cv.c[trim] = "w"
+    elif spec["head"] == "danwoo":
         hair = hm & ((hu > 0.6) | (hf < -1.0))
         cv.c[hair] = "h"
         band = hm & (hu > 0.2) & (hu <= 1.4) & (hf > -1.0)
@@ -371,6 +434,24 @@ def build(spec, pose):
 
     # front arm last (on top), with inner outline
     draw_arm(pt["eF"], pt["hF"], lk["arm_front"], lk["arm_front2"], True)
+
+    # weapon held in the front hand
+    wp = spec.get("weapon")
+    if wp:
+        wa = pose["wa"] if pose["wa"] is not None else pose["af"][1]
+        d = dirv(wa)
+        d = (d[0] * math.cos(rot) - d[1] * math.sin(rot), d[0] * math.sin(rot) + d[1] * math.cos(rot))
+        hx_, hy_ = pt["hF"]
+        nx_, ny_ = -d[1], d[0]
+        base = (hx_ + d[0] * 1.2, hy_ + d[1] * 1.2)
+        tip = (hx_ + d[0] * wp["length"], hy_ + d[1] * wp["length"])
+        cv.put(seg_mask(base, tip, 0.62), "W")
+        cv.put(seg_mask((tip[0] - d[0] * 2.5, tip[1] - d[1] * 2.5), tip, 0.62), "Q")      # tip glint
+        cv.put(seg_mask((base[0] + nx_ * 1.8, base[1] + ny_ * 1.8), (base[0] - nx_ * 1.8, base[1] - ny_ * 1.8), 0.6), "y")  # guard
+        pommel = (hx_ - d[0] * 2.2, hy_ - d[1] * 2.2)
+        cv.put(seg_mask((hx_, hy_), pommel, 0.7), "m")                                     # hilt
+        cv.put(seg_mask(pommel, (pommel[0] - d[0] * 0.6, pommel[1] + 2.2), 0.5), "r")      # tassel
+        pt["tip"] = tip
 
     cv.outline()
 
@@ -429,7 +510,8 @@ def generate(spec, overrides):
         grid, pt = build(spec, pose)
         if pose["ground"] != "bbox":
             rel = lambda k: (round(pt[k][0] - AX, 1), round(pt[k][1] - AY, 1))
-            points.append(f"{name}: hF={rel('hF')} hB={rel('hB')} fF={rel('fF')} fB={rel('fB')} head={rel('head')}")
+            extra = f" tip={rel('tip')}" if "tip" in pt else ""
+            points.append(f"{name}: hF={rel('hF')} hB={rel('hB')} fF={rel('fF')} fB={rel('fB')} head={rel('head')}{extra}")
         g, ax, ay = crop(grid)
         h, w = g.shape
         out.append(f"SPRITE {name} {w} {h} {ax} {ay}")
@@ -463,6 +545,6 @@ def generate(spec, overrides):
 
 
 if __name__ == "__main__":
-    for spec, ov in ((DANWOO, {}), (CHEOLSAN, CHEOLSAN_OVERRIDES)):
+    for spec, ov in ((DANWOO, {}), (CHEOLSAN, CHEOLSAN_OVERRIDES), (MUYEONG, MUYEONG_OVERRIDES)):
         names = generate(spec, ov)
         print(spec["name"], len(names), "sprites")
