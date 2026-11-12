@@ -386,7 +386,7 @@ Private Function Neutral(ByVal i As Long, ByVal o As Long, ByVal v As Long, ByVa
         End If
     Else
         s = FindSpecial(i, MT_TELEPORT)
-        If s >= 0 And Rnd < 0.1 + 0.1 * pSpecial Then
+        If s >= 0 And Rnd < 0.04 + 0.04 * pSpecial Then
             QSpecial i, s, False                              ' escape / cross-up
             Exit Function
         End If
