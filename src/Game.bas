@@ -23,6 +23,7 @@ Public StageIndex As Long            ' Data stage (0 = mountain gate)
 Public WatchMode As Boolean              ' CPU vs CPU
 Public GameMode As Long              ' MODE_TRAINING / MODE_VSCPU
 Public QuitRequested As Boolean       ' title screen Esc -> GameLoop stops
+Public HarnessSeed As Long            ' harness: seed for the next auto-restarted match (varies every match)
 Public AutoRestart As Boolean        ' harness: start a new match after KO instead of the menu
 
 Private mPaused As Boolean

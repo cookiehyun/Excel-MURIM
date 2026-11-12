@@ -36,6 +36,7 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                     Game.AutoRestart = True
                     Game.GameMode = MODE_SANDBOX
                     If UBound(p) >= 6 Then Game.GameMode = CLng(p(6))      ' 0 training, 1 VS CPU
+                    Game.HarnessSeed = CLng(p(5))
                     Game.StartMatch CLng(p(5))
                 Case "chars"
                     Game.P1Char = p(2)

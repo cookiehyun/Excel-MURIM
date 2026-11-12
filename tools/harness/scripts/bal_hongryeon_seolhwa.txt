@@ -1,4 +1,4 @@
 CMD norender
-CMD start 0 2 1 7 1
+CMD start 0 2 1 20013 1
 CMD chars hongryeon seolhwa
 40000 -

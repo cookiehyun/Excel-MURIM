@@ -351,6 +351,10 @@ Private Function Neutral(ByVal i As Long, ByVal o As Long, ByVal v As Long, ByVa
     If Rnd < pMistake Then
         ' mistake: wander or stand around
         Plan i, Choose(1 + Int(Rnd * 4), 5, 4, 6, 2), 4 + Int(Rnd * 8)
+    ElseIf Zoner(i) > 0 And dist > 30 And r < 0.4 * Zoner(i) And FindSpecial(i, MT_PROJ) >= 0 And Not Projectile.Alive(i) Then
+        QSpecial i, FindSpecial(i, MT_PROJ), Rnd < 0.5      ' zoners: keep throwing from range
+    ElseIf Zoner(i) > 0 And dist < 42 And r < 0.3 * Zoner(i) Then
+        Plan i, 4, 4 + Int(Rnd * 5)                         ' zoners: back off to their range
     ElseIf dist > 55 Then
         s = FindSpecial(i, MT_PROJ)
         If s >= 0 And r < 0.3 * pSpecial + 0.1 And Not Projectile.Alive(i) Then
@@ -411,6 +415,16 @@ Private Function Neutral(ByVal i As Long, ByVal o As Long, ByVal v As Long, ByVa
     End If
     Neutral = mPlanDir(i)
     If qLen(i) > 0 Then Neutral = 5
+End Function
+
+' How much this fighter's CPU prefers to keep distance and throw projectiles (0 = rush down).
+Private Function Zoner(ByVal i As Long) As Double
+    Select Case Fighter.F(i).prefix
+    Case "heukrim": Zoner = 1#
+    Case "hongryeon": Zoner = 0.7
+    Case "danwoo": Zoner = 0.3
+    Case Else: Zoner = 0
+    End Select
 End Function
 
 Private Sub Plan(ByVal i As Long, ByVal d As Long, ByVal ticks As Long)

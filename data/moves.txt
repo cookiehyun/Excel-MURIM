@@ -30,7 +30,7 @@ danwoo     super S    4       1      12       300    10      6         H     1  
 cheolsan   lp    S    3       2      4        40     6       4         H     0  11  -31 7   5   lp_0       lp_1      N    0    0  -
 cheolsan   hp    S    4       3      8        120    11      8         H     0  12  -30 8   6   hp_0       hp_1      N    0    0  -
 cheolsan   lk    S    4       2      6        50     7       5         H     0  13  -21 8   6   lk_0       lk_1      N    0    0  -
-cheolsan   hk    S    6       3      10       130    12      9         H     0  10  -32 8   6   hk_0       hk_1      N    0    0  -
+cheolsan  hk  S  6  3  10  120  12  9  H  0  10  -32  8  6  hk_0  hk_1  N  0  0  -
 cheolsan   clp   C    3       2      4        35     6       4         H     0  11  -25 7   5   crouch     clp       N    0    0  -
 cheolsan   chp   C    4       3      10       100    11      8         H     0  -1  -44 8   9   chp_0      chp_1     N    0    0  -
 cheolsan   clk   C    4       2      5        40     9       4         L     0  12  -7  8   6   crouch     clk       N    0    0  -
