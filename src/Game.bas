@@ -7,6 +7,7 @@ Option Explicit
 Public Const GS_MENU As Long = 0       ' title screen
 Public Const GS_FIGHT As Long = 1
 Public Const GS_SELECT As Long = 2
+Public Const GS_LEVEL As Long = 3
 
 Public Const MODE_TRAINING As Long = 0
 Public Const MODE_VSCPU As Long = 1
@@ -55,6 +56,9 @@ Public Sub GameTick()
         Exit Sub
     ElseIf GameState = GS_SELECT Then
         Screens.SelectTick
+        Exit Sub
+    ElseIf GameState = GS_LEVEL Then
+        Screens.LevelTick
         Exit Sub
     End If
 
@@ -105,6 +109,8 @@ Public Sub GameRender()
         Screens.TitleRender
     ElseIf GameState = GS_SELECT Then
         Screens.SelectRender
+    ElseIf GameState = GS_LEVEL Then
+        Screens.LevelRender
     Else
         dark = (Combat.SuperFreeze > 0)
         Renderer.BeginFrame dark

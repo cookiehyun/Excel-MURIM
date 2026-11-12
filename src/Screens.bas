@@ -16,6 +16,7 @@ Private mMenuTick As Long
 Private mPhase As Long           ' select: 0 = player, 1 = opponent
 Private mSel(0 To 1) As Long     ' cursor per phase
 Private mPick(0 To 1) As Long    ' chosen roster slot per phase
+Private mLevelSel As Long
 
 Private cGold As Long, cDim As Long, cP1 As Long, cP2 As Long
 
@@ -110,11 +111,20 @@ Public Sub SelectTick()
     End If
 End Sub
 
-' Level and stage select come next; until then start right away.
+' VS CPU -> level select; training -> start (stage select comes next).
 Private Sub SelectDone()
     Game.P1Char = rPrefix(mPick(0))
     Game.P2Char = rPrefix(mPick(1))
     Game.HumanIndex = 0
+    If Game.GameMode = MODE_VSCPU Then
+        mLevelSel = Game.CpuLevel
+        Game.GameState = GS_LEVEL
+    Else
+        LaunchMatch
+    End If
+End Sub
+
+Private Sub LaunchMatch()
     Game.StartMatch
     If Game.GameMode = MODE_TRAINING Then Fighter.SetDummy DUMMY_IDLE
 End Sub
@@ -215,4 +225,67 @@ Private Sub Portrait(ByVal k As Long)
     End If
     Renderer.DrawRectOutline x, y, 22, 22, frameC
     If k = mSel(mPhase) Then Renderer.DrawRectOutline x - 1, y - 1, 24, 24, frameC
+End Sub
+
+' ---------------------------------------------------------------- level select (VS CPU)
+
+Public Sub LevelTick()
+    mMenuTick = mMenuTick + 1
+    If KeyInput.IsPressed(BTN_UP) Then mLevelSel = (mLevelSel + 2) Mod 3
+    If KeyInput.IsPressed(BTN_DOWN) Then mLevelSel = (mLevelSel + 1) Mod 3
+    If KeyInput.IsPressed(BTN_LP) Then
+        Game.CpuLevel = mLevelSel
+        LaunchMatch
+    ElseIf KeyInput.IsPressed(BTN_HP) Then
+        mPhase = 1
+        Game.GameState = GS_SELECT
+    End If
+End Sub
+
+Public Sub LevelRender()
+    Dim k As Long, y As Long, c As Long, cx As Long, desc As String, s As Long
+    cx = SCREEN_W \ 2
+    Renderer.BeginFrame True
+    Renderer.FillRect 0, 10, 64, 90, RGB(14, 20, 40)
+    Renderer.FillRect 128, 10, 64, 90, RGB(40, 14, 18)
+    Renderer.FillRect 63, 10, 1, 90, cP1
+    Renderer.FillRect 128, 10, 1, 90, cP2
+    PixelFont.DrawBig "SELECT LEVEL", cx, 2, cGold, 1
+    PixelFont.DrawText "1P", 3, 13, cP1
+    PixelFont.DrawText "CPU", SCREEN_W - 3, 13, cP2, 1, 2
+    BigView mPick(0), 32, False, 0, 63
+    BigView mPick(1), 160, True, 129, SCREEN_W - 1
+    PixelFont.DrawBig "VS", cx, 13, RGB(255, 240, 210), 2
+
+    For k = 0 To 2
+        y = 32 + k * 19
+        Select Case k
+        Case 0: desc = "SLOW REACTIONS"
+        Case 1: desc = "SOLID DEFENSE"
+        Case Else: desc = "MASTER LEVEL"
+        End Select
+        If k = mLevelSel Then
+            Renderer.FillRect cx - 30, y - 2, 60, 17, RGB(40, 28, 20)
+            Renderer.DrawRectOutline cx - 30, y - 2, 60, 17, cGold
+            If (mMenuTick \ 6) Mod 2 = 0 Then Renderer.DrawRectOutline cx - 31, y - 3, 62, 19, cGold
+            c = RGB(255, 236, 180)
+        Else
+            Renderer.FillRect cx - 30, y - 2, 60, 17, RGB(20, 16, 26)
+            Renderer.DrawRectOutline cx - 30, y - 2, 60, 17, RGB(60, 52, 76)
+            c = cDim
+        End If
+        PixelFont.DrawText CpuAI.LevelName(k), cx - 26, y + 1, c
+        For s = 0 To k                                  ' difficulty stars
+            Star cx + 22 - (2 - s) * 7, y + 3, IIf(k = mLevelSel, cGold, RGB(90, 80, 60))
+        Next s
+        PixelFont.DrawText desc, cx, y + 9, IIf(k = mLevelSel, RGB(200, 190, 170), RGB(90, 84, 104)), 1, 1
+    Next k
+    PixelFont.DrawText "A = START  S = BACK", cx, 94, RGB(110, 100, 130), 1, 1
+End Sub
+
+' 5x5 pixel star centred on (x, y)
+Private Sub Star(ByVal x As Long, ByVal y As Long, ByVal c As Long)
+    Renderer.FillRect x, y - 2, 1, 5, c
+    Renderer.FillRect x - 2, y, 5, 1, c
+    Renderer.FillRect x - 1, y - 1, 3, 3, c
 End Sub
