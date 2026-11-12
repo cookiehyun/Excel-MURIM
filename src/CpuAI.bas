@@ -60,7 +60,7 @@ Public Sub Init(ByVal level As Long, Optional ByVal seed As Long = 0)
     End Select
     If seed <> 0 Then
         Rnd -1
-        Randomize seed
+        Randomize (seed Mod 30000)                     ' some VBA hosts only accept a small seed
     Else
         Randomize
     End If

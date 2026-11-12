@@ -98,7 +98,7 @@ Public Sub Tick(ByVal frozen As Boolean)
             If mRounds Then
                 RoundOver
             ElseIf Game.AutoRestart Then
-                Game.HarnessSeed = Game.HarnessSeed + 7919
+                Game.HarnessSeed = (Game.HarnessSeed + 7919) Mod 30011
                 Game.StartMatch Game.HarnessSeed
             Else
                 StartRound True
@@ -128,7 +128,7 @@ Public Sub Tick(ByVal frozen As Boolean)
     Case MP_MATCHEND
         If Game.AutoRestart Then
             If mT >= 30 Then
-                Game.HarnessSeed = Game.HarnessSeed + 7919
+                Game.HarnessSeed = (Game.HarnessSeed + 7919) Mod 30011
                 Game.StartMatch Game.HarnessSeed
             End If
         ElseIf KeyInput.IsPressed(BTN_LP) Then
