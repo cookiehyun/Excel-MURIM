@@ -20,6 +20,7 @@ SRC = os.path.join(ROOT, "src")
 OUT = os.path.join(HERE, "out")
 SKIP = {"GameLoop", "DevTools", "Gallery", "KeyInput", "WinApi"}
 W, H = 192, 100
+PIPE = os.environ.get("HARNESS_PIPE", "xlfighter")      # run several harnesses in parallel with different pipes
 
 def pv(n, v):
     p = PropertyValue(); p.Name = n; p.Value = v; return p
@@ -89,13 +90,13 @@ def modules():
 class Office:
     def __enter__(self):
         self.proc = subprocess.Popen(["soffice", "--headless", "--invisible", "--norestore", "--nologo",
-                                      "--accept=pipe,name=xlfighter;urp;"],
+                                      "--accept=pipe,name=%s;urp;" % PIPE, "-env:UserInstallation=file:///tmp/lo_profile_%s" % PIPE],
                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         ctx = uno.getComponentContext()
         res = ctx.ServiceManager.createInstanceWithContext("com.sun.star.bridge.UnoUrlResolver", ctx)
         for _ in range(80):
             try:
-                rctx = res.resolve("uno:pipe,name=xlfighter;urp;StarOffice.ComponentContext"); break
+                rctx = res.resolve("uno:pipe,name=%s;urp;StarOffice.ComponentContext" % PIPE); break
             except Exception:
                 time.sleep(0.5)
         else:

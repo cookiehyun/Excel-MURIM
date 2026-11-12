@@ -1,0 +1,24 @@
+CMD start 0 1 0 1
+CMD chars hongryeon cheolsan
+CMD dummy 1
+CMD place 40 84
+3 -
+# returning fan: down, down-forward, forward + A
+1 D
+1 D+R
+1 R+A
+45 -
+# lotus spin: forward, down, down-forward + Z
+CMD place 60 76
+1 R
+1 D
+1 D+R+Z
+30 -
+# super from range: fire pillar under the opponent
+CMD meter 0 1000
+CMD place 40 130
+1 D
+1 R
+1 D
+1 R+A
+70 -

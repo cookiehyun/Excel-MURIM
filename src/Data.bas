@@ -54,6 +54,8 @@ Public Const MT_SUPER_GRAB As Long = 7
 Public Const MT_SUPER_RUSH As Long = 8      ' dash; on hit -> multi-slash sequence
 Public Const MT_TELEPORT As Long = 9        ' vanish (invincible) and reappear behind the opponent
 Public Const MT_SUPER_TELE As Long = 10     ' teleport, then a strike; on hit -> sequence
+Public Const MT_PROJ_BOOM As Long = 11      ' projectile that flies out and returns (one hit each way)
+Public Const MT_SUPER_FIRE As Long = 12     ' fire pillar erupting under the opponent (p2 = hits)
 
 Private mSprIdx As Collection
 Private mAnimIdx As Collection
@@ -76,6 +78,7 @@ Public Sub LoadAll()
     LoadSpriteFile "muyeong"
     LoadSpriteFile "seolhwa"
     LoadSpriteFile "heukrim"
+    LoadSpriteFile "hongryeon"
     LoadSpriteFile "fx"
     ' stages: file name, display name (order = stage select order)
     Dim st As Variant, k As Long
@@ -305,6 +308,8 @@ Private Sub LoadMoves()
                 Case "SR": MvType(id) = MT_SUPER_RUSH
                 Case "TP": MvType(id) = MT_TELEPORT
                 Case "ST": MvType(id) = MT_SUPER_TELE
+                Case "PB": MvType(id) = MT_PROJ_BOOM
+                Case "SF": MvType(id) = MT_SUPER_FIRE
                 Case Else: MvType(id) = MT_NORMAL
             End Select
             MvP1(id) = Val(p(18))

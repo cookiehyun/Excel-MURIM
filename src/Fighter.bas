@@ -194,6 +194,8 @@ Private Sub SetupCharacter(ByVal i As Long, ByVal prefix As String, ByVal x As D
         Setup i, prefix, x, 2.1, 3.3, -4.8, 2#, 5, 850, 29, 20
     Case "heukrim"
         Setup i, prefix, x, 1.6, 2.8, -4.2, 1.5, 6, 950, 31, 22
+    Case "hongryeon"
+        Setup i, prefix, x, 2#, 3.2, -4.6, 1.8, 5, 980, 29, 20
     Case Else
         Setup i, "danwoo", x, 2#, 3.2, -4.5, 1.8, 6, 1000, 30, 21
     End Select
@@ -211,6 +213,7 @@ Private Sub SetupCharacter(ByVal i As Long, ByVal prefix As String, ByVal x As D
         Case "heukrim"
             .superName = "CHEONMA GANGRIM"
             .seqFx = FX_DARK
+        Case "hongryeon": .superName = "HONGRYEON EOPHWA"
         Case Else: .superName = "CHEONPUNG MANJANG"
         End Select
     End With
@@ -607,8 +610,11 @@ Private Sub UpdateAttack(ByVal i As Long, ByVal d As Boolean)
 
         ' per-type behaviour
         Select Case mt
-        Case MT_PROJ, MT_SUPER_PROJ
-            If t = Data.MvStartup(.mv) Then Projectile.Spawn i, .mv
+        Case MT_PROJ, MT_SUPER_PROJ, MT_PROJ_BOOM, MT_SUPER_FIRE
+            If t = Data.MvStartup(.mv) Then
+                Projectile.Spawn i, .mv
+                If mt = MT_SUPER_FIRE Then Combat.ShowText .superName, 40, i
+            End If
         Case MT_RISE
             If t = Data.MvStartup(.mv) Then
                 .onGround = False
@@ -735,7 +741,7 @@ Private Function StartAttack(ByVal i As Long, ByVal atk As Long, ByVal crouching
         If atk >= MV_SP1 Then
             mv = .moves(atk)
             mt = Data.MvType(mv)
-            If (mt = MT_PROJ Or mt = MT_SUPER_PROJ) And Projectile.Alive(i) Then Exit Function
+            If (mt = MT_PROJ Or mt = MT_SUPER_PROJ Or mt = MT_PROJ_BOOM Or mt = MT_SUPER_FIRE) And Projectile.Alive(i) Then Exit Function
             If atk = MV_SUPER Then
                 If .meter < METER_MAX Then Exit Function
                 .meter = 0
@@ -1099,6 +1105,7 @@ Public Function HitRect(ByVal i As Long, x0 As Long, y0 As Long, w As Long, h As
         mv = .mv
         mt = Data.MvType(mv)
         If mt = MT_PROJ Or mt = MT_SUPER_PROJ Or mt = MT_GRAB Or mt = MT_SUPER_GRAB Or mt = MT_THROW Then Exit Function
+        If mt = MT_PROJ_BOOM Or mt = MT_SUPER_FIRE Or mt = MT_TELEPORT Then Exit Function
         w = Data.MvHbW(mv): h = Data.MvHbH(mv)
         If .facing > 0 Then
             x0 = Int(.x + 0.5) + Data.MvHbX(mv)

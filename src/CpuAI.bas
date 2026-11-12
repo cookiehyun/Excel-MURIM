@@ -155,10 +155,12 @@ End Function
 
 ' Find this fighter's special of a given type (or -1).
 Private Function FindSpecial(ByVal i As Long, ByVal mt As Long) As Long
-    Dim s As Long
+    Dim s As Long, st As Long
     FindSpecial = -1
     For s = MV_SP1 To MV_SP2
-        If SpecialType(i, s) = mt Then
+        st = SpecialType(i, s)
+        If st = MT_PROJ_BOOM Then st = MT_PROJ                ' a returning fan is used like any projectile
+        If st = mt Then
             FindSpecial = s
             Exit Function
         End If
@@ -318,7 +320,7 @@ Private Function Neutral(ByVal i As Long, ByVal o As Long, ByVal v As Long, ByVa
     ' 4. super when the gauge is full
     meFull = (Fighter.F(i).meter >= METER_MAX)
     If meFull And Rnd < 0.04 * (1 + pAggr) Then
-        If SpecialType(i, MV_SUPER) = MT_SUPER_TELE Then
+        If SpecialType(i, MV_SUPER) = MT_SUPER_TELE Or SpecialType(i, MV_SUPER) = MT_SUPER_FIRE Then
             QSpecial i, MV_SUPER, False                        ' teleport strike works from anywhere
             Exit Function
         ElseIf SpecialType(i, MV_SUPER) = MT_SUPER_RUSH Then

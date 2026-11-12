@@ -8,6 +8,34 @@ PAL g 6AE070
 PAL G C8FFB0
 PAL x 14201A
 PAL v 4A8A50
+PAL F E04050
+PAL y F0C850
+PAL Q FFE6A0
+PAL z 2A1018
+SPRITE fan_0 11 11 5 5
+...........
+...........
+...........
+...........
+.....zzzzzz
+zzzzzyFFFFQ
+QyyyFyyFFFQ
+zQFFyyFyyQz
+zQQFyyFyQQz
+.zQQyyFQQz.
+..zzQQQzz..
+SPRITE fan_1 11 11 5 5
+....zQQzz..
+....zFFQQz.
+....zFFyQQz
+....zFFyyQz
+....zFyFFFQ
+....zyyyyyQ
+.....zFyyyQ
+.....zyFFQz
+.....zyFQQz
+.....zyQQz.
+.....zQzz..
 SPRITE needle_0 12 6 6 3
 ...xxxxxxx..
 v.vgggggGGx.
@@ -127,4 +155,5 @@ b.bbkcck....kwcccccccb....
 ANIM wind 2 wind_0 wind_1
 ANIM proj_muyeong 2 blade_0 blade_1
 ANIM proj_heukrim 2 needle_0 needle_1
+ANIM proj_hongryeon 1 fan_0 fan_1
 ANIM bigwind 2 bigwind_0 bigwind_1
