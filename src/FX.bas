@@ -8,6 +8,7 @@ Public Const FX_HEAVY As Long = 1
 Public Const FX_BLOCK As Long = 2
 Public Const FX_SLAM As Long = 3       ' ground impact (shock ring + dust)
 Public Const FX_SLASH As Long = 4      ' sword cut streak
+Public Const FX_DARK As Long = 5       ' dark energy burst (teleport smoke, demon palm)
 
 Private Const MAX_FX As Long = 8
 Private Const FX_LIFE As Long = 4
@@ -51,6 +52,8 @@ Public Sub Draw()
                 Slam mX(k), mY(k), mAge(k)
             ElseIf mType(k) = FX_SLASH Then
                 SlashFx mX(k), mY(k), mAge(k), k
+            ElseIf mType(k) = FX_DARK Then
+                DarkFx mX(k), mY(k), mAge(k)
             Else
                 Spark mX(k), mY(k), mAge(k), mType(k)
             End If
@@ -61,6 +64,20 @@ End Sub
 Private Function Life(ByVal k As Long) As Long
     If mType(k) = FX_SLAM Then Life = SLAM_LIFE Else Life = FX_LIFE
 End Function
+
+' Purple-black burst: dark core, violet ring, drifting motes.
+Private Sub DarkFx(ByVal x As Long, ByVal y As Long, ByVal age As Long)
+    Dim k As Long, a As Double, r As Long
+    r = 3 + age * 3
+    If age < 2 Then Renderer.FillRect x - 3, y - 3, 7, 7, RGB(30, 10, 40)
+    For k = 0 To 15
+        a = k * 3.14159 / 8 + age * 0.3
+        Renderer.PutPixel x + Int(Cos(a) * r), y + Int(Sin(a) * r), IIf(age < 2, RGB(200, 120, 255), RGB(120, 60, 170))
+    Next k
+    For k = 0 To 3
+        Renderer.PutPixel x - 5 + k * 3, y - 4 - age * 2 - (k Mod 2) * 2, RGB(150, 90, 200)
+    Next k
+End Sub
 
 ' Diagonal cut streak that flashes and thins out; direction varies per slot.
 Private Sub SlashFx(ByVal x As Long, ByVal y As Long, ByVal age As Long, ByVal k As Long)

@@ -52,6 +52,8 @@ Public Const MT_GRAB As Long = 5
 Public Const MT_SUPER_PROJ As Long = 6
 Public Const MT_SUPER_GRAB As Long = 7
 Public Const MT_SUPER_RUSH As Long = 8      ' dash; on hit -> multi-slash sequence
+Public Const MT_TELEPORT As Long = 9        ' vanish (invincible) and reappear behind the opponent
+Public Const MT_SUPER_TELE As Long = 10     ' teleport, then a strike; on hit -> sequence
 
 Private mSprIdx As Collection
 Private mAnimIdx As Collection
@@ -73,6 +75,7 @@ Public Sub LoadAll()
     LoadSpriteFile "cheolsan"
     LoadSpriteFile "muyeong"
     LoadSpriteFile "seolhwa"
+    LoadSpriteFile "heukrim"
     LoadSpriteFile "fx"
     ' stages: file name, display name (order = stage select order)
     Dim st As Variant, k As Long
@@ -300,6 +303,8 @@ Private Sub LoadMoves()
                 Case "SP": MvType(id) = MT_SUPER_PROJ
                 Case "SG": MvType(id) = MT_SUPER_GRAB
                 Case "SR": MvType(id) = MT_SUPER_RUSH
+                Case "TP": MvType(id) = MT_TELEPORT
+                Case "ST": MvType(id) = MT_SUPER_TELE
                 Case Else: MvType(id) = MT_NORMAL
             End Select
             MvP1(id) = Val(p(18))

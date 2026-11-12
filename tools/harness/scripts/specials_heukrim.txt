@@ -1,0 +1,26 @@
+CMD start 0 1 0 1
+CMD chars heukrim danwoo
+CMD dummy 1
+CMD place 40 110
+3 -
+# poison needles: down, down-forward, forward + A
+1 D
+1 D+R
+1 R+A
+30 -
+# teleport behind: down, down-back, back + Z, then jab the opponent's back
+CMD place 60 90
+1 D
+1 D+L
+1 L+Z
+18 -
+1 A
+20 -
+# super from range: meter full, down forward down forward + A
+CMD meter 0 1000
+CMD place 40 130
+1 D
+1 R
+1 D
+1 R+A
+80 -

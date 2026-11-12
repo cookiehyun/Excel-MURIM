@@ -4,6 +4,24 @@ PAL c 4FD8E8
 PAL C 9AF2F2
 PAL w FFFFFF
 PAL b 2A7FB8
+PAL g 6AE070
+PAL G C8FFB0
+PAL x 14201A
+PAL v 4A8A50
+SPRITE needle_0 12 6 6 3
+...xxxxxxx..
+v.vgggggGGx.
+...xxxxxxxx.
+..vxgggggGGx
+...xxxxxxxx.
+v.vgggggGGx.
+SPRITE needle_1 12 6 6 3
+....xxxxxxx.
+.v.vgggggGGx
+....xxxxxxxx
+...vxgggggGG
+....xxxxxxxx
+.v.vgggggGGx
 SPRITE blade_0 9 16 4 8
 .kwCwk...
 ..kwwCk..
@@ -108,4 +126,5 @@ b.bbkcck....kwcccccccb....
 ...............bb.........
 ANIM wind 2 wind_0 wind_1
 ANIM proj_muyeong 2 blade_0 blade_1
+ANIM proj_heukrim 2 needle_0 needle_1
 ANIM bigwind 2 bigwind_0 bigwind_1

@@ -318,7 +318,10 @@ Private Function Neutral(ByVal i As Long, ByVal o As Long, ByVal v As Long, ByVa
     ' 4. super when the gauge is full
     meFull = (Fighter.F(i).meter >= METER_MAX)
     If meFull And Rnd < 0.04 * (1 + pAggr) Then
-        If SpecialType(i, MV_SUPER) = MT_SUPER_RUSH Then
+        If SpecialType(i, MV_SUPER) = MT_SUPER_TELE Then
+            QSpecial i, MV_SUPER, False                        ' teleport strike works from anywhere
+            Exit Function
+        ElseIf SpecialType(i, MV_SUPER) = MT_SUPER_RUSH Then
             If dist < 52 Then
                 QSpecial i, MV_SUPER, True
                 Exit Function
@@ -380,6 +383,11 @@ Private Function Neutral(ByVal i As Long, ByVal o As Long, ByVal v As Long, ByVa
             Plan i, 1, 4 + Int(Rnd * 6)                   ' crouch and wait
         End If
     Else
+        s = FindSpecial(i, MT_TELEPORT)
+        If s >= 0 And Rnd < 0.1 + 0.1 * pSpecial Then
+            QSpecial i, s, False                              ' escape / cross-up
+            Exit Function
+        End If
         s = FindSpecial(i, MT_GRAB)
         If r < 0.3 * pAggr + 0.1 Then
             QAdd i, 5, B_LP                               ' jab (chains if it hits)

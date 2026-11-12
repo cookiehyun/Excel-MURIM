@@ -191,7 +191,9 @@ Private Sub SetupCharacter(ByVal i As Long, ByVal prefix As String, ByVal x As D
     Case "muyeong"
         Setup i, prefix, x, 2#, 3#, -4.4, 1.7, 6, 1000, 30, 21
     Case "seolhwa"
-        Setup i, prefix, x, 2.3, 3.6, -4.8, 2#, 5, 900, 29, 20
+        Setup i, prefix, x, 2.1, 3.3, -4.8, 2#, 5, 850, 29, 20
+    Case "heukrim"
+        Setup i, prefix, x, 1.6, 2.8, -4.2, 1.5, 6, 950, 31, 22
     Case Else
         Setup i, "danwoo", x, 2#, 3.2, -4.5, 1.8, 6, 1000, 30, 21
     End Select
@@ -206,6 +208,9 @@ Private Sub SetupCharacter(ByVal i As Long, ByVal prefix As String, ByVal x As D
             .sSlashA = Data.SpriteId("seolhwa.hk_1")
             .sSlashB = Data.SpriteId("seolhwa.lk_1")
             .sSlashC = Data.SpriteId("seolhwa.rush_1")
+        Case "heukrim"
+            .superName = "CHEONMA GANGRIM"
+            .seqFx = FX_DARK
         Case Else: .superName = "CHEONPUNG MANJANG"
         End Select
     End With
@@ -570,7 +575,7 @@ Private Sub UpdateFighter(ByVal i As Long)
         Case ST_THROW
             If Data.MvType(.mv) = MT_SUPER_GRAB Then
                 SuperGrabStep i
-            ElseIf Data.MvType(.mv) = MT_SUPER_RUSH Then
+            ElseIf Data.MvType(.mv) = MT_SUPER_RUSH Or Data.MvType(.mv) = MT_SUPER_TELE Then
                 SuperSlashStep i
             ElseIf .stTick = Data.MvStartup(.mv) Then
                 Combat.DealDamage 1 - i, Data.MvDamage(.mv)
@@ -579,7 +584,9 @@ Private Sub UpdateFighter(ByVal i As Long)
                 FX.Spawn Int(F(1 - i).x + 0.5), Int(F(1 - i).footY) - 18, FX_HEAVY
                 Combat.HitStop = 4
             End If
-            If Data.MvType(.mv) <> MT_SUPER_GRAB And Data.MvType(.mv) <> MT_SUPER_RUSH And .stTick >= MoveTotal(.mv) Then SetState i, ST_IDLE
+            If Data.MvType(.mv) = MT_THROW Or Data.MvType(.mv) = MT_GRAB Then
+                If .stTick >= MoveTotal(.mv) Then SetState i, ST_IDLE
+            End If
 
         Case ST_THROWN
             .vx = 0
@@ -619,6 +626,12 @@ Private Sub UpdateAttack(ByVal i As Long, ByVal d As Boolean)
         Case MT_GRAB, MT_SUPER_GRAB
             If t = Data.MvStartup(.mv) Then
                 If TryGrab(i, .mv) Then Exit Sub
+            End If
+        Case MT_TELEPORT, MT_SUPER_TELE
+            If t = 1 Then FX.Spawn Int(.x + 0.5), Int(.footY) - 16, FX_DARK
+            If t = Data.MvStartup(.mv) - 1 Then
+                Teleport i
+                FX.Spawn Int(.x + 0.5), Int(.footY) - 16, FX_DARK
             End If
         End Select
 
@@ -827,6 +840,28 @@ Private Sub SuperGrabStep(ByVal i As Long)
     End With
 End Sub
 
+' Vanish and reappear just behind the opponent (in front of them if there is no room).
+Private Sub Teleport(ByVal i As Long)
+    Dim o As Long, sd As Double, nx As Double, gap As Double
+    o = 1 - i
+    With F(i)
+        If F(o).x >= .x Then sd = 1 Else sd = -1
+        gap = .halfW + F(o).halfW + 3
+        nx = F(o).x + sd * gap
+        If nx < .halfW Or nx > SCREEN_W - .halfW Then nx = F(o).x - sd * gap
+        .x = nx
+        If F(o).x > .x Then .facing = 1 Else .facing = -1
+    End With
+End Sub
+
+' True while a teleporting fighter is gone (not drawn, cannot be hit).
+Public Function Vanished(ByVal i As Long) As Boolean
+    Dim mt As Long
+    If F(i).state <> ST_ATTACK Then Exit Function
+    mt = Data.MvType(F(i).mv)
+    If mt = MT_TELEPORT Or mt = MT_SUPER_TELE Then Vanished = (F(i).stTick >= 1 And F(i).stTick < Data.MvStartup(F(i).mv))
+End Function
+
 ' Super rush connected: hold the opponent and run the slash sequence.
 Public Sub StartSuperSlash(ByVal a As Long, ByVal d As Long)
     F(a).vx = 0
@@ -994,6 +1029,7 @@ Private Sub ResolvePush()
     If Abs(F(0).footY - F(1).footY) > 14 Then Exit Sub
     If F(0).state = ST_DOWN Or F(1).state = ST_DOWN Then Exit Sub
     If F(0).state = ST_THROWN Or F(1).state = ST_THROWN Then Exit Sub
+    If Vanished(0) Or Vanished(1) Then Exit Sub
     dx = F(1).x - F(0).x
     minD = F(0).halfW + F(1).halfW
     If Abs(dx) >= minD Then Exit Sub
@@ -1077,6 +1113,7 @@ End Function
 Public Function HurtRect(ByVal i As Long, x0 As Long, y0 As Long, w As Long, h As Long) As Boolean
     With F(i)
         If .state = ST_DOWN Or .state = ST_THROWN Then Exit Function     ' invulnerable
+        If Vanished(i) Then Exit Function
         If .state = ST_ATTACK Then
             If Data.MvType(.mv) = MT_RISE And .stTick < Data.MvP2(.mv) Then Exit Function   ' invincible uppercut
         End If
@@ -1127,7 +1164,7 @@ Private Function CurrentSprite(ByVal i As Long) As Long
                 Else
                     CurrentSprite = .sSlam
                 End If
-            ElseIf .state = ST_THROW And Data.MvType(.mv) = MT_SUPER_RUSH Then
+            ElseIf .state = ST_THROW And (Data.MvType(.mv) = MT_SUPER_RUSH Or Data.MvType(.mv) = MT_SUPER_TELE) Then
                 If t < 20 Then
                     Select Case (t \ 3) Mod 3
                     Case 0: CurrentSprite = .sSlashA
@@ -1167,7 +1204,7 @@ Private Function CurrentSprite(ByVal i As Long) As Long
                     ElseIf (F(1 - i).stTick \ 4) Mod 2 = 1 Then
                         CurrentSprite = .sHit1
                     End If
-                ElseIf Data.MvType(F(1 - i).mv) = MT_SUPER_RUSH Then
+                ElseIf Data.MvType(F(1 - i).mv) = MT_SUPER_RUSH Or Data.MvType(F(1 - i).mv) = MT_SUPER_TELE Then
                     If (F(1 - i).stTick \ 3) Mod 2 = 1 Then CurrentSprite = .sHit1
                 End If
             End If
@@ -1185,6 +1222,7 @@ End Function
 
 Private Sub DrawOne(ByVal i As Long)
     Dim tint As Long
+    If Vanished(i) Then Exit Sub
     tint = -1
     If F(i).flash > 0 Then tint = RGB(255, 255, 255)
     With F(i)

@@ -145,7 +145,7 @@ Public Sub ApplyAttack(ByVal a As Long, ByVal d As Long, ByVal mv As Long, ByVal
     If heavy Then push = 2.2 Else push = 1.3
     If Not lastHit Then push = 0.4
 
-    If mt = MT_SUPER_RUSH And Not Blocks(d, Data.MvLevel(mv)) Then
+    If (mt = MT_SUPER_RUSH Or mt = MT_SUPER_TELE) And Not Blocks(d, Data.MvLevel(mv)) Then
         FX.Spawn cx, cy, FX_SLASH                           ' super rush connected: slash sequence takes over
         Fighter.StartSuperSlash a, d
         Exit Sub

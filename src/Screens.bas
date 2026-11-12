@@ -31,8 +31,10 @@ Public Sub Init()
     rStat(2, 0) = 3: rStat(2, 1) = 3: rStat(2, 2) = 5: rHeadX(2) = 2: rHeadY(2) = -31
     rPrefix(3) = "seolhwa": rName(3) = "SEOLHWA": rStyle(3) = "SPEED KICKER"
     rStat(3, 0) = 2: rStat(3, 1) = 5: rStat(3, 2) = 3: rHeadX(3) = 1: rHeadY(3) = -30
+    rPrefix(4) = "heukrim": rName(4) = "HEUKRIM": rStyle(4) = "ZONER"
+    rStat(4, 0) = 3: rStat(4, 1) = 2: rStat(4, 2) = 5: rHeadX(4) = 4: rHeadY(4) = -32
     Dim k As Long
-    For k = 4 To ROSTER - 1
+    For k = 5 To ROSTER - 1
         rPrefix(k) = "": rName(k) = "???": rStyle(k) = "COMING SOON"
     Next k
     cGold = RGB(240, 190, 80)
