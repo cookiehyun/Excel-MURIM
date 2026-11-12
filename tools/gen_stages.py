@@ -398,7 +398,7 @@ def inn(W, H):
 
 
 def snow(W, H):
-    """Snowy mountain top: jagged white peaks, snow-laden pine, stone stele, falling snow."""
+    """Snowy mountain top: jagged white peaks over a snowy cliff, falling snow."""
     import random
     rnd = random.Random(11)
     s = Stage(W, H, {
@@ -406,8 +406,6 @@ def snow(W, H):
         "p": "E8EEF6", "P": "B4C2D6", "q": "8E9EB8",          # far peaks: snow / shade / rock
         "m": "F4F7FB", "M": "A6B4CA", "n": "6A7890",          # near peaks
         "r": "4A4E5C", "R": "363A46", "w": "EEF2F8",          # cliff rock / dark / snow cap
-        "t": "3A2E2A", "T": "55443C", "g": "2E4A40", "G": "3E5E50",   # pine trunk / foliage
-        "k": "7A7E88", "K": "989CA6", "j": "5A5E68",          # stone stele
         "*": "FFFFFF",                                         # snowflakes
         "s": "E6ECF4", "S": "C6D2E2", "e": "F8FAFD", "d": "8A94A6",   # snow floor
     })
@@ -440,32 +438,6 @@ def snow(W, H):
             s.g[y][x] = "R" if math.sin(x * 0.37 + y * 1.3) * math.sin(x * 0.11 - y * 0.7) > 0.55 else "r"
         s.put(x, s.Y(top), "w")
         s.put(x, s.Y(top) + 1, "w" if (x * 5) % 7 else "r")
-    # snow-laden pine (left)
-    tx = 13
-    s.rect(tx - 0.8, 16, 1.8, DGROUND - 16, "t")
-    s.rect(tx + 0.4, 16, 0.6, DGROUND - 16, "T")
-    for top, h, w in ((14, 8, 6), (20, 9, 9), (27, 10, 12), (35, 10, 14)):   # conical tiers
-        for y in range(s.Y(top), s.Y(top + h)):
-            t = (y / s.sy - top) / h
-            half = 1 + w * t
-            jag = 1 if (y % 3 == 0) else 0
-            for x in range(s.X(tx - half) - jag, s.X(tx + half) + jag + 1):
-                if 0 <= x < W:
-                    s.g[y][x] = "G" if x < s.X(tx) else "g"
-            # snow resting on the upper edge of each tier
-            if (y / s.sy - top) < h * 0.35:
-                for x in (s.X(tx - half) - jag, s.X(tx + half) + jag):
-                    s.put(x, y, "w")
-        s.rect(tx - 1.2, top, 2.4, 1, "w")
-    # stone stele (right)
-    sx0 = 100
-    s.rect(sx0 - 4, DGROUND - 3, 8, 3, "j")
-    s.rect(sx0 - 3, DGROUND - 17, 6, 14, "k")
-    s.rect(sx0 - 3, DGROUND - 17, 1, 14, "K")
-    s.rect(sx0 - 3.6, DGROUND - 18.5, 7.2, 1.6, "j")
-    s.rect(sx0 - 3.6, DGROUND - 19.3, 7.2, 0.8, "w")                   # snow on top
-    for k in range(4):
-        s.rect(sx0 - 0.6, DGROUND - 15 + k * 3, 1.2, 1.6, "j")         # carved marks
     # snow floor
     for y in range(s.ground, s.H):
         s.g[y] = ["s"] * W
