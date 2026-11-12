@@ -280,12 +280,12 @@ def floor_dirt(s):
 
 
 def inn(W, H):
-    """Wuxia inn (kezhan) at night: double sweeping roofs, red pillars, wine flag, lanterns under the eaves."""
+    """Wuxia inn (kezhan) at night, seen up close: wide hall, central upper pavilion, lanterns under the eaves."""
     import random
     rnd = random.Random(3)
     s = Stage(W, H, {
         "0": "0B1026", "1": "121938", "2": "1B2349", "*": "C8D0F0", "m": "E8E2C0",
-        "M": "232B52", "N": "2C3560",                                         # distant mountains
+        "M": "3E4C78", "N": "56669A",                                         # distant mountains (lit by the moon)
         "r": "2E4450", "R": "22343E", "x": "6A8494", "z": "18242C",           # roof tiles / grooves / eave edge / ridge
         "g": "D4A848",                                                        # gold ornaments
         "p": "A02C22", "P": "6E1C18", "b": "B8402C",                          # red pillars / shadow / beams
@@ -294,14 +294,13 @@ def inn(W, H):
         "o": "1A1014",                                                        # doorway
         "h": "141018",                                                        # plaque
         "l": "D8342A", "L": "FF8A50", "t": "1A1218",                          # lanterns / glow / cord
-        "f": "E6DAB8", "F": "B8342A", "k": "4A3424",                          # wine flag cloth / border / pole
         "s": "6E6658", "S": "5A5348", "e": "8E8676", "d": "3E3830", "u": "7E7060",   # stone
     })
     s.sky("012", 0, s.ground)
     for _ in range(36):
         s.put(rnd.randrange(W), rnd.randrange(s.Y(14)), "*")
-    s.disc(16, 8, 3.5, "m")
-    s.ridge("M", "N", 34, [(4, 0.06, 1.0), (2, 0.17, 0.3)], bottom=s.Y(46))
+    s.disc(14, 6, 3.2, "m")
+    s.ridge("M", "N", 17, [(4, 0.09, 1.0), (2.5, 0.23, 0.3), (1, 0.6, 2.0)], bottom=s.Y(30))
 
     cx = 60
     def roof(half, top, height, overhang, lift):
@@ -349,36 +348,36 @@ def inn(W, H):
             k += 2.4
 
     # ---- upper storey
-    s.rect(cx - 30, 15, 60, 13, "w")
-    for px in (-30, -15, 15, 29):
+    s.rect(cx - 36, 15, 72, 13, "w")
+    for px in (-36, -20, 18.6, 34.6):
         s.rect(cx + px, 15, 1.4, 13, "p")
-    for wx in (-26, -12, 6, 20):
-        lattice(cx + wx, 18, 7, 8)
+    for wx in (-31, -17, 9, 23):
+        lattice(cx + wx, 18, 8, 8)
     s.rect(cx - 6, 17, 12, 6, "g")                            # plaque
     s.rect(cx - 5.2, 17.8, 10.4, 4.4, "h")
     s.rect(cx - 3.2, 19.4, 1.4, 1.2, "g"); s.rect(cx + 1.8, 19.4, 1.4, 1.2, "g")
-    brackets(cx - 31, cx + 31, 13.5)
-    roof(28, 4, 10, 8, 4.5)
+    brackets(cx - 37, cx + 37, 13.5)
+    roof(34, 4, 10, 9, 4.5)
     # ---- lower storey (taller, wider)
-    s.rect(cx - 42, 33, 84, DGROUND - 33 - 3, "w")
-    for px in (-42, -26, -10, 9, 25, 40.6):
+    s.rect(-2, 33, DW + 4, DGROUND - 33 - 3, "w")
+    for px in (-58, -42, -26, -10, 9, 25, 41, 57):
         s.rect(cx + px, 33, 1.6, DGROUND - 36, "p")
         s.rect(cx + px + 1.1, 33, 0.5, DGROUND - 36, "P")
-    for wx in (-37, -21, 14, 30):
+    for wx in (-53, -37, -21, 14, 30, 46):
         lattice(cx + wx, 38, 8, 9)
     s.rect(cx - 7, 37, 14, DGROUND - 40, "o")                 # doorway
     s.rect(cx - 8, 36, 16, 1.2, "b")
     s.rect(cx - 8, 36, 1.2, DGROUND - 39, "p"); s.rect(cx + 6.8, 36, 1.2, DGROUND - 39, "p")
-    brackets(cx - 43, cx + 43, 31.5)
-    roof(40, 26, 5.5, 7, 3.5)
+    brackets(-2, DW + 2, 31.5)
+    roof(62, 26, 5.5, 4, 3.5)
     # stone platform + steps
-    s.rect(cx - 46, DGROUND - 3, 92, 3, "S")
-    s.rect(cx - 46, DGROUND - 3, 92, 0.8, "e")
+    s.rect(-2, DGROUND - 3, DW + 4, 3, "S")
+    s.rect(-2, DGROUND - 3, DW + 4, 0.8, "e")
     s.rect(cx - 9, DGROUND - 2, 18, 1, "e")
     s.rect(cx - 10, DGROUND - 1, 20, 1, "e")
 
     # lanterns hanging under the upper eaves (well above head height)
-    for lx in (cx - 34, cx - 22, cx + 22, cx + 34):
+    for lx in (cx - 40, cx - 26, cx + 26, cx + 40):
         top = 14 if abs(lx - cx) > 30 else 15
         s.rect(lx - 0.25, top, 0.5, 2.5, "t")
         y0 = top + 2.5
@@ -389,19 +388,8 @@ def inn(W, H):
         s.rect(lx - 1.4, y0 + 3.9, 2.8, 0.7, "g")
         s.rect(lx - 0.3, y0 + 4.6, 0.6, 1.6, "g")
 
-    # wine flag on a pole (right)
-    fx = 110
-    s.rect(fx, 6, 1.2, DGROUND - 6, "k")
-    s.rect(fx - 1, 6, 3.2, 1, "g")
-    s.rect(fx - 11, 8, 11, 1, "k")                            # cross arm
-    s.rect(fx - 10.5, 9, 9, 16, "F")
-    s.rect(fx - 9.8, 9.7, 7.6, 14.6, "f")
-    s.disc(fx - 6, 15.5, 2.2, "F")
-    for k in range(4):                                         # ragged bottom edge
-        s.rect(fx - 10.5 + k * 2.4, 25, 1.2, 1.2, "F")
-
     floor(s, "s", "S", "e", "d")
-    for lx in (cx - 30, cx, cx + 30):                         # warm light on the courtyard
+    for lx in (cx - 44, cx - 22, cx, cx + 22, cx + 44):       # warm light on the courtyard
         for y in range(s.ground + 1, min(s.H, s.ground + 3)):
             for x in range(s.X(lx - 8), s.X(lx + 8)):
                 if 0 <= x < W and s.g[y][x] == "s":
