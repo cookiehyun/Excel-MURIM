@@ -179,10 +179,17 @@ Private Sub StatRow(ByVal lbl As String, ByVal v As Long, ByVal y As Long)
 End Sub
 
 Private Sub BigView(ByVal k As Long, ByVal x As Long, ByVal flip As Boolean, ByVal clipL As Long, ByVal clipR As Long)
-    Dim id As Long
+    Dim id As Long, ref As Long
     If Locked(k) Then
         PixelFont.DrawBig "?", x, 48, RGB(80, 70, 100), 3
         Exit Sub
+    End If
+    ' centre the drawn body (not the anchor) in the panel; use idle_0's width so breathing does not shift it
+    ref = Data.SpriteId(rPrefix(k) & ".idle_0")
+    If flip Then
+        x = x - (Data.SprAX(ref) * 2 - Data.SprW(ref))
+    Else
+        x = x - (Data.SprW(ref) - Data.SprAX(ref) * 2)
     End If
     id = Data.AnimFrame(Data.AnimId(rPrefix(k) & ".idle"), mMenuTick)
     Renderer.DrawSpriteScaled id, x, 96, flip, 2, clipL, 10, clipR, 99
