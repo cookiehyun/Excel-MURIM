@@ -797,6 +797,7 @@ Public Sub ApplyHit(ByVal i As Long, ByVal hitstun As Long, ByVal push As Double
             .vx = -.facing * push
         End If
     End With
+    ClampX i            ' a knockdown pose is wider: keep it on screen already during hit stop
 End Sub
 
 Public Sub ApplyBlock(ByVal i As Long, ByVal blockstun As Long, ByVal push As Double)
@@ -813,10 +814,26 @@ Public Function AtWall(ByVal i As Long) As Boolean
     End With
 End Function
 
+' Keep the push box inside the stage. While knocked down the body is drawn lying
+' sideways, so the push box becomes the sprite's real width (like the wider
+' knockdown push boxes in fighting games) and the whole body stays on screen.
 Private Sub ClampX(ByVal i As Long)
+    Dim id As Long, l As Long, r As Long
     With F(i)
         If .x < .halfW Then .x = .halfW
         If .x > SCREEN_W - .halfW Then .x = SCREEN_W - .halfW
+        If .state = ST_DOWN Then
+            id = CurrentSprite(i)
+            If .facing < 0 Then
+                l = Int(.x + 0.5) + Data.SprAX(id) - (Data.SprW(id) - 1)
+                r = Int(.x + 0.5) + Data.SprAX(id)
+            Else
+                l = Int(.x + 0.5) - Data.SprAX(id)
+                r = l + Data.SprW(id) - 1
+            End If
+            If l < 0 Then .x = .x - l
+            If r > SCREEN_W - 1 Then .x = .x - (r - (SCREEN_W - 1))
+        End If
     End With
 End Sub
 
