@@ -157,6 +157,38 @@ Public Sub DrawSprite(ByVal id As Long, ByVal x As Long, ByVal y As Long, ByVal 
     Next sy
 End Sub
 
+' Draw a sprite enlarged by an integer factor, clipped to (cx0, cy0)-(cx1, cy1).
+' Used by the select screens (portraits and the big character view).
+Public Sub DrawSpriteScaled(ByVal id As Long, ByVal x As Long, ByVal y As Long, ByVal flip As Boolean, _
+                            ByVal k As Long, ByVal cx0 As Long, ByVal cy0 As Long, ByVal cx1 As Long, ByVal cy1 As Long, _
+                            Optional ByVal tint As Long = -1)
+    Dim w As Long, h As Long, ax As Long, ay As Long, off As Long
+    Dim sx As Long, sy As Long, px As Long, py As Long, c As Long, i As Long, j As Long
+    w = Data.SprW(id): h = Data.SprH(id)
+    ax = Data.SprAX(id): ay = Data.SprAY(id): off = Data.SprOff(id)
+    If cx0 < 0 Then cx0 = 0
+    If cy0 < 0 Then cy0 = 0
+    If cx1 > SCREEN_W - 1 Then cx1 = SCREEN_W - 1
+    If cy1 > SCREEN_H - 1 Then cy1 = SCREEN_H - 1
+    For sy = 0 To h - 1
+        For sx = 0 To w - 1
+            c = Data.SprPix(off + sy * w + sx)
+            If c >= 0 Then
+                If tint >= 0 Then c = tint
+                If flip Then px = x + (ax - sx) * k - (k - 1) Else px = x + (sx - ax) * k
+                py = y + (sy - ay) * k
+                For j = py To py + k - 1
+                    If j >= cy0 And j <= cy1 Then
+                        For i = px To px + k - 1
+                            If i >= cx0 And i <= cx1 Then mBack(i, j) = c
+                        Next i
+                    End If
+                Next j
+            End If
+        Next sx
+    Next sy
+End Sub
+
 ' Paint differences to the sheet. Returns number of Range paint calls.
 Public Function Flush() As Long
     Dim x As Long, y As Long, x0 As Long, c As Long, k As Long

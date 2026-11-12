@@ -134,10 +134,10 @@ Private mDummyTick As Long
 Private mDummyNext As Long
 Private mShowBoxes As Boolean
 
-Public Sub Init(ByVal humanIndex As Long)
-    '      i  prefix      x   walk dash  jumpVY jumpVX halfW  hp    hurtH hurtHC
-    Setup 0, "danwoo", 72, 2#, 3.2, -4.5, 1.8, 6, 1000, 30, 21
-    Setup 1, "cheolsan", 120, 1.4, 2.6, -4#, 1.4, 8, 1150, 34, 25
+' c0 / c1 = character names ("danwoo", "cheolsan"); the same character may appear twice.
+Public Sub Init(ByVal c0 As String, ByVal c1 As String, ByVal humanIndex As Long)
+    SetupCharacter 0, c0, 72
+    SetupCharacter 1, c1, 120
     mControl = humanIndex
     mDummy = DUMMY_CPU
     mShowBoxes = False
@@ -170,6 +170,17 @@ End Sub
 Public Sub SetDummy(ByVal mode As Long)
     mDummy = mode
     mDummyTick = 0
+End Sub
+
+' Per-character tuning (movement, size, health).
+Private Sub SetupCharacter(ByVal i As Long, ByVal prefix As String, ByVal x As Double)
+    Select Case prefix
+    Case "cheolsan"
+        '         prefix      x  walk dash  jumpVY jumpVX halfW  hp    hurtH hurtHC
+        Setup i, prefix, x, 1.4, 2.6, -4#, 1.4, 8, 1150, 34, 25
+    Case Else
+        Setup i, "danwoo", x, 2#, 3.2, -4.5, 1.8, 6, 1000, 30, 21
+    End Select
 End Sub
 
 Private Sub Setup(ByVal i As Long, ByVal prefix As String, ByVal x As Double, ByVal walkSpeed As Double, _

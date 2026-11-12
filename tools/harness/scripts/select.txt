@@ -1,0 +1,18 @@
+# title -> VS CPU -> pick Danwoo, hover Cheolsan, pick Cheolsan as opponent -> fight
+4 -
+1 D
+3 -
+1 A
+6 -
+1 R
+6 -
+1 L
+4 -
+1 A
+6 -
+1 D
+6 -
+1 U
+6 -
+1 A
+20 -
