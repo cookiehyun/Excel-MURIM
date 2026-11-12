@@ -6,7 +6,7 @@ Colors are kept in few flat bands on purpose: fewer distinct runs per row means
 fewer Range paint calls in Excel.
 
 usage: python tools/gen_stages.py [W H] [stage names...]
-       (defaults: 120 64, all stages)
+       (defaults: 192 100 = Renderer.SCREEN_W/H, all stages)
 """
 import math
 import os
@@ -186,7 +186,7 @@ STAGES = {"sanmun": sanmun}
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    W, H = 120, 64
+    W, H = 192, 100
     if len(args) >= 2 and args[0].isdigit():
         W, H = int(args[0]), int(args[1])
         args = args[2:]

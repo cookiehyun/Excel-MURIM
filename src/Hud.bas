@@ -4,13 +4,13 @@ Option Explicit
 ' Health bars (with red damage trail), names, super gauges, combo counter,
 ' banners (COUNTER / SUPER / ESCAPE), KO banner.
 
-Private Const BAR_W As Long = 64
+Private Const BAR_W As Long = 80
 Private Const BAR_Y As Long = 2
 Private Const P1_X As Long = 4                       ' left bar outer x
-Private Const P2_X As Long = 90                      ' right bar outer x (SCREEN_W - 4 - BAR_W - 2)
+Private Const P2_X As Long = 106                     ' right bar outer x (SCREEN_W - 4 - BAR_W - 2)
 Private Const TRAIL_SPEED As Double = 6              ' hp per tick
-Private Const METER_W As Long = 40
-Private Const METER_Y As Long = 80
+Private Const METER_W As Long = 48
+Private Const METER_Y As Long = 96
 
 Private cBorder As Long, cEmpty As Long, cHp As Long, cHpDark As Long, cTrail As Long, cLow As Long
 Private cMeter As Long, cMeterFull As Long

@@ -19,7 +19,7 @@ ROOT = os.path.dirname(os.path.dirname(HERE))
 SRC = os.path.join(ROOT, "src")
 OUT = os.path.join(HERE, "out")
 SKIP = {"GameLoop", "DevTools", "Gallery", "KeyInput", "WinApi"}
-W, H = 160, 84
+W, H = 192, 100
 
 def pv(n, v):
     p = PropertyValue(); p.Name = n; p.Value = v; return p
