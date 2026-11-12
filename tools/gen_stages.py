@@ -279,7 +279,104 @@ def floor_dirt(s):
         x += rnd.randint(3, 7)
 
 
-STAGES = {"sanmun": sanmun, "bamboo": bamboo}
+def inn(W, H):
+    """Inn courtyard at night, paper lanterns strung across."""
+    import random
+    rnd = random.Random(3)
+    s = Stage(W, H, {
+        "0": "0B1026", "1": "121938", "2": "1B2349", "*": "C8D0F0",        # sky, stars
+        "m": "E8E2C0",                                                       # moon
+        "r": "2A1E2A", "R": "3A2A36", "x": "4A3A48",                         # roof tiles / ridge / eave tips
+        "w": "4A3024", "W": "5E3E2C", "q": "3A251C",                         # timber wall / beams
+        "y": "F2C46A", "Y": "D89A40", "p": "8A5A30",                         # lit paper window / frame
+        "o": "1A1014",                                                       # open doorway (dark)
+        "h": "6A2A20", "H": "C89A40",                                        # plaque / plaque rim
+        "l": "D83A2A", "L": "FF7A4A", "t": "1A1218",                         # lanterns / glow / string
+        "b": "5A3A22", "B": "7A5230", "k": "2E1E14",                         # barrels
+        "s": "4E4038", "S": "3E322C", "e": "7A6248", "d": "2E2620", "u": "6A5444",  # floor (warm lit)
+    })
+    s.sky("012", 0, s.ground)
+    for _ in range(40):
+        x, y = rnd.randrange(W), rnd.randrange(s.Y(12))
+        s.put(x, y, "*")
+    s.disc(104, 7, 3.5, "m")
+    # distant rooftops beside the inn
+    for bx, bw, top in ((-4, 18, 30), (104, 20, 26)):
+        s.rect(bx, top, bw, DGROUND - top, "q")
+        s.rect(bx - 2, top - 2, bw + 4, 2, "r")
+        s.rect(bx - 3, top - 3, 2, 1, "x"); s.rect(bx + bw + 1, top - 3, 2, 1, "x")
+        s.rect(bx + 4, top + 4, 4, 3, "Y")
+    # building
+    left, right = 10, 110
+    s.rect(left, 16, right - left, DGROUND - 16, "w")                       # walls
+    for dy in (16, 30, 31):                                                  # floor beams
+        s.rect(left, dy, right - left, 1, "q")
+    for dx in range(left, right + 1, 20):                                    # posts
+        s.rect(dx - 0.6, 16, 1.3, DGROUND - 16, "q")
+    # upper roof with curved eaves
+    for dy in range(0, 6):
+        inset = 6 - dy
+        s.rect(left - 6 + inset * 0.6, 10 + dy, right - left + 12 - inset * 1.2, 1, "r" if dy % 2 else "R")
+    for k in range(3):                                                       # upturned eave tips
+        s.rect(left - 6 - k * 1.2, 14 - k * 1.6, 2, 1.6, "x")
+        s.rect(right + 4 + k * 1.2, 14 - k * 1.6, 2, 1.6, "x")
+    s.rect(left - 2, 9, right - left + 4, 1, "R")                            # ridge
+    s.rect(46, 7.5, 28, 1.5, "R")
+    # lower roof over the balcony
+    for dy in range(0, 3):
+        s.rect(left - 3 + dy, 32 + dy, right - left + 6 - dy * 2, 1, "r" if dy % 2 else "R")
+    for k in range(2):
+        s.rect(left - 4 - k, 33 - k * 1.2, 1.6, 1.2, "x")
+        s.rect(right + 2.4 + k, 33 - k * 1.2, 1.6, 1.2, "x")
+    # upper windows (lit paper, lattice)
+    for dx in (16, 36, 76, 96):
+        s.rect(dx, 19, 9, 8, "p")
+        s.rect(dx + 0.8, 19.8, 7.4, 6.4, "y")
+        for k in (3, 5.7):
+            s.rect(dx + k, 19.8, 0.6, 6.4, "Y")
+        s.rect(dx + 0.8, 22.8, 7.4, 0.6, "Y")
+    # plaque in the middle
+    s.rect(52, 19, 16, 7, "H")
+    s.rect(53, 20, 14, 5, "h")
+    for k in range(3):
+        s.rect(55.5 + k * 3.5, 21.2, 1.6, 2.6, "H")
+    # ground floor: doorway + lit windows
+    s.rect(54, 39, 12, DGROUND - 39, "o")
+    s.rect(53, 38, 14, 1, "q")
+    for dx in (20, 82):
+        s.rect(dx, 40, 14, 9, "p")
+        s.rect(dx + 0.8, 40.8, 12.4, 7.4, "y")
+        for k in (4, 8.3):
+            s.rect(dx + k, 40.8, 0.6, 7.4, "Y")
+    # lantern string + lanterns
+    for x in range(W):                                                       # continuous string
+        s.put(x, s.Y(26 + 5 * math.sin(math.pi * (x / s.sx) / DW)), "t")
+    for dx in range(0, DW):
+        sag = 26 + 5 * math.sin(math.pi * dx / DW)
+        if dx % 16 == 8:
+            cx, cy = dx, sag + 1
+            s.rect(cx - 1.6, cy, 3.2, 4.2, "l")
+            s.rect(cx - 0.6, cy + 0.8, 1.2, 2.6, "L")
+            s.rect(cx - 1.0, cy - 0.4, 2, 0.6, "t")
+            s.rect(cx - 0.3, cy + 4.2, 0.6, 1.2, "Y")
+    # barrels (left) and a stack (right)
+    for bx, by in ((2, DGROUND - 7), (8, DGROUND - 7), (5, DGROUND - 13), (113, DGROUND - 7)):
+        s.rect(bx, by, 5, 7, "b")
+        s.rect(bx + 0.6, by, 1.2, 7, "B")
+        for k in (1, 5.4):
+            s.rect(bx, by + k, 5, 0.6, "k")
+    floor(s, "s", "S", "e", "d")
+    # warm light pools under the windows / door
+    for cx in (27, 60, 89):
+        for y in range(s.ground + 1, min(s.H, s.ground + 4)):
+            half = s.X(7) + (y - s.ground) * 2
+            for x in range(s.X(cx) - half, s.X(cx) + half):
+                if 0 <= x < W and s.g[y][x] == "s":
+                    s.g[y][x] = "u"
+    return s
+
+
+STAGES = {"sanmun": sanmun, "bamboo": bamboo, "inn": inn}
 
 if __name__ == "__main__":
     args = sys.argv[1:]
