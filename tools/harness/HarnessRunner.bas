@@ -34,7 +34,13 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                     Game.CpuLevel = CLng(p(3))
                     Game.WatchMode = (p(4) = "1")
                     Game.AutoRestart = True
+                    Game.GameMode = MODE_SANDBOX
+                    If UBound(p) >= 6 Then Game.GameMode = CLng(p(6))      ' 0 training, 1 VS CPU
                     Game.StartMatch CLng(p(5))
+                Case "roundtime"
+                    Match.RoundTicks = CLng(p(2))
+                Case "dump"
+                    dumpEvery = CLng(p(2))
                 Case "meter"
                     Fighter.F(CLng(p(2))).meter = CLng(p(3))
                 Case "control": Fighter.SetControl CLng(p(2))
@@ -60,6 +66,7 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                     tick = tick + 1
                     Print #f, "T " & tick & " " & Renderer.PaintCalls & " " & Renderer.RunCount & " " & Combat.HitStop & _
                               " " & Game.GameState & " " & Combat.ComboCount(0) & " " & Combat.ComboCount(1) & _
+                              " M" & Match.Phase & "/" & Match.Wins(0) & "-" & Match.Wins(1) & _
                               " | " & FighterLine(0) & " | " & FighterLine(1)
                     If dumpEvery > 0 Then
                         If tick Mod dumpEvery = 0 Then DumpFrame f, tick

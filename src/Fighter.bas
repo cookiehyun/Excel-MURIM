@@ -228,9 +228,12 @@ Private Sub Setup(ByVal i As Long, ByVal prefix As String, ByVal x As Double, By
     ResetOne i
 End Sub
 
-Public Sub ResetRound()
+Public Sub ResetRound(Optional ByVal keepMeter As Boolean = False)
+    Dim m0 As Long, m1 As Long
+    m0 = F(0).meter: m1 = F(1).meter
     ResetOne 0
     ResetOne 1
+    If keepMeter Then F(0).meter = m0: F(1).meter = m1
 End Sub
 
 Private Sub ResetOne(ByVal i As Long)

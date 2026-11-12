@@ -12,6 +12,7 @@ Public Const GS_STAGE As Long = 4
 
 Public Const MODE_TRAINING As Long = 0
 Public Const MODE_VSCPU As Long = 1
+Public Const MODE_SANDBOX As Long = 2      ' harness: no rounds, no refills
 
 Public GameState As Long
 Public CpuLevel As Long                 ' CpuAI.LV_EASY / LV_NORMAL / LV_HARD
@@ -48,11 +49,15 @@ Public Sub StartMatch(Optional ByVal seed As Long = 0)
     Projectile.Init
     FX.Init
     CpuAI.Init CpuLevel, seed
+    Dim rounds As Boolean, training As Boolean
+    rounds = (GameMode = MODE_VSCPU)
+    training = (GameMode = MODE_TRAINING)
+    Match.BeginMatch rounds, training
     GameState = GS_FIGHT
 End Sub
 
 Public Sub GameTick()
-    Dim i As Long
+    Dim i As Long, frozen As Boolean
     KeyInput.Poll
     If GameState = GS_MENU Then
         Screens.TitleTick
@@ -69,7 +74,9 @@ Public Sub GameTick()
     End If
 
     For i = 0 To 1
-        If IsCpu(i) Then
+        If Not Match.InputAllowed Then
+            Fighter.FeedInput i, 5, 0, 0                ' intro / round over: nobody moves
+        ElseIf IsCpu(i) Then
             CpuAI.Observe i
             CpuAI.Think i
         ElseIf i = Fighter.Controlled Then
@@ -91,14 +98,8 @@ Public Sub GameTick()
     End If
     FX.Update
     Hud.Update
-
-    If Combat.KoFinished Then
-        If AutoRestart Then
-            StartMatch
-        Else
-            GameState = GS_MENU
-        End If
-    End If
+    frozen = (Combat.SuperFreeze > 0 Or Combat.HitStop > 0)
+    Match.Tick frozen
 End Sub
 
 Public Function IsCpu(ByVal i As Long) As Boolean
@@ -126,6 +127,7 @@ Public Sub GameRender()
         Projectile.Draw
         FX.Draw
         Hud.Draw
+        Match.Draw
     End If
     Renderer.Flush
 End Sub

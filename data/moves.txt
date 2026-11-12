@@ -19,7 +19,7 @@ danwoo     lk    S    3       2      5        40     7       5         H     0  
 danwoo     hk    S    5       3      8        100    11      8         H     0  8   -28 8   6   hk_0       hk_1      N    0    0  -
 danwoo     clp   C    2       2      3        25     6       4         H     0  8   -20 7   5   crouch     clp       N    0    0  -
 danwoo     chp   C    3       3      8        80     10      7         H     0  -2  -36 7   8   chp_0      chp_1     N    0    0  -
-danwoo     clk   C    3       2      4        30     6       4         L     0  10  -6  8   6   crouch     clk       N    0    0  -
+danwoo     clk   C    3       2      4        30     8       4         L     0  10  -6  8   6   crouch     clk       N    0    0  -
 danwoo     chk   C    5       3      10       90     12      8         L     1  10  -5  8   5   crouch     chk       N    0    0  -
 danwoo     jp    A    3       4      0        60     8       6         O     0  6   -19 7   6   jump       jp        N    0    0  -
 danwoo     jk    A    4       5      0        80     9       7         O     0  9   -11 8   6   jump       jk        N    0    0  -
@@ -33,7 +33,7 @@ cheolsan   lk    S    4       2      6        50     7       5         H     0  
 cheolsan   hk    S    6       3      10       130    12      9         H     0  10  -32 8   6   hk_0       hk_1      N    0    0  -
 cheolsan   clp   C    3       2      4        35     6       4         H     0  11  -25 7   5   crouch     clp       N    0    0  -
 cheolsan   chp   C    4       3      10       100    11      8         H     0  -1  -44 8   9   chp_0      chp_1     N    0    0  -
-cheolsan   clk   C    4       2      5        40     6       4         L     0  12  -7  8   6   crouch     clk       N    0    0  -
+cheolsan   clk   C    4       2      5        40     9       4         L     0  12  -7  8   6   crouch     clk       N    0    0  -
 cheolsan   chk   C    6       3      12       110    12      9         L     1  12  -5  8   5   crouch     chk       N    0    0  -
 cheolsan   jp    A    4       4      0        80     8       6         O     0  8   -23 7   6   jump       jp        N    0    0  -
 cheolsan   jk    A    5       5      0        100    9       7         O     0  11  -13 8   6   jump       jk        N    0    0  -

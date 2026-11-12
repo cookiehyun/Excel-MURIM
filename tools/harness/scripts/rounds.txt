@@ -1,0 +1,5 @@
+# VS CPU rounds with a short (8 s) timer: hard CPU vs hard CPU, watch until the match ends and restarts
+CMD roundtime 160
+CMD dump 2
+CMD start 0 2 1 21 1
+900 -

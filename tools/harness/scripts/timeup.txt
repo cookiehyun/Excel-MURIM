@@ -1,0 +1,6 @@
+# both stand still: every round ends on TIME with equal health -> DRAW rounds (max 5) -> DRAW GAME
+CMD roundtime 60
+CMD dump 3
+CMD start 0 1 0 3 1
+CMD dummy 1
+700 -

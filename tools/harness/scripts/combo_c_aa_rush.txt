@@ -1,0 +1,12 @@
+CMD start 1 1 0 1
+CMD dummy 1
+CMD place 50 66
+3 -
+1 A
+3 -
+1 A
+2 -
+1 D
+1 D+L
+1 L+S
+40 -
