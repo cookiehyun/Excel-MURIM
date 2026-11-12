@@ -136,8 +136,8 @@ Private mShowBoxes As Boolean
 
 Public Sub Init(ByVal humanIndex As Long)
     '      i  prefix      x   walk dash  jumpVY jumpVX halfW  hp    hurtH hurtHC
-    Setup 0, "danwoo", 36, 2#, 3.2, -4.5, 1.8, 6, 1000, 30, 21
-    Setup 1, "cheolsan", 84, 1.4, 2.6, -4#, 1.4, 8, 1150, 34, 25
+    Setup 0, "danwoo", 56, 2#, 3.2, -4.5, 1.8, 6, 1000, 30, 21
+    Setup 1, "cheolsan", 104, 1.4, 2.6, -4#, 1.4, 8, 1150, 34, 25
     mControl = humanIndex
     mDummy = DUMMY_CPU
     mShowBoxes = False

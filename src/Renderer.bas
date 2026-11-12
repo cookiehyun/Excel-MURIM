@@ -9,10 +9,10 @@ Option Explicit
 ' single Range(...).Interior.Color call paints many runs.
 ' Headless = True (test harness) skips every sheet operation.
 
-Public Const SCREEN_W As Long = 120
-Public Const SCREEN_H As Long = 64
-Public Const GROUND_Y As Long = 56        ' first floor row; feet stand on GROUND_Y - 1
-Private Const PIXEL_PT As Double = 5      ' cell size in points
+Public Const SCREEN_W As Long = 160
+Public Const SCREEN_H As Long = 84
+Public Const GROUND_Y As Long = 74        ' first floor row; feet stand on GROUND_Y - 1 (must match the stage files)
+Private Const PIXEL_PT As Double = 4      ' cell size in points
 Private Const ORG_ROW As Long = 1         ' sheet row of pixel y = 0
 Private Const ORG_COL As Long = 1         ' sheet col of pixel x = 0
 Private Const GAME_SHEET As String = "Game"

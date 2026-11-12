@@ -3,7 +3,7 @@ usage: python3 tools/harness/strip.py <name> <tick> [<tick> ...]  -> out/<name>_
 import os, sys
 from PIL import Image, ImageDraw
 HERE = os.path.dirname(os.path.abspath(__file__))
-W, H = 120, 64
+W, H = 160, 84
 name, ticks = sys.argv[1], [int(t) for t in sys.argv[2:]]
 lines = open(os.path.join(HERE, "out", name + ".log")).read().split("\n")
 frames = {}

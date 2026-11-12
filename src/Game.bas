@@ -128,11 +128,11 @@ Private Sub MenuRender()
     ' both fighters idle on the sides
     Renderer.DrawSprite Data.AnimFrame(Fighter.F(0).aIdle, mMenuTick), 13, GROUND_Y, False
     Renderer.DrawSprite Data.AnimFrame(Fighter.F(1).aIdle, mMenuTick), SCREEN_W - 13, GROUND_Y, True
-    Renderer.FillRect 25, 19, 70, 29, RGB(18, 14, 30)
-    Renderer.DrawRectOutline 25, 19, 70, 29, RGB(90, 70, 120)
+    Renderer.FillRect 40, 26, 80, 29, RGB(18, 14, 30)
+    Renderer.DrawRectOutline 40, 26, 80, 29, RGB(90, 70, 120)
     PixelFont.DrawText "EXCEL MUHYEOP", SCREEN_W \ 2, 5, RGB(255, 214, 120), 2, 1
     For k = 0 To 2
-        y = 22 + k * 9
+        y = 29 + k * 9
         Select Case k
         Case 0
             lbl = "FIGHTER"
@@ -145,9 +145,9 @@ Private Sub MenuRender()
             If WatchMode Then v = "WATCH CPU" Else v = "VS CPU"
         End Select
         If k = mCursor Then c = RGB(255, 255, 255) Else c = RGB(140, 130, 160)
-        PixelFont.DrawText lbl, 28, y, c
+        PixelFont.DrawText lbl, 44, y, c
         If k = mCursor Then v = "<" & v & ">"
-        PixelFont.DrawText v, 75, y, c, 1, 1
+        PixelFont.DrawText v, 94, y, c, 1, 1
     Next k
-    If (mMenuTick \ 8) Mod 2 = 0 Then PixelFont.DrawText "A = START", SCREEN_W \ 2, 52, RGB(255, 200, 90), 1, 1
+    If (mMenuTick \ 8) Mod 2 = 0 Then PixelFont.DrawText "A = START", SCREEN_W \ 2, 62, RGB(255, 200, 90), 1, 1
 End Sub
