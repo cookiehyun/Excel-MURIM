@@ -1,0 +1,3 @@
+CMD start 0 2 1 99 1
+CMD chars danwoo cheolsan
+400 -

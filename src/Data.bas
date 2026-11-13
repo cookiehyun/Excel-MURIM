@@ -189,7 +189,7 @@ Private Sub LoadSpriteFile(ByVal fileName As String)
             parts = Split(ln, " ")
             Select Case parts(0)
             Case "PAL"
-                pal(Asc(parts(1))) = HexColor(parts(2))
+                pal(Asc(parts(1))) = Renderer.Quant(HexColor(parts(2)))
             Case "SPRITE"
                 w = CLng(parts(2)): h = CLng(parts(3))
                 id = AddSprite(fileName & "." & parts(1), w, h, CLng(parts(4)), CLng(parts(5)))
@@ -224,7 +224,7 @@ Private Sub LoadStageFile(ByVal fileName As String, ByVal idx As Long)
             parts = Split(ln, " ")
             Select Case parts(0)
             Case "PAL"
-                pal(Asc(parts(1))) = HexColor(parts(2))
+                pal(Asc(parts(1))) = Renderer.Quant(HexColor(parts(2)))
             Case "STAGE"
                 If idx = 0 Then
                     StageW = CLng(parts(2)): StageH = CLng(parts(3))

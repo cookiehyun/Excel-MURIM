@@ -60,6 +60,15 @@ Private mOY0(0 To SCREEN_W) As Long, mOn As Long
 Private mNX0(0 To SCREEN_W) As Long, mNX1(0 To SCREEN_W) As Long, mNC(0 To SCREEN_W) As Long
 Private mNY0(0 To SCREEN_W) As Long, mNn As Long
 Private mSim() As Long                    ' headless: what the sheet would show
+' color merging: every color is replaced by the first already-used color that looks almost the
+' same (redmean distance < QUANT_DIST). Fewer distinct colors = fewer Excel paint calls per frame.
+Private Const QUANT_DIST As Double = 40
+Private mSeen() As Long                  ' colors met so far ...
+Private mSeenTo() As Long                ' ... and the color each one is painted with
+Private mSeenN As Long
+Private mRep() As Long                   ' colors kept as they are
+Private mRepN As Long
+Private mQReady As Boolean
 
 Public Sub Init()
     Dim x As Long, y As Long
@@ -112,6 +121,60 @@ Public Sub Invalidate()
     Next y
     mFull = True
 End Sub
+
+Public Function QuantInfo() As String
+    Dim k As Long, t As String
+    For k = 0 To 7
+        t = t & " " & Hex(mRep(k)) & "/" & Hex(mSeen(k)) & ">" & Hex(mSeenTo(k))
+    Next k
+    QuantInfo = mSeenN & " seen, " & mRepN & " kept" & t
+End Function
+
+' Merged color for c (see QUANT_DIST). Colors already seen are found by a short array search.
+Public Function Quant(ByVal c As Long) As Long
+    Dim k As Long, r1 As Long, g1 As Long, b1 As Long, r2 As Long, g2 As Long, b2 As Long, rm As Double, d As Double, res As Long
+    If c < 0 Then
+        Quant = c
+        Exit Function
+    End If
+    If Not mQReady Then
+        ReDim mSeen(0 To 255)
+        ReDim mSeenTo(0 To 255)
+        ReDim mRep(0 To 255)
+        mQReady = True
+    End If
+    For k = 0 To mSeenN - 1
+        If mSeen(k) = c Then
+            Quant = mSeenTo(k)
+            Exit Function
+        End If
+    Next k
+    res = c
+    r1 = c And &HFF&: g1 = (c \ &H100&) And &HFF&: b1 = (c \ &H10000) And &HFF&
+    For k = 0 To mRepN - 1
+        r2 = mRep(k) And &HFF&: g2 = (mRep(k) \ &H100&) And &HFF&: b2 = (mRep(k) \ &H10000) And &HFF&
+        rm = (r1 + r2) / 2
+        d = (2 + rm / 256) * (r1 - r2) ^ 2 + 4 * (g1 - g2) ^ 2 + (2 + (255 - rm) / 256) * (b1 - b2) ^ 2
+        If d < 1600# Then                  ' = QUANT_DIST ^ 2
+            res = mRep(k)
+            Exit For
+        End If
+    Next k
+    If res = c Then
+        If mRepN > UBound(mRep) Then
+            ReDim Preserve mRep(0 To mRepN * 2)
+        End If
+        mRep(mRepN) = c
+        mRepN = mRepN + 1
+    End If
+    If mSeenN > UBound(mSeen) Then
+        ReDim Preserve mSeen(0 To mSeenN * 2)
+        ReDim Preserve mSeenTo(0 To mSeenN * 2)
+    End If
+    mSeen(mSeenN) = c: mSeenTo(mSeenN) = res
+    mSeenN = mSeenN + 1
+    Quant = res
+End Function
 
 ' Record that row y was drawn between x0 and x1 this frame.
 Private Sub Mark(ByVal y As Long, ByVal x0 As Long, ByVal x1 As Long)
@@ -172,7 +235,7 @@ End Function
 
 Public Sub PutPixel(ByVal x As Long, ByVal y As Long, ByVal color As Long)
     If x >= 0 And x < SCREEN_W And y >= 0 And y < SCREEN_H Then
-        mBack(x, y) = color
+        mBack(x, y) = Quant(color)
         If x < mD0(y) Then mD0(y) = x
         If x > mD1(y) Then mD1(y) = x
     End If
@@ -180,6 +243,7 @@ End Sub
 
 Public Sub FillRect(ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h As Long, ByVal color As Long)
     Dim x0 As Long, y0 As Long, x1 As Long, y1 As Long, i As Long, j As Long
+    color = Quant(color)
     x0 = x: y0 = y: x1 = x + w - 1: y1 = y + h - 1
     If x0 < 0 Then x0 = 0
     If y0 < 0 Then y0 = 0
@@ -211,6 +275,7 @@ Public Sub DrawSprite(ByVal id As Long, ByVal x As Long, ByVal y As Long, ByVal 
     Dim sx As Long, sy As Long, px As Long, py As Long, c As Long
     w = Data.SprW(id): h = Data.SprH(id)
     ax = Data.SprAX(id): ay = Data.SprAY(id): off = Data.SprOff(id)
+    If tint >= 0 Then tint = Quant(tint)
     For sy = 0 To h - 1
         py = y - ay + sy
         If py >= 0 And py < SCREEN_H Then
@@ -241,6 +306,7 @@ Public Sub DrawSpriteScaled(ByVal id As Long, ByVal x As Long, ByVal y As Long, 
     Dim sx As Long, sy As Long, px As Long, py As Long, c As Long, i As Long, j As Long
     w = Data.SprW(id): h = Data.SprH(id)
     ax = Data.SprAX(id): ay = Data.SprAY(id): off = Data.SprOff(id)
+    If tint >= 0 Then tint = Quant(tint)
     If cx0 < 0 Then cx0 = 0
     If cy0 < 0 Then cy0 = 0
     If cx1 > SCREEN_W - 1 Then cx1 = SCREEN_W - 1
@@ -516,7 +582,7 @@ Public Sub SetStage(ByVal k As Long)
     BuildBackground k
     For y = 0 To SCREEN_H - 1
         For x = 0 To SCREEN_W - 1
-            mBgDark(x, y) = Darken(mBg(x, y))
+            mBgDark(x, y) = Quant(Darken(mBg(x, y)))
         Next x
     Next y
 End Sub
@@ -550,7 +616,7 @@ Private Sub BuildBackground(ByVal k As Long)
             c = RGB(60, 45, 35)
         End If
         For x = 0 To SCREEN_W - 1
-            mBg(x, y) = c
+            mBg(x, y) = Quant(c)
         Next x
     Next y
 End Sub
