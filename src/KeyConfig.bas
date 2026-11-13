@@ -197,8 +197,8 @@ Public Sub Render()
     Next r
     If mMsgT > 0 Then PixelFont.DrawText mMsg, cx, 84, RGB(150, 220, 255), 1, 1
     If mWait Then
-        PixelFont.DrawText "PRESS THE NEW KEY   ESC = CANCEL", cx, 93, RGB(150, 140, 170), 1, 1
+        PixelFont.DrawText "PRESS NEW KEY   ESC = CANCEL", cx, 93, RGB(150, 140, 170), 1, 1
     Else
-        PixelFont.DrawText "A = CHANGE   LEFT RIGHT = 1P 2P   S = SAVE AND BACK", cx, 93, RGB(150, 140, 170), 1, 1
+        PixelFont.DrawText "A = CHANGE   S = SAVE   ARROWS = MOVE", cx, 93, RGB(150, 140, 170), 1, 1
     End If
 End Sub
