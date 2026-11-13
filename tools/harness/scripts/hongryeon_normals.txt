@@ -1,0 +1,14 @@
+# hongryeon light fan, heavy fan-into-kick, heavy spinning kick on an idle dummy
+CMD start 0 1 0 1
+CMD chars hongryeon danwoo
+CMD dummy 1
+CMD place 70 90
+3 -
+1 A
+12 -
+CMD place 70 90
+1 S
+24 -
+CMD place 70 88
+1 X
+24 -

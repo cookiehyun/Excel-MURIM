@@ -443,6 +443,7 @@ HONGRYEON = dict(
         "n": "2A1418",
         "r": "FF7AA0",                          # flower ornament
         "F": "E04050", "f": "A82838",          # fan cloth (front / back)
+        "t": "FFD8D0", "T": "F07060",          # red fan / kick trail
         "y": "F0C850", "Q": "FFE6A0",          # fan ribs / edge
     },
     look=dict(arm_front="b", arm_back="B", arm_front2="b", arm_back2="B",
@@ -460,9 +461,22 @@ HONGRYEON_OVERRIDES = {
     "walk_1": P(lean=4, lf=(8, 0), lb=(-5, -40), af=(70, 150), ab=(25, 60), wa=165),
     "walk_2": P(lean=4, lf=(-18, -25), lb=(25, 5), af=(70, 150), ab=(25, 60), wa=165),
     "walk_3": P(lean=4, lf=(-5, -40), lb=(8, 0), af=(70, 150), ab=(25, 60), wa=165),
-    "lp_1": P(lean=14, af=(95, 92), ab=(20, 60), wa=90),                     # fan slash
+    # light: quick fan flick
+    "lp_0": P(lean=0, af=(40, 160), ab=(25, 60), wa=170),
+    "lp_1": P(lean=14, af=(95, 92), ab=(20, 60), wa=90, trail=(175, 90)),
+    # heavy: fan swept wide, the spin carries straight into a kick
     "hp_0": P(lean=-10, af=(-30, 160), ab=(40, 140), wa=200),
-    "hp_1": P(lean=22, lf=(38, 2), lb=(-38, -35), af=(102, 112), ab=(-20, 40), wa=120),   # wide sweep
+    "hp_a": P(lean=-4, lf=(30, 4), lb=(-30, -20), af=(40, 170), ab=(60, 150), wa=205),
+    "hp_1": P(lean=22, lf=(38, 2), lb=(-38, -35), af=(102, 112), ab=(-20, 40), wa=120, trail=(215, 120)),
+    "hp_k": P(lean=-20, lf=(118, 120), lb=(-6, 0), af=(150, 175), ab=(-40, -10), wa=175, trail=("kick", 90)),
+    "hp_r": P(lean=6, lf=(40, -10), lb=(-24, -16), af=(80, 150), ab=(20, 70), wa=160),
+    # light kick: quick snap kick, fans held open
+    "lk_1": P(lean=-10, lf=(84, 88), lb=(-6, 0), af=(60, 150), ab=(10, 60), wa=160, trail=("kick", 55)),
+    # heavy kick: turn with both fans spread, then a spinning high kick
+    "hk_0": P(lean=-6, lf=(60, 110), lb=(-6, 0), af=(110, 150), ab=(100, 150), wa=150),
+    "hk_t": P(lean=8, lf=(-30, -80), lb=(4, 0), af=(95, 92), ab=(95, 92), wa=92, flip=True),
+    "hk_1": P(lean=-30, lf=(130, 134), lb=(-4, 0), af=(150, 175), ab=(-60, -110), wa=175, trail=("kick", 120)),
+    "hk_r": P(lean=-6, lf=(60, 20), lb=(-10, -6), af=(90, 150), ab=(30, 80), wa=160),
     "chp_1": P(lean=0, lf=(45, -5), lb=(10, -50), af=(160, 176), ab=(-10, 30), wa=178),
     "sp_0": P(lean=-8, af=(-40, 170), ab=(30, 80), wa=210),                  # fan throw wind-up
     "sp_1": P(lean=20, lf=(38, 2), lb=(-38, -30), af=(100, 96), ab=(-10, 40), wa=95),
@@ -612,6 +626,12 @@ MOVE_ANIMS = {
         ("sp2_pre", 2, ["rush_0", "rush_2"]),
     ],
     "hongryeon": [
+        ("hp_pre", 2, ["hp_0", "hp_a"]),
+        ("hp_seq", 2, ["hp_1", "hp_k"]),
+        ("hp_rec", 3, ["hp_k", "hp_r", "idle_0"]),
+        ("hk_pre", 2, ["hk_0", "hk_t", "hk_t"]),
+        ("hk_seq", 2, ["hk_1"]),
+        ("hk_rec", 3, ["hk_r", "idle_1"]),
         ("sp1_rec", 4, ["sp_2", "rush_0"]),
         ("sp2_seq", 2, ["dp_1", "dp_2", "dp_3", "dp_4", "dp_1", "dp_2", "dp_3", "dp_5"]),
         ("super_pre", 2, ["su_0", "su_1", "su_0", "su_1"]),
