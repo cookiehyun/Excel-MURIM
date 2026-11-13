@@ -25,7 +25,7 @@ danwoo     chk   C    5       3      10       90     12      8         L     1  
 danwoo     jp    A    3       4      0        60     8       6         O     0  6   -19 7   6   jump       jp        N    0    0  -
 danwoo     jk    A    4       5      0        80     9       7         O     0  9   -11 8   6   jump       jk        N    0    0  -
 danwoo     throw S    3       1      8        110    0       0         H     1  0   -30 16  10  throw_0    throw_1   T    0    0  -
-danwoo  sp1  S  4  1  13  70  12  8  H  0  0  0  12  10  sp_0  sp_1  P  3  1  26P  350
+danwoo  sp1  S  4  1  13  70  12  8  H  0  0  0  12  10  sp_0  sp_1  P  3  1  26P  300
 danwoo  sp2  S  1  6  10  110  14  8  H  1  -2  -40  10  30  dp_0  dp_1  U  -5.5  4  623P  300
 danwoo     super S    4       1      12       300    10      6         H     1  0   0   20  16  sp_0       sp_1      SP   3.5  5  2626P
 cheolsan   lp    S    3       2      4        40     6       4         H     0  11  -31 7   5   lp_0       lp_1      N    0    0  -
@@ -115,5 +115,5 @@ hongryeon  jp    A    3       4      0        55     8       6         O     0  
 hongryeon  jk    A    4       5      0        75     9       7         O     0  11  -12 8   6   jump       jk        N    0    0  -
 hongryeon  throw S    3       1      8        100    0       0         H     1  0   -30 15  10  throw_0    throw_1   T    0    0  -
 hongryeon  sp1  S  5  1  13  70  10  6  H  0  0  0  9  9  sp_0  sp_1  PB  3  2  26P  300
-hongryeon  sp2  S  2  6  12  90  14  8  H  1  -3  -41  12  30  dp_0  dp_1  U  -4.5  2  623K  250
+hongryeon  sp2  S  2  6  12  90  14  8  H  1  -3  -41  12  30  dp_0  dp_1  U  -4.5  4  623K  250
 hongryeon  super S    8       1      18       300    8       4         H     1  0   0   22  40  sp_0       sp_1      SF   0    6  2626P
