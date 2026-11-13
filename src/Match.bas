@@ -51,7 +51,13 @@ Private Sub StartRound(ByVal keepMeter As Boolean)
     mTime = RoundTicks
     mT = 0
     mCalm(0) = 0: mCalm(1) = 0
-    If mRounds Then mPhase = MP_INTRO Else mPhase = MP_FIGHT
+    If mRounds Then
+        mPhase = MP_INTRO
+        Fighter.SetPose 0, "intro"
+        Fighter.SetPose 1, "intro"
+    Else
+        mPhase = MP_FIGHT
+    End If
     If mTraining Then
         Fighter.F(0).meter = METER_MAX
         Fighter.F(1).meter = METER_MAX
@@ -80,6 +86,10 @@ Public Sub Tick(ByVal frozen As Boolean)
     mT = mT + 1
     Select Case mPhase
     Case MP_INTRO
+        If mT = 30 Then                                  ' FIGHT! - drop the intro pose
+            Fighter.SetPose 0, ""
+            Fighter.SetPose 1, ""
+        End If
         If mT >= INTRO_TICKS Then mPhase = MP_FIGHT: mT = 0
 
     Case MP_FIGHT
@@ -167,6 +177,7 @@ Private Sub RoundOver()
         mWins(mRoundWinner) = mWins(mRoundWinner) + 1
         mPerfect = (Fighter.F(mRoundWinner).health = Fighter.F(mRoundWinner).maxHealth)
     End If
+    If mRoundWinner >= 0 Then Fighter.SetPose mRoundWinner, "win"
     mPhase = MP_ROUNDEND: mT = 0
 End Sub
 

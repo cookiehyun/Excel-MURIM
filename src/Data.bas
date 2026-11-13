@@ -130,6 +130,14 @@ Public Function HasAnim(ByVal nm As String) As Boolean
 Nope:
 End Function
 
+Public Function HasSprite(ByVal nm As String) As Boolean
+    Dim v As Long
+    On Error GoTo Nope
+    v = mSprIdx.Item(nm)
+    HasSprite = True
+Nope:
+End Function
+
 Public Function MoveId(ByVal nm As String) As Long
     On Error GoTo Missing
     MoveId = mMoveIdx.Item(nm)

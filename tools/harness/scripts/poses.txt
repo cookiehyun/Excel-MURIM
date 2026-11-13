@@ -1,0 +1,10 @@
+# round intro poses, then a quick round win -> win pose
+CMD roundtime 30
+CMD start 0 1 0 1 1
+CMD chars hongryeon cheonma
+CMD dummy 1
+20 -
+40 -
+CMD hp 1 50
+60 -
+60 -

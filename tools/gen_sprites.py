@@ -298,6 +298,9 @@ BASE_POSES = {
     "rush_1": P(lean=42, lf=(55, 10), lb=(-55, -40), af=(115, 55), ab=(95, 35)),
     "sp_0": P(lean=-6, af=(-15, 80), ab=(-25, 75), open_hand=True),
     "sp_1": P(lean=20, lf=(40, 0), lb=(-40, -40), af=(90, 90), ab=(84, 86), open_hand=True),
+    # round intro: fist-and-palm salute; win: calm palm forward
+    "intro": P(lean=0, lf=(14, 2), lb=(-14, -2), af=(80, 150), ab=(85, 150), open_hand=True),
+    "win": P(lean=-2, lf=(20, 2), lb=(-22, -6), af=(95, 92), ab=(15, 120), open_hand=True),
 }
 
 DW_GUARD = dict(af=(70, 122), ab=(18, 118), open_hand=True)   # orthodox guard: front palm up, rear hand at the hip
@@ -353,6 +356,8 @@ CHEOLSAN_OVERRIDES = {
     # shoulder charge: stomping steps while driving forward
     "rush_2": P(lean=40, lf=(-20, -40), lb=(40, -5), af=(115, 55), ab=(95, 35)),
     "rush_3": P(lean=36, lf=(20, -10), lb=(-30, -10), af=(120, 50), ab=(100, 30)),
+    "intro": P(lean=4, lf=(30, 6), lb=(-30, -10), af=(70, 155), ab=(70, 155), open_hand=True),   # palms together
+    "win": P(lean=-6, lf=(38, 10), lb=(-38, -14), af=(100, 175), ab=(-100, -175)),            # both arms flexed up
 }
 
 SEOLHWA = dict(
@@ -492,6 +497,8 @@ HONGRYEON_OVERRIDES = {
     "sp_2": P(lean=4, lf=(30, 5), lb=(-30, -15), af=(60, 130), ab=(80, 140), wa=150, flip=True),   # spin after the throw
     "su_0": P(lean=-10, lf=(20, 0), lb=(-30, -20), af=(170, 178), ab=(150, 170), wa=180),         # fire dance
     "su_1": P(lean=-6, lf=(30, 5), lb=(-20, -15), af=(120, 160), ab=(160, 175), wa=150, flip=True),
+    "intro": P(lean=0, lf=(14, 2), lb=(-20, -8), af=(120, 140), ab=(-100, -120), wa=150),       # fans spread wide
+    "win": P(lean=4, lf=(10, 0), lb=(-14, -4), af=(60, 160), ab=(30, 60), wa=170),              # fan held before the face
 }
 
 CLAW_F = (70, 95)
@@ -517,6 +524,8 @@ HEUKRIM_OVERRIDES = {
     "rush_1": P(lean=-10, af=(150, 160), ab=(140, 170), open_hand=True),          # reappear, arms raised
     "rush_2": P(lean=40, lf=CROUCH_F, lb=CROUCH_B, af=(-20, 175), ab=(-30, 170), open_hand=True),   # sinking into shadow
     "sp_a": P(lean=-6, af=(150, 120), ab=(160, 140), open_hand=True),            # needles drawn overhead
+    "intro": P(lean=6, lf=(18, 2), lb=(-18, -30), af=(80, 160), ab=(80, 165), open_hand=True),  # claws crossed
+    "win": P(lean=-10, lf=(20, 2), lb=(-18, -30), af=(150, 30), ab=(20, 40), open_hand=True),   # hand to the face, laughing
 }
 
 KICK_GUARD_F = (55, 140)
@@ -547,6 +556,8 @@ SEOLHWA_OVERRIDES = {
     "dp_3": P(lean=0, lf=TUCK_F, lb=TUCK_B, af=(40, 90), ab=(30, 80), ground="air", rot=-160),
     "dp_4": P(lean=0, lf=TUCK_F, lb=TUCK_B, af=(40, 90), ab=(30, 80), ground="air", rot=-250),
     "dp_5": P(lean=10, lf=(30, -10), lb=(-20, -30), af=(60, 150), ab=(30, 120), ground="air"),
+    "intro": P(lean=-4, lf=(100, -10), lb=(-4, 0), af=(150, 175), ab=(-80, -100), open_hand=True),   # crane stance
+    "win": P(lean=-8, lf=(10, 0), lb=(-60, -110), af=(170, 178), ab=(160, 175), open_hand=True),    # arms up, heel kicked back
 }
 
 SWORD_GUARD = (45, 115)
@@ -581,6 +592,8 @@ MUYEONG_OVERRIDES = {
     "rush_1": P(lean=34, lf=(60, 5), lb=(-55, -45), af=(95, 88), wa=92),
     "rush_2": P(lean=30, lf=(70, 10), lb=(-60, -50), af=(140, 170), wa=175),   # cut rising through
     "rush_3": P(lean=20, lf=(60, 0), lb=(-60, -50), af=(-10, 60), ab=(30, 100), wa=-60),   # follow-through, blade behind
+    "intro": P(lean=0, lf=(16, 2), lb=(-16, -4), af=(60, 160), ab=(60, 165), wa=180),          # blade raised upright
+    "win": P(lean=-2, lf=(20, 2), lb=(-20, -6), af=(20, 10), ab=(30, 60), wa=-150),            # blade lowered behind
 }
 
 ANIMS = [  # name, ticks per frame, frames
@@ -1044,6 +1057,15 @@ def to_png(grid, palette, scale=8):
     return img.resize((w * scale, h * scale), Image.NEAREST)
 
 
+# Cheonma: Heukrim's light footwork, but imperial poses and a demon palm instead of the X claw
+CHEONMA_OVERRIDES = dict(HEUKRIM_OVERRIDES)
+CHEONMA_OVERRIDES.update({
+    "hp_0": P(lean=-4, lf=(22, 4), lb=(-24, -12), af=(10, 70), ab=(5, 75), open_hand=True),
+    "hp_1": P(lean=20, lf=(42, 0), lb=(-42, -36), af=(90, 88), ab=(86, 85), open_hand=True, trail=("palm", 6)),
+    "intro": P(lean=-2, lf=(16, 2), lb=(-16, -4), af=(60, 150), ab=(60, 150), open_hand=True),     # arms folded
+    "win": P(lean=-12, lf=(22, 2), lb=(-22, -6), af=(160, 150), ab=(150, 140), open_hand=True),   # arms raised, laughing
+})
+
 SCALE_KEYS = ("thigh", "shin", "torso", "upper", "fore", "head_r", "w_thigh", "w_shin", "w_upper",
               "w_fore", "w_hand", "chest", "waist", "skirt")
 SPRITE_SCALE = float(os.environ.get("SPRITE_SCALE", "1"))   # experiment: uniform rig scale
@@ -1128,7 +1150,7 @@ if __name__ == "__main__":
     only = os.environ.get("ONLY")
     for spec, ov in ((DANWOO, DANWOO_OVERRIDES), (CHEOLSAN, CHEOLSAN_OVERRIDES), (MUYEONG, MUYEONG_OVERRIDES),
                      (SEOLHWA, SEOLHWA_OVERRIDES), (HEUKRIM, HEUKRIM_OVERRIDES),
-                     (HONGRYEON, HONGRYEON_OVERRIDES), (CHEONMA, HEUKRIM_OVERRIDES)):
+                     (HONGRYEON, HONGRYEON_OVERRIDES), (CHEONMA, CHEONMA_OVERRIDES)):
         if only and spec["name"] != only:
             continue
         names = generate(spec, ov)

@@ -178,11 +178,10 @@ Public Sub ApplyAttack(ByVal a As Long, ByVal d As Long, ByVal mv As Long, ByVal
             AddMeter a, 50
         End If
         AddMeter d, 25
+        FX.SpawnHit cx, cy, heavy Or counter, Fighter.F(a).prefix
         If heavy Or counter Then
-            FX.Spawn cx, cy, FX_HEAVY
             HitStop = 4
         Else
-            FX.Spawn cx, cy, FX_HIT
             HitStop = 3
         End If
         If heavy And Not isProj And Fighter.F(a).prefix = "cheolsan" Then HitStop = HitStop + 2   ' his hits land heavier

@@ -157,6 +157,7 @@ Private mGY(0 To 1, 0 To GHOSTS - 1) As Long
 Private mGId(0 To 1, 0 To GHOSTS - 1) As Long
 Private mGFlip(0 To 1, 0 To GHOSTS - 1) As Boolean
 Private mGN(0 To 1) As Long
+Private mPose(0 To 1) As Long          ' intro / win pose sprite shown while standing (-1 = none)
 
 ' c0 / c1 = character names ("danwoo", "cheolsan"); the same character may appear twice.
 Public Sub Init(ByVal c0 As String, ByVal c1 As String, ByVal humanIndex As Long)
@@ -381,6 +382,7 @@ End Sub
 Private Sub ResetOne(ByVal i As Long)
     Dim k As Long
     mGN(i) = 0
+    mPose(i) = -1
     With F(i)
         .x = .startX
         .footY = GROUND_Y
@@ -1264,6 +1266,14 @@ Public Sub Draw()
     End If
 End Sub
 
+' Round intro / win pose ("intro", "win" or "" to clear), shown while the fighter stands.
+Public Sub SetPose(ByVal i As Long, ByVal nm As String)
+    mPose(i) = -1
+    If Len(nm) > 0 Then
+        If Data.HasSprite(F(i).prefix & "." & nm) Then mPose(i) = Data.SpriteId(F(i).prefix & "." & nm)
+    End If
+End Sub
+
 Public Sub ClearGhosts(ByVal i As Long)
     mGN(i) = 0
 End Sub
@@ -1319,6 +1329,10 @@ Private Function CurrentSprite(ByVal i As Long) As Long
     Dim t As Long
     With F(i)
         t = .stTick
+        If mPose(i) >= 0 And .onGround And (.state = ST_IDLE Or .state = ST_WALK Or .state = ST_CROUCH) Then
+            CurrentSprite = mPose(i)
+            Exit Function
+        End If
         Select Case .state
         Case ST_IDLE
             CurrentSprite = Data.AnimFrame(.aIdle, t)

@@ -18,6 +18,9 @@ Private mX(0 To MAX_FX - 1) As Long
 Private mY(0 To MAX_FX - 1) As Long
 Private mType(0 To MAX_FX - 1) As Long
 Private mAge(0 To MAX_FX - 1) As Long
+Private mMid(0 To MAX_FX - 1) As Long     ' spark colors per effect (fighter's own hit color)
+Private mOut(0 To MAX_FX - 1) As Long
+Private mPetal(0 To MAX_FX - 1) As Boolean
 
 Public Sub Init()
     Dim k As Long
@@ -26,7 +29,31 @@ Public Sub Init()
     Next k
 End Sub
 
-Public Sub Spawn(ByVal x As Long, ByVal y As Long, ByVal kind As Long)
+' Hit spark in the attacker's colors (prefix = fighter name); extras per fighter for heavy hits.
+Public Sub SpawnHit(ByVal x As Long, ByVal y As Long, ByVal heavy As Boolean, ByVal prefix As String)
+    Dim k As Long, m As Long, o As Long, petal As Boolean
+    Select Case prefix
+    Case "danwoo": m = RGB(190, 230, 255): o = RGB(90, 150, 255)        ' clear blue wind
+    Case "cheolsan": m = RGB(255, 205, 120): o = RGB(205, 120, 60)      ' heavy earth
+    Case "muyeong": m = RGB(235, 240, 255): o = RGB(160, 180, 210)      ' steel
+    Case "seolhwa": m = RGB(255, 190, 215): o = RGB(240, 100, 150): petal = True
+    Case "heukrim": m = RGB(185, 255, 150): o = RGB(80, 190, 70)        ' poison
+    Case "hongryeon": m = RGB(255, 215, 110): o = RGB(230, 70, 60)      ' fire and gold
+    Case "cheonma": m = RGB(255, 140, 110): o = RGB(170, 30, 40)        ' demon red
+    Case Else: m = RGB(255, 224, 102): o = RGB(255, 130, 50)
+    End Select
+    If heavy Then k = Spawn(x, y, FX_HEAVY) Else k = Spawn(x, y, FX_HIT)
+    mMid(k) = m: mOut(k) = o: mPetal(k) = petal
+    If heavy Then
+        Select Case prefix
+        Case "cheolsan": Spawn x, GROUND_Y - 3, FX_SLAM                   ' the ground shakes
+        Case "muyeong": Spawn x, y, FX_SLASH
+        Case "heukrim", "cheonma": Spawn x, y, FX_DARK
+        End Select
+    End If
+End Sub
+
+Public Function Spawn(ByVal x As Long, ByVal y As Long, ByVal kind As Long) As Long
     Dim k As Long, oldest As Long
     oldest = 0
     For k = 0 To MAX_FX - 1
@@ -35,7 +62,9 @@ Public Sub Spawn(ByVal x As Long, ByVal y As Long, ByVal kind As Long)
     Next k
     If k = MAX_FX Then k = oldest
     mX(k) = x: mY(k) = y: mType(k) = kind: mAge(k) = 0
-End Sub
+    mMid(k) = -1: mOut(k) = -1: mPetal(k) = False
+    Spawn = k
+End Function
 
 Public Sub Update()
     Dim k As Long
@@ -55,7 +84,7 @@ Public Sub Draw()
             ElseIf mType(k) = FX_DARK Then
                 DarkFx mX(k), mY(k), mAge(k)
             Else
-                Spark mX(k), mY(k), mAge(k), mType(k)
+                Spark mX(k), mY(k), mAge(k), mType(k), k
             End If
         End If
     Next k
@@ -109,12 +138,18 @@ Private Sub Slam(ByVal x As Long, ByVal y As Long, ByVal age As Long)
     Next dx
 End Sub
 
-Private Sub Spark(ByVal x As Long, ByVal y As Long, ByVal age As Long, ByVal kind As Long)
+Private Sub Spark(ByVal x As Long, ByVal y As Long, ByVal age As Long, ByVal kind As Long, ByVal slot As Long)
     Dim cCore As Long, cMid As Long, cOut As Long, r As Long, k As Long
     If kind = FX_BLOCK Then
         cCore = RGB(255, 255, 255): cMid = RGB(150, 215, 255): cOut = RGB(60, 120, 255)
     Else
         cCore = RGB(255, 255, 255): cMid = RGB(255, 224, 102): cOut = RGB(255, 130, 50)
+        If mMid(slot) >= 0 Then cMid = mMid(slot): cOut = mOut(slot)
+    End If
+    If mPetal(slot) And age >= 1 Then                      ' a few petals drifting off
+        Renderer.PutPixel x - 3 - age * 2, y - 2 - age, cOut
+        Renderer.PutPixel x + 4 + age * 2, y - 4 - age, cMid
+        Renderer.PutPixel x + 2 + age, y + 3 + age, cOut
     End If
     If kind = FX_HEAVY Then r = 2 Else r = 0
     Select Case age

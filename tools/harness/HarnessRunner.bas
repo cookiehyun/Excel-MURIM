@@ -55,6 +55,8 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                     dumpEvery = CLng(p(2))
                 Case "meter"
                     Fighter.F(CLng(p(2))).meter = CLng(p(3))
+                Case "posetest"
+                    Print #f, "P " & Data.HasSprite("hongryeon.intro") & " " & Data.HasSprite("hongryeon.nope")
                 Case "quanttest"
                     Print #f, "Q " & Renderer.Quant(&H6A5C50) & " " & Renderer.Quant(&H6B5D4F) & " " & Renderer.Quant(&H1E2A3B) & " " & Renderer.Quant(&H3B2A26) & " | " & Renderer.QuantInfo()
                 Case "rendermode"
