@@ -650,10 +650,15 @@ def build(spec, pose):
             a0 = (cx - fx * (r - 0.4) + ux * 0.6, cy - fy * (r - 0.4) + uy * 0.6)
             a1 = (a0[0] - fx * lx - ux * ly, a0[1] - fy * lx - uy * ly)
             cv.put(seg_mask(a0, a1, wd) & ~hm, "h" if k_ == 0 else "H")
-        crown = hm & (hu > 1.6) & (hu <= 2.5) & (hf > -1.2) & (hf < 1.6)
-        cv.c[crown] = "w"
-        spike = seg_mask((cx + ux * (r + 0.2), cy + uy * (r + 0.2)), (cx + ux * (r + 1.8) + fx * 0.3, cy + uy * (r + 1.8) + fy * 0.3), 0.5)
-        cv.put(spike, "w")
+        # big golden crown: a band over the brow plus three tall prongs and a red jewel
+        P_ = lambda f_, u_: (cx + fx * f_ + ux * u_, cy + fy * f_ + uy * u_)
+        band = seg_mask(P_(-2.6, r - 0.6), P_(2.4, r - 0.6), 1.0)
+        cv.put(band, "w")
+        for f_, h_ in ((-2.7, 3.0), (-0.1, 4.4), (2.5, 3.0)):
+            cv.put(seg_mask(P_(f_, r - 0.4), P_(f_ * 1.15, r + h_), 0.45), "w")
+            cv.put(circle_mask(P_(f_ * 1.15, r + h_), 0.75), "w")
+        cv.put(seg_mask(P_(-2.4, r + 0.6), P_(2.2, r + 0.6), 0.55), "w")
+        cv.c[circle_mask(P_(-0.1, r + 0.1), 0.6)] = "e"
         trim = seg_mask(pt["neck"], (pt["neck"][0] + fx * 1.5 - ux * 2.5, pt["neck"][1] + fy * 1.5 - uy * 2.5), 0.7) & tm
         cv.c[trim] = "w"
     elif spec["head"] == "heukrim":
