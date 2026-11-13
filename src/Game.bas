@@ -71,6 +71,11 @@ Public Sub GameTick()
             mPauseSel = 0
             Exit Sub
         End If
+        If KeyInput.FocusLost() And Not mPaused Then        ' switched to another window: auto-pause
+            mPaused = True
+            mPauseSel = 0
+            Exit Sub
+        End If
         If mPaused Then
             PauseTick
             Exit Sub

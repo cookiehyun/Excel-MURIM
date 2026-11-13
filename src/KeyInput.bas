@@ -37,6 +37,8 @@ Private mVK(0 To BTN_COUNT - 1) As Long
 Private mCur(0 To BTN_COUNT - 1) As Boolean
 Private mPrev(0 To BTN_COUNT - 1) As Boolean
 Private mPid As Long
+Private mHadFocus As Boolean
+Private mFocusLost As Boolean
 
 Public Sub Init()
     mVK(BTN_LEFT) = &H25    ' Left arrow
@@ -54,6 +56,8 @@ Public Sub Init()
     mVK(BTN_DBG_DUMMY) = &H44 ' D
     mVK(BTN_DBG_BOX) = &H70   ' F1
     mPid = GetCurrentProcessId()
+    mHadFocus = True
+    mFocusLost = False
 
     Dim i As Long
     For i = 0 To BTN_COUNT - 1
@@ -66,6 +70,8 @@ End Sub
 Public Sub Poll()
     Dim focused As Boolean, i As Long, s As Integer
     focused = AppHasFocus()
+    mFocusLost = mHadFocus And Not focused       ' Excel just lost the foreground
+    mHadFocus = focused
     For i = 0 To BTN_COUNT - 1
         mPrev(i) = mCur(i)
         If focused Then
@@ -77,6 +83,11 @@ Public Sub Poll()
         End If
     Next i
 End Sub
+
+' True on the one tick another window took the foreground (used for auto-pause).
+Public Function FocusLost() As Boolean
+    FocusLost = mFocusLost
+End Function
 
 Public Function IsDown(ByVal b As Long) As Boolean
     IsDown = mCur(b)

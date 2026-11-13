@@ -45,6 +45,8 @@ Option Explicit
 Private mCur(0 To 31) As Boolean
 Private mPrev(0 To 31) As Boolean
 Private mNext(0 To 31) As Boolean
+Private mLost As Boolean
+Private mBlurNext As Boolean
 Public Sub Init()
     Dim i As Long
     For i = 0 To 31
@@ -60,6 +62,7 @@ End Sub
 Public Sub SetNextByName(ByVal nm As String)
     Select Case UCase(nm)
 {cases}
+    Case "BLUR": mBlurNext = True
     Case Else: Err.Raise 5, "KeyInput", "unknown key " & nm
     End Select
 End Sub
@@ -68,7 +71,11 @@ Public Sub Poll()
     For i = 0 To 31
         mPrev(i) = mCur(i): mCur(i) = mNext(i)
     Next i
+    mLost = mBlurNext: mBlurNext = False
 End Sub
+Public Function FocusLost() As Boolean
+    FocusLost = mLost
+End Function
 Public Function IsDown(ByVal b As Long) As Boolean
     IsDown = mCur(b)
 End Function
