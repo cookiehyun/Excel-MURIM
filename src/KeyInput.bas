@@ -32,8 +32,8 @@ Public Const BTN_DBG_DOWN As Long = 11  ' debug: knock the other fighter down (J
 Public Const BTN_DBG_DUMMY As Long = 12 ' debug: toggle dummy attacks (D)
 Public Const BTN_DBG_BOX As Long = 13   ' debug: toggle hitbox display (F1)
 Public Const BTN_TAG As Long = 14         ' tag mode: switch fighters (C)
-' multiplayer key sets (order: left right up down LP HP LK HK)
-'   1P: W A S D move + R T / F G attacks      2P: arrows move + K L / , . attacks
+' multiplayer key sets (order: left right up down LP HP LK HK), set by KeyConfig
+'   defaults 1P: W A S D move + R T / F G attacks      2P: arrows move + K L / , . attacks
 Public Const BTN_M1 As Long = 15          ' first button of the 1P multiplayer set
 Public Const BTN_M2 As Long = 23          ' first button of the 2P multiplayer set
 Public Const BTN_COUNT As Long = 31
@@ -42,6 +42,7 @@ Private mVK(0 To BTN_COUNT - 1) As Long
 Private mCur(0 To BTN_COUNT - 1) As Boolean
 Private mPrev(0 To BTN_COUNT - 1) As Boolean
 Private mPid As Long
+Private mScanPrev(0 To 255) As Boolean
 Private mHadFocus As Boolean
 Private mFocusLost As Boolean
 
@@ -61,8 +62,7 @@ Public Sub Init()
     mVK(BTN_DBG_DUMMY) = &H44 ' D
     mVK(BTN_DBG_BOX) = &H70   ' F1
     mVK(BTN_TAG) = &H43       ' C
-    SetKeys BTN_M1, Array(&H41, &H44, &H57, &H53, &H52, &H54, &H46, &H47)   ' A D W S | R T F G
-    SetKeys BTN_M2, Array(&H25, &H27, &H26, &H28, &H4B, &H4C, &HBC, &HBE)   ' arrows | K L , .
+    ' multiplayer sets (BTN_M1 / BTN_M2) are filled by KeyConfig.Load
     mPid = GetCurrentProcessId()
     mHadFocus = True
     mFocusLost = False
@@ -75,12 +75,24 @@ Public Sub Init()
     Next i
 End Sub
 
-Private Sub SetKeys(ByVal first As Long, ByVal vks As Variant)
-    Dim k As Long
-    For k = 0 To 7
-        mVK(first + k) = vks(k)
-    Next k
+Public Sub SetVK(ByVal b As Long, ByVal vk As Long)
+    mVK(b) = vk
 End Sub
+
+Public Function GetVK(ByVal b As Long) As Long
+    GetVK = mVK(b)
+End Function
+
+' Key config: the virtual key that went down since the previous call (0 = none). Mouse buttons ignored.
+Public Function ScanKey() As Long
+    Dim vk As Long, dn As Boolean
+    For vk = 8 To 254
+        dn = ((GetAsyncKeyState(vk) And &H8000) <> 0)
+        If dn And Not mScanPrev(vk) And ScanKey = 0 And AppHasFocus() Then ScanKey = vk
+        mScanPrev(vk) = dn
+    Next vk
+End Function
+
 
 ' Button index of a logical control (0 left, 1 right, 2 up, 3 down, 4 LP, 5 HP, 6 LK, 7 HK)
 ' in key set ks (0 = single player arrows + A S Z X, 1 = multiplayer 1P, 2 = multiplayer 2P).

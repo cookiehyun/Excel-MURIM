@@ -105,8 +105,8 @@ End Function
 Public Sub TitleTick()
     Dim n As Long
     mMenuTick = mMenuTick + 1
-    If mMenuLevel = 3 Then                                  ' controls chart: any key back
-        If KeyInput.IsPressed(BTN_LP) Or KeyInput.IsPressed(BTN_HP) Or KeyInput.IsPressed(BTN_QUIT) Then mMenuLevel = 2
+    If mMenuLevel = 3 Then                                  ' key config screen
+        If KeyConfig.Tick() Then mMenuLevel = 2
         Exit Sub
     End If
     n = MenuCount()
@@ -143,6 +143,7 @@ Public Sub TitleTick()
             SelectBegin
         Else
             mMenuLevel = 3
+            KeyConfig.Begin
         End If
     End Select
 End Sub
@@ -160,7 +161,7 @@ Private Function MenuLabel(ByVal k As Long) As String
     Select Case mMenuLevel
     Case 0: t = Array("SINGLE PLAYER", "MULTIPLAYER")
     Case 1: t = Array("ARCADE", "VS CPU  2 VS 2", "TRAINING")
-    Case Else: t = Array("VERSUS  1P VS 2P", "CONTROLS")
+    Case Else: t = Array("VERSUS  1P VS 2P", "KEY CONFIG")
     End Select
     MenuLabel = t(k)
 End Function
@@ -168,6 +169,10 @@ End Function
 Public Sub TitleRender()
     Dim k As Long, y As Long, c As Long, lbl As String, cx As Long, n As Long, hint As String
     cx = SCREEN_W \ 2
+    If mMenuLevel = 3 Then
+        KeyConfig.Render
+        Exit Sub
+    End If
     Renderer.BeginFrame True
     ' fighters facing each other on both sides
     Renderer.DrawSprite Data.AnimFrame(Fighter.F(0).aIdle, mMenuTick), 30, GROUND_Y, False
@@ -179,10 +184,6 @@ Public Sub TitleRender()
     Renderer.FillRect cx - 38, 48, 76, 1, RGB(140, 100, 40)
     Renderer.FillRect cx - 52, 45, 3, 3, RGB(200, 150, 60)
     Renderer.FillRect cx + 49, 45, 3, 3, RGB(200, 150, 60)
-    If mMenuLevel = 3 Then
-        ControlsRender
-        Exit Sub
-    End If
     ' menu
     n = MenuCount()
     For k = 0 To n - 1
@@ -206,27 +207,6 @@ Public Sub TitleRender()
     PixelFont.DrawText hint, cx, 92, RGB(150, 140, 170), 1, 1
 End Sub
 
-' Multiplayer key chart.
-Private Sub ControlsRender()
-    Dim cx As Long, y As Long
-    cx = SCREEN_W \ 2
-    Renderer.FillRect 8, 51, SCREEN_W - 16, 40, RGB(14, 10, 22)
-    Renderer.DrawRectOutline 8, 51, SCREEN_W - 16, 40, RGB(230, 180, 80)
-    y = 55
-    PixelFont.DrawText "1P", 52, y, cP1, 1, 1
-    PixelFont.DrawText "2P", 140, y, cP2, 1, 1
-    PixelFont.DrawText "MOVE", 14, y + 8, cDim
-    PixelFont.DrawText "W A S D", 52, y + 8, RGB(230, 230, 240), 1, 1
-    PixelFont.DrawText "ARROWS", 140, y + 8, RGB(230, 230, 240), 1, 1
-    PixelFont.DrawText "PUNCH", 14, y + 15, cDim
-    PixelFont.DrawText "R   T", 52, y + 15, RGB(230, 230, 240), 1, 1
-    PixelFont.DrawText "K   L", 140, y + 15, RGB(230, 230, 240), 1, 1
-    PixelFont.DrawText "KICK", 14, y + 22, cDim
-    PixelFont.DrawText "F   G", 52, y + 22, RGB(230, 230, 240), 1, 1
-    PixelFont.DrawText ",   .", 140, y + 22, RGB(230, 230, 240), 1, 1
-    PixelFont.DrawText "LIGHT HEAVY   THROW = LIGHT P + LIGHT K   ESC = PAUSE", cx, y + 30, cDim, 1, 1
-    PixelFont.DrawText "A = BACK", cx, 93, RGB(150, 140, 170), 1, 1
-End Sub
 
 ' ---------------------------------------------------------------- character select
 

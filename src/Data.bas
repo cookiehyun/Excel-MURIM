@@ -357,6 +357,14 @@ End Sub
 
 ' ---------- helpers ----------
 
+Public Function FilePath(ByVal fileName As String) As String
+    FilePath = DataPath(fileName)
+End Function
+
+Public Function ReadFileLines(ByVal fileName As String) As Variant
+    ReadFileLines = ReadLines(DataPath(fileName))
+End Function
+
 Private Function DataPath(ByVal fileName As String) As String
     If Len(BaseDir) > 0 Then
         DataPath = BaseDir & fileName

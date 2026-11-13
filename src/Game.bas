@@ -42,6 +42,7 @@ Public Sub GameInit(ByVal headless As Boolean)
     Renderer.Headless = headless
     KeyInput.Init
     Data.LoadAll
+    KeyConfig.Load
     Renderer.Init
     FX.Init
     Hud.Init

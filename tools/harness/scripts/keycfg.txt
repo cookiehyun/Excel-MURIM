@@ -1,0 +1,22 @@
+# MULTIPLAYER -> KEY CONFIG: 1P LEFT := J, 1P RIGHT := J (swaps with LEFT), RESET row, save (S)
+4 -
+1 D
+3 -
+1 A
+3 -
+1 D
+3 -
+1 A
+6 -
+1 A
+3 -
+1 VK74
+6 -
+1 D
+3 -
+1 A
+3 -
+1 VK74
+10 -
+1 S
+6 -

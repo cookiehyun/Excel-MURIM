@@ -50,6 +50,8 @@ Private mPrev(0 To 31) As Boolean
 Private mNext(0 To 31) As Boolean
 Private mLost As Boolean
 Private mBlurNext As Boolean
+Private mVKs(0 To 31) As Long
+Private mScanNext As Long
 Public Sub Init()
     Dim i As Long
     For i = 0 To 31
@@ -66,6 +68,7 @@ Public Sub SetNextByName(ByVal nm As String)
     Select Case UCase(nm)
 {cases}
     Case "BLUR": mBlurNext = True
+    Case "VK65", "VK74", "VK27", "VK77": mScanNext = CLng(Mid(nm, 3))
     Case Else: Err.Raise 5, "KeyInput", "unknown key " & nm
     End Select
 End Sub
@@ -76,6 +79,15 @@ Public Sub Poll()
     Next i
     mLost = mBlurNext: mBlurNext = False
 End Sub
+Public Sub SetVK(ByVal b As Long, ByVal vk As Long)
+    mVKs(b) = vk
+End Sub
+Public Function GetVK(ByVal b As Long) As Long
+    GetVK = mVKs(b)
+End Function
+Public Function ScanKey() As Long
+    ScanKey = mScanNext: mScanNext = 0
+End Function
 Public Function KeyOf(ByVal ks As Long, ByVal logical As Long) As Long
     Select Case ks
     Case 1: KeyOf = BTN_M1 + logical
