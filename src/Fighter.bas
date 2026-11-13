@@ -64,6 +64,8 @@ Private Const MOTION_WINDOW As Long = 12
 Private Const SUPER_WINDOW As Long = 20
 Private Const DASH_TICKS As Long = 6
 Private Const TECH_WINDOW As Long = 3
+Private Const SG_END As Long = 46        ' super grab sequence length
+Private Const SS_END As Long = 40        ' super slash sequence length
 
 Public Type TFighter
     prefix As String
@@ -799,7 +801,6 @@ Private Function TryGrab(ByVal i As Long, ByVal mv As Long) As Boolean
 End Function
 
 ' Super grab: lunge in, four punches, lift overhead, slam into the ground.
-Private Const SG_END As Long = 46
 Private Sub SuperGrabStep(ByVal i As Long)
     Dim o As Long, t As Long, tx As Double, hx As Long, hy As Long, slamDmg As Long
     o = 1 - i
@@ -880,7 +881,6 @@ Public Sub StartSuperSlash(ByVal a As Long, ByVal d As Long)
 End Sub
 
 ' Super slash: six quick cuts around the opponent, then a finishing slash that knocks down.
-Private Const SS_END As Long = 40
 Private Sub SuperSlashStep(ByVal i As Long)
     Dim o As Long, t As Long, cx As Long, cy As Long, fin As Long
     o = 1 - i

@@ -1,10 +1,16 @@
-"""Flag VBA constructs the LibreOffice harness cannot parse (they are valid in Excel).
+"""Flag VBA constructs the LibreOffice harness cannot parse, and Excel-only errors LibreOffice accepts.
 usage: python3 tools/lint_vba.py"""
 import glob, re, sys
 bad = 0
 for p in sorted(glob.glob("src/*.bas")):
+    in_proc = False
     for n, line in enumerate(open(p, encoding="ascii"), 1):
         code = line.split("'")[0]
+        if re.match(r"\s*(Public |Private |Friend )?(Static )?(Sub|Function|Property) ", code):
+            in_proc = True
+        elif in_proc and re.match(r"(Public |Private |Global |Dim |Const |Type |Enum )", code) \
+                and not re.match(r"(Public |Private )(Sub|Function|Property|Declare)", code):
+            print(f"{p}:{n}: module-level declaration after the first procedure -> move it to the top (Excel compile error)"); bad += 1
         # single-line If whose Then and Else parts are both Sub calls with arguments
         m = re.match(r"\s*If .+ Then\s+([A-Za-z_][\w.]*)\s+[^=]+\s+Else\s+([A-Za-z_][\w.]*)\s+[^=]+$", code.strip("\r\n"))
         if m:
