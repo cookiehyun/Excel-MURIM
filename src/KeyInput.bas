@@ -9,11 +9,13 @@ Private Declare PtrSafe Function GetAsyncKeyState Lib "user32" (ByVal vKey As Lo
 Private Declare PtrSafe Function GetForegroundWindow Lib "user32" () As LongPtr
 Private Declare PtrSafe Function GetWindowThreadProcessId Lib "user32" (ByVal hwnd As LongPtr, ByRef lpdwProcessId As Long) As Long
 Private Declare PtrSafe Function GetCurrentProcessId Lib "kernel32" () As Long
+Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal hwnd As LongPtr, ByVal lpString As String, ByVal cch As Long) As Long
 #Else
 Private Declare Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
 Private Declare Function GetForegroundWindow Lib "user32" () As Long
 Private Declare Function GetWindowThreadProcessId Lib "user32" (ByVal hwnd As Long, ByRef lpdwProcessId As Long) As Long
 Private Declare Function GetCurrentProcessId Lib "kernel32" () As Long
+Private Declare Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal hwnd As Long, ByVal lpString As String, ByVal cch As Long) As Long
 #End If
 
 ' Logical buttons
@@ -139,8 +141,34 @@ Public Function HasFocus() As Boolean
 End Function
 
 ' Ignore keys while another app is in front (GetAsyncKeyState is global).
+' Counts as "Excel is in front" when the foreground window belongs to this Excel process,
+' when Windows reports no foreground window for a moment (while switching), or when the
+' window title says Excel (some setups report another process id for Excel's own window).
 Private Function AppHasFocus() As Boolean
-    Dim pid As Long
-    GetWindowThreadProcessId GetForegroundWindow(), pid
-    AppHasFocus = (pid = mPid)
+    Dim pid As Long, t As String
+    #If VBA7 Then
+        Dim fg As LongPtr
+    #Else
+        Dim fg As Long
+    #End If
+    fg = GetForegroundWindow()
+    If fg = 0 Then
+        AppHasFocus = True
+        Exit Function
+    End If
+    GetWindowThreadProcessId fg, pid
+    If pid = mPid Then
+        AppHasFocus = True
+        Exit Function
+    End If
+    t = ForegroundTitle()
+    AppHasFocus = (InStr(1, t, "Excel", vbTextCompare) > 0) Or (InStr(1, t, ThisWorkbook.Name, vbTextCompare) > 0)
+End Function
+
+' Title of the window in front (shown in the status bar while the game waits for Excel).
+Public Function ForegroundTitle() As String
+    Dim buf As String, n As Long
+    buf = String$(256, vbNullChar)
+    n = GetWindowText(GetForegroundWindow(), buf, 255)
+    If n > 0 Then ForegroundTitle = Left$(buf, n)
 End Function

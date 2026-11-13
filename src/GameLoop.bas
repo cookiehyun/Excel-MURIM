@@ -69,6 +69,11 @@ Public Sub StartGame()
         If Not focused Then
             WinApi.SleepMs 20
             DoEvents
+            If nowT - statT >= 0.5 Then                  ' say why nothing moves
+                Application.StatusBar = "PAUSED - click the Excel window to continue (now in front: " & _
+                    Left$(KeyInput.ForegroundTitle(), 60) & ")"
+                statT = nowT
+            End If
         End If
 
         ' stats once per second

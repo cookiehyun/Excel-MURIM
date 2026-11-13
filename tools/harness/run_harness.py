@@ -95,6 +95,9 @@ Public Function KeyOf(ByVal ks As Long, ByVal logical As Long) As Long
     Case Else: KeyOf = logical
     End Select
 End Function
+Public Function ForegroundTitle() As String
+    ForegroundTitle = "harness"
+End Function
 Public Function HasFocus() As Boolean
     HasFocus = True
 End Function
