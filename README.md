@@ -31,6 +31,7 @@ Windows 엑셀(.xlsm) 전용입니다. 맥 엑셀에서는 돌아가지 않습�
 | SINGLE PLAYER | VS CPU | 2명씩 팀을 짜서 CPU 팀과 싸웁니다. C 키로 교체 |
 | SINGLE PLAYER | TRAINING | 시간 제한 없음. 콤보가 끝나면 체력이 다시 차고, 내공과 게이지는 항상 가득 |
 | MULTIPLAYER | VERSUS | 키보드 하나로 1P와 2P가 1대1로 대결 |
+| MULTIPLAYER | TAG VERSUS | 1P 팀 2명 대 2P 팀 2명. 각자 교체 키로 교체 |
 | MULTIPLAYER | KEY CONFIG | 1P·2P 키 바꾸기. `data/keys.txt`에 저장됩니다 |
 
 ### 아케이드
@@ -61,17 +62,18 @@ Windows 엑셀(.xlsm) 전용입니다. 맥 엑셀에서는 돌아가지 않습�
 | ↓ | 앉기 |
 | A / S / Z / X | 약손 / 강손 / 약발 / 강발. ↓를 누른 채면 앉아서, 점프 중이면 공중에서 |
 | A + Z 동시 (가까이서) | 잡기. 잡힌 직후 A + Z를 누르면 풀 수 있음 (커맨드 잡기는 못 풂) |
-| 상대 반대쪽 | 가드. 앉은 발차기는 앉아서, 점프 공격은 서서 막아야 함 |
-| →→ / ←← | 대시 / 백대시 |
+| → + S | 중단기. 느리지만 앉아서 막으면 못 막음 (서서 막아야 함) |
+| 상대 반대쪽 | 가드. 앉은 발차기는 앉아서, 점프 공격과 중단기는 서서 막아야 함. 상대 공격이 닿는 거리에서만 막기 자세가 됨 |
+| →→ / ←← | 대시 / 백대시. 대시 중 ↑ = 멀리 뛰는 대시 점프 |
 | C | 교체 (VS CPU) |
 | Esc | 경기 중에는 일시정지, 시작 화면에서는 게임 종료 |
 
 2인 대전 기본 키 (KEY CONFIG에서 바꿀 수 있고, 이미 쓰는 키를 고르면 두 키가 서로 바뀝니다)
 
-| | 이동 | 약손 / 강손 | 약발 / 강발 |
-|---|---|---|---|
-| 1P | W A S D | R / T | F / G |
-| 2P | 방향키 | K / L | , / . |
+| | 이동 | 약손 / 강손 | 약발 / 강발 | 교체 (TAG VERSUS) |
+|---|---|---|---|---|
+| 1P | W A S D | R / T | F / G | Q |
+| 2P | 방향키 | K / L | , / . | / |
 
 - 경기 중에 다른 창을 클릭하면 자동으로 일시정지됩니다. 엑셀로 돌아와서 Esc나 S를 누르면 이어집니다. 다른 창에 있는 동안에는 화면을 그리지 않아서 PC가 덜 바쁩니다.
 - 게임 중에는 셀을 클릭할 수 없습니다. 게임을 끝내면 다시 됩니다.
@@ -111,21 +113,21 @@ P는 A 또는 S, K는 Z 또는 X입니다. →는 상대가 있는 쪽입니다.
 
 | 입력 | 단우 | 철산 | 무영 | 설화 | 흑림 | 홍련 | 천마 |
 |---|---|---|---|---|---|---|---|
+| A → A → S | 150 | 200 | 135 | 105 | 140 | 136 | 175 |
 | ↓Z → ↓X (다리 쓸기, 다운) | 120 | 150 | 118 | 101 | 132 | 118 | 150 |
-| A → A → S | 141 | - | - | 99 | - | - | - |
-| A → S | - | 160 | - | - | - | - | - |
-| S → 필살기1 | 160 | - | 145 | 146 | 155 | 150 | 180 |
-| S → 필살기2 | - | 240 | 185 | 150 | - | - | - |
-| A → A → 필살기1 | 123 | - | - | 112 | 119 | 123 | - |
-| A → A → 필살기2 | - | 183 | 140 | - | - | - | - |
-| S → 궁극기 | 294 | - | 415 | 365 | 410 | 330 | 475 |
-| 궁극기만 (가까이서) | - | 380 | - | - | - | - | - |
+| S → 필살기1 | 160 | - | 145 | 146 | 145 | 150 | 180 |
+| S → 필살기2 | - | 240 | 185 | 150 | - | 170 | - |
+| A → A → 필살기1 | 123 | - | 110 | 112 | 119 | 123 | 138 |
+| A → A → 필살기2 | - | 183 | 140 | 117 | - | 146 | - |
+| S → 궁극기 | 294 | - | 415 | 365 | 400 | 330 | 475 |
 | 점프 X → (착지) A → S | 170 | - | - | - | - | - | - |
+| → + S (중단기, 1타) | 70 | 95 | 70 | 50 | 70 | 55 | 85 |
 
-- 철산의 금강파쇄와 궁극기는 잡기라서 콤보 끝에 붙이지 않고 따로 씁니다.
+- A → A → S는 이제 모든 캐릭터에게 들어갑니다. 버튼을 너무 빨리 연타하지 말고, 앞 공격이 맞는 걸 보고 누르세요.
+- 철산의 금강파쇄와 궁극기(나한복마)는 잡기라서 콤보 끝에 붙이지 않고 가까이서 따로 씁니다.
 - 흑림의 귀영보는 순간이동이라 콤보에 넣지 않습니다.
 
-밸런스는 CPU끼리 싸운 승률로 맞췄고, 지금 전체 승률은 44~56%입니다. 기록은 [docs/BALANCE.md](docs/BALANCE.md)에 있습니다.
+밸런스는 CPU끼리 싸운 승률로 맞췄고, 지금 전체 승률은 38~58%입니다. 기록은 [docs/BALANCE.md](docs/BALANCE.md)에 있습니다.
 
 </details>
 
@@ -142,6 +144,7 @@ Pick SINGLE PLAYER or MULTIPLAYER on the title screen. In menus, ↑↓ moves, A
 | SINGLE PLAYER | VS CPU | Two-fighter teams against a CPU team. Press C to switch |
 | SINGLE PLAYER | TRAINING | No timer. Health refills after a combo; inner energy and super gauge stay full |
 | MULTIPLAYER | VERSUS | 1P vs 2P on one keyboard |
+| MULTIPLAYER | TAG VERSUS | 1P's two-fighter team against 2P's, each with their own tag key |
 | MULTIPLAYER | KEY CONFIG | Change 1P / 2P keys. Saved to `data/keys.txt` |
 
 ### Arcade
@@ -172,17 +175,18 @@ Single-player keys. Two-player keys are in the second table.
 | ↓ | Crouch |
 | A / S / Z / X | Light punch / heavy punch / light kick / heavy kick. Hold ↓ for crouching attacks; in the air for jump attacks |
 | A + Z together (close) | Throw. Press A + Z right after being grabbed to break it (command grabs can't be broken) |
-| Away from the opponent | Block. Crouching kicks must be blocked low, jump attacks high |
-| →→ / ←← | Dash / back dash |
+| → + S | Overhead. Slow, but it can't be blocked crouching (block it standing) |
+| Away from the opponent | Block. Crouching kicks must be blocked low; jump attacks and overheads high. You only stop to block when the attack can actually reach |
+| →→ / ←← | Dash / back dash. ↑ during a dash = long dash jump |
 | C | Switch (VS CPU) |
 | Esc | Pause during a fight, quit on the title screen |
 
 Two-player default keys (change them in KEY CONFIG; picking a key that's already used swaps the two)
 
-| | Move | Light / heavy punch | Light / heavy kick |
-|---|---|---|---|
-| 1P | W A S D | R / T | F / G |
-| 2P | Arrow keys | K / L | , / . |
+| | Move | Light / heavy punch | Light / heavy kick | Tag (TAG VERSUS) |
+|---|---|---|---|---|
+| 1P | W A S D | R / T | F / G | Q |
+| 2P | Arrow keys | K / L | , / . | / |
 
 - Clicking another window during a fight pauses the game. Come back to Excel and press Esc or S to continue. Nothing is drawn while Excel is in the background.
 - You can't click cells while the game is running. That comes back when you quit.
@@ -222,21 +226,21 @@ A light attack (A·Z, standing or crouching) can chain into another normal, up t
 
 | Input | Danwoo | Cheolsan | Muyeong | Seolhwa | Heukrim | Hongryeon | Cheonma |
 |---|---|---|---|---|---|---|---|
+| A → A → S | 150 | 200 | 135 | 105 | 140 | 136 | 175 |
 | ↓Z → ↓X (sweep, knockdown) | 120 | 150 | 118 | 101 | 132 | 118 | 150 |
-| A → A → S | 141 | - | - | 99 | - | - | - |
-| A → S | - | 160 | - | - | - | - | - |
-| S → special 1 | 160 | - | 145 | 146 | 155 | 150 | 180 |
-| S → special 2 | - | 240 | 185 | 150 | - | - | - |
-| A → A → special 1 | 123 | - | - | 112 | 119 | 123 | - |
-| A → A → special 2 | - | 183 | 140 | - | - | - | - |
-| S → super | 294 | - | 415 | 365 | 410 | 330 | 475 |
-| Super alone (close) | - | 380 | - | - | - | - | - |
+| S → special 1 | 160 | - | 145 | 146 | 145 | 150 | 180 |
+| S → special 2 | - | 240 | 185 | 150 | - | 170 | - |
+| A → A → special 1 | 123 | - | 110 | 112 | 119 | 123 | 138 |
+| A → A → special 2 | - | 183 | 140 | 117 | - | 146 | - |
+| S → super | 294 | - | 415 | 365 | 400 | 330 | 475 |
 | Jump X → (land) A → S | 170 | - | - | - | - | - | - |
+| → + S (overhead, 1 hit) | 70 | 95 | 70 | 50 | 70 | 55 | 85 |
 
-- Cheolsan's command grab and super are grabs, so use them on their own rather than at the end of a combo.
+- A → A → S now works for every fighter. Don't mash: press the next button as the previous hit lands.
+- Cheolsan's command grab and super (Nahan Bokma) are grabs, so use them up close on their own rather than at the end of a combo.
 - Heukrim's Gwiyeongbo is a teleport and doesn't go in combos.
 
-Balance is tuned with CPU-vs-CPU matches; overall win rates are currently 44-56%. Notes are in [docs/BALANCE.md](docs/BALANCE.md).
+Balance is tuned with CPU-vs-CPU matches; overall win rates are currently 38-58%. Notes are in [docs/BALANCE.md](docs/BALANCE.md).
 
 </details>
 
@@ -254,7 +258,7 @@ Balance is tuned with CPU-vs-CPU matches; overall win rates are currently 44-56%
 | 키 | 동작 |
 |---|---|
 | Tab | 조작 캐릭터 바꾸기 |
-| D | 상대 바꾸기: CPU → 가만히 → 가드만 → 공격만 |
+| D | 상대 바꾸기: CPU → 가만히 → 서서 막기 → 공격만 → 앉아서 막기 (중단기·잡기 연습용) |
 | H / J | 상대 피격 / 다운 모션 강제 재생 |
 | F1 | 판정 박스 표시 (초록 = 맞는 판정, 빨강 = 공격 판정) |
 
@@ -347,7 +351,7 @@ python3 tools/lint_vba.py                           # 호환 검사
 | Key | Action |
 |---|---|
 | Tab | Switch which fighter you control |
-| D | Opponent: CPU → idle → block only → attack only |
+| D | Opponent: CPU → idle → standing block → attack only → crouching block (practice overheads and throws) |
 | H / J | Force the opponent's hit / knockdown animation |
 | F1 | Show boxes (green = hurtbox, red = hitbox) |
 
