@@ -33,7 +33,7 @@ Public Sub Init()
     rPrefix(3) = "seolhwa": rName(3) = "SEOLHWA": rStyle(3) = "SPEED KICKER"
     rStat(3, 0) = 1: rStat(3, 1) = 5: rStat(3, 2) = 2: rStat(3, 3) = 2: rHeadX(3) = 1: rHeadY(3) = -30
     rPrefix(4) = "heukrim": rName(4) = "HEUKRIM": rStyle(4) = "ZONER"
-    rStat(4, 0) = 3: rStat(4, 1) = 5: rStat(4, 2) = 4: rStat(4, 3) = 3: rHeadX(4) = 4: rHeadY(4) = -32
+    rStat(4, 0) = 3: rStat(4, 1) = 5: rStat(4, 2) = 4: rStat(4, 3) = 4: rHeadX(4) = 4: rHeadY(4) = -32
     rPrefix(5) = "hongryeon": rName(5) = "HONGRYEON": rStyle(5) = "FAN DANCER"
     rStat(5, 0) = 2: rStat(5, 1) = 4: rStat(5, 2) = 4: rStat(5, 3) = 3: rHeadX(5) = 1: rHeadY(5) = -30
     cGold = RGB(240, 190, 80)
