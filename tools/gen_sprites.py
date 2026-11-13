@@ -18,6 +18,14 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CANVAS = 72          # working canvas (px); sprite is cropped afterwards
 AX, AY = 36, 62      # anchor in canvas = ground point under the hip
+Z = int(os.environ.get("SUPERSAMPLE", "1"))   # >1: render the same rig on a Z-times finer pixel grid (portraits)
+N = CANVAS * Z
+
+
+def mgrid():
+    """pixel-centre sample grid in rig units; 'xs + 0.5' gives the sample centre"""
+    ys, xs = np.mgrid[0:N, 0:N]
+    return (ys + 0.5) / Z - 0.5, (xs + 0.5) / Z - 0.5
 
 # ---------------------------------------------------------------- geometry
 
@@ -26,7 +34,7 @@ def dirv(angle_from_down):
     return math.sin(a), math.cos(a)
 
 def seg_mask(p, q, r):
-    ys, xs = np.mgrid[0:CANVAS, 0:CANVAS]
+    ys, xs = mgrid()
     px, py = xs + 0.5, ys + 0.5
     vx, vy = q[0] - p[0], q[1] - p[1]
     l2 = vx * vx + vy * vy
@@ -42,9 +50,9 @@ def circle_mask(c, r):
     return seg_mask(c, c, r)
 
 def poly_mask(pts):
-    ys, xs = np.mgrid[0:CANVAS, 0:CANVAS]
+    ys, xs = mgrid()
     px, py = xs + 0.5, ys + 0.5
-    inside = np.zeros((CANVAS, CANVAS), bool)
+    inside = np.zeros((N, N), bool)
     n = len(pts)
     for i in range(n):
         x1, y1 = pts[i]
@@ -61,6 +69,83 @@ def dilate(m):
     d[:, 1:] |= m[:, :-1]
     d[:, :-1] |= m[:, 1:]
     return d
+
+# ---------------------------------------------------------------- HD rendering helpers
+
+SHADE_POOL = "0123456789!$%&*+-/:;<=>?@^_~|{}()[],`"
+
+
+def mix(hx, other, t):
+    a = [int(hx[i:i + 2], 16) for i in (0, 2, 4)]
+    b = [int(other[i:i + 2], 16) for i in (0, 2, 4)]
+    return "".join(f"{round(a[k] + (b[k] - a[k]) * t):02X}" for k in range(3))
+
+
+def hd_palette(spec):
+    """extend the palette with light / dark / outline variants of every base colour"""
+    pal = dict(spec["palette"])
+    pool = [c for c in SHADE_POOL if c not in pal]
+    ext = {}
+    for ch, hx in spec["palette"].items():
+        if ch == "k":
+            continue
+        lt, dk, ol = pool.pop(0), pool.pop(0), pool.pop(0)
+        pal[lt] = mix(hx, "FFFFFF", 0.28)
+        pal[dk] = mix(hx, "000000", 0.28)
+        pal[ol] = mix(mix(hx, "000000", 0.62), spec["palette"]["k"], 0.35)
+        ext[ch] = (lt, dk, ol)
+    return pal, ext
+
+
+def shifted(f, dy, dx):
+    """g[y, x] = f[y - dy, x - dx] (False outside)"""
+    g = np.zeros_like(f)
+    h, w = f.shape
+    g[max(dy, 0):h + min(dy, 0), max(dx, 0):w + min(dx, 0)] = f[max(-dy, 0):h + min(-dy, 0), max(-dx, 0):w + min(-dx, 0)]
+    return g
+
+
+def hd_finish(grid, ext, no_shade=("W", "Q", "y", "s", "S", "w", "r", "k")):
+    """top light, back-edge shade, front rim light, then a coloured (selective) outline"""
+    f = grid != ""
+    up, dn = shifted(f, Z, 0), shifted(f, -Z, 0)        # filled Z px above / below
+    lf, rt = shifted(f, 0, Z), shifted(f, 0, -Z)        # filled Z px left / right
+    lf2 = shifted(f, 0, 2 * Z)
+    out = grid.copy()
+    for ch, (lt, dk, ol) in ext.items():
+        if ch in no_shade:
+            continue
+        m = grid == ch
+        out[m & lf & rt & ~up] = lt                   # lit from above (skip 1-px details)
+        out[m & ~lf & up & dn] = dk                   # back edge in shade
+        out[m & ~rt & lf2 & up] = lt                  # rim light on the front edge
+    # outline: dark tint of the colour it touches; plain dark under the feet
+    base_of = {"": None}
+    for ch, (lt, dk, ol) in ext.items():
+        base_of[ch] = ol; base_of[lt] = ol; base_of[dk] = ol
+    src = np.where(f, grid, "")
+    cur = f.copy()
+    for _ in range(max(1, round(Z * 0.67))):
+        new = np.full_like(src, "")
+        for dy, dx in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+            cand = np.zeros_like(src); cand[:] = ""
+            sh = shifted(cur, dy, dx)
+            h, w = src.shape
+            cand[max(dy, 0):h + min(dy, 0), max(dx, 0):w + min(dx, 0)] = src[max(-dy, 0):h + min(-dy, 0), max(-dx, 0):w + min(-dx, 0)]
+            take = sh & ~cur & (new == "")
+            new[take] = cand[take]
+        grow = new != ""
+        src[grow] = new[grow]
+        cur |= grow
+    ring = cur & ~f
+    under = ring & shifted(f, 1, 0) & ~shifted(f, -1, 0)
+    for ch in np.unique(src[ring]):
+        out[ring & (src == ch)] = base_of.get(ch) or "k"
+    out[under & (Z == 1)] = "k"                       # ground contact / underside
+    if Z > 1:
+        out[ring & ~shifted(f, -1, 0) & shifted(f, 1, 0)] = "k"
+    return out
+
 
 # ---------------------------------------------------------------- character specs
 
@@ -369,7 +454,7 @@ ANIMS = [  # name, ticks per frame, frames
 
 class Canvas:
     def __init__(self):
-        self.c = np.full((CANVAS, CANVAS), "", dtype="<U1")
+        self.c = np.full((N, N), "", dtype="<U1")
 
     def filled(self):
         return self.c != ""
@@ -476,7 +561,7 @@ def build(spec, pose):
     tm = poly_mask(quad) | circle_mask(pt["shoulder"], L["chest"] * 0.85)
     cv.put(tm, lk["torso"])
     # shade the back half of the torso
-    ys, xs = np.mgrid[0:CANVAS, 0:CANVAS]
+    ys, xs = mgrid()
     side = (xs + 0.5 - hx) * (-px_) + (ys + 0.5 - hy) * (-py_)   # >0 toward front? use axis-perp
     # front direction in world = +x rotated; pick perpendicular that points forward
     fwd = 1 if (-px_) * math.cos(rot) + 0 > 0 else -1
@@ -499,6 +584,18 @@ def build(spec, pose):
     bm = seg_mask((belt_c[0] + px_ * L["waist"], belt_c[1] + py_ * L["waist"]),
                   (belt_c[0] - px_ * L["waist"], belt_c[1] - py_ * L["waist"]), 0.9) & (tm | fm)
     cv.put(bm, lk["belt"])
+    if spec.get("hd"):
+        # vertical folds in the robe skirt
+        for fx_off in (-1.2, 1.8):
+            fold = fm & (np.abs(xs + 0.5 - (hx + fx_off)) < 0.5) & (ys + 0.5 > hy + 1.5)
+            cv.c[fold] = lk["skirt_dark"]
+        # two sash tails hanging from the back of the knot, swinging with the body
+        knot = (belt_c[0] - px_ * L["waist"] * 0.9, belt_c[1] - py_ * L["waist"] * 0.9)
+        swing = -28 - pose["lean"] * 0.8 + pose.get("sway", 0)
+        for k, ln_ in enumerate((3.6, 2.6)):
+            d_ = dirv(swing - k * 34)
+            tail = (knot[0] - abs(d_[0]) * ln_, knot[1] + d_[1] * ln_)
+            cv.put(seg_mask(knot, tail, 0.45), lk["belt"])
 
     # head
     hc = pt["head"]
@@ -587,8 +684,24 @@ def build(spec, pose):
     # eye
     eye = (cx + fx * (r * 0.55) + ux * (-0.1), cy + fy * (r * 0.55) + uy * (-0.1))
     ex, ey = int(eye[0]), int(eye[1])
-    if 0 <= ex < CANVAS and 0 <= ey < CANVAS and cv.c[ey, ex] != "":
+    if Z > 1:
+        em = circle_mask(eye, 0.62) & (cv.c != "")
+        cv.c[em] = "k"
+        if spec.get("hd"):
+            cv.c[circle_mask((eye[0] + ux * 0.9, eye[1] + uy * 0.9), 0.45) & (cv.c == "s")] = "h"          # brow
+            cv.c[circle_mask((eye[0] - ux * 0.1 + fx * 0.15, eye[1] - uy * 0.1 + fy * 0.15), 0.22)] = "W" if "W" in spec["palette"] else "w"
+            mo = (cx + fx * (r * 0.55) - ux * 1.9, cy + fy * (r * 0.55) - uy * 1.9)
+            cv.c[seg_mask(mo, (mo[0] - fx * 0.6, mo[1] - fy * 0.6), 0.25) & (cv.c == "s")] = "S"       # mouth
+            no = (cx + fx * (r * 0.95) - ux * 0.9, cy + fy * (r * 0.95) - uy * 0.9)
+            cv.c[circle_mask(no, 0.35) & (cv.c == "s")] = "S"                                           # nose shade
+    elif 0 <= ex < CANVAS and 0 <= ey < CANVAS and cv.c[ey, ex] != "":
         cv.c[ey, ex] = "k"
+        if spec.get("hd"):
+            mx_, my_ = int(cx + fx * (r * 0.5) - ux * 1.8), int(cy + fy * (r * 0.5) - uy * 1.8)
+            if 0 <= mx_ < CANVAS and 0 <= my_ < CANVAS and cv.c[my_, mx_] == "s":
+                cv.c[my_, mx_] = "S"                          # mouth / chin shadow
+            if cv.c[ey - 1, ex] == "s":
+                cv.c[ey - 1, ex] = "h"                         # brow
 
     # front arm last (on top), with inner outline
     draw_arm(pt["eF"], pt["hF"], lk["arm_front"], lk["arm_front2"], True)
@@ -598,7 +711,7 @@ def build(spec, pose):
     if wp and wp["kind"] == "fan":
         def fan(hand, ang, cloth):
             r_ = wp["length"]
-            ys, xs = np.mgrid[0:CANVAS, 0:CANVAS]
+            ys, xs = mgrid()
             dx_, dy_ = xs + 0.5 - hand[0], ys + 0.5 - hand[1]
             dist = np.hypot(dx_, dy_)
             pang = np.degrees(np.arctan2(dx_, dy_))           # angle from down, + toward +x
@@ -633,12 +746,15 @@ def build(spec, pose):
         cv.put(seg_mask(pommel, (pommel[0] - d[0] * 0.6, pommel[1] + 2.2), 0.5), "r")      # tassel
         pt["tip"] = tip
 
-    cv.outline()
+    if spec.get("hd"):
+        cv.c = hd_finish(cv.c, spec["_ext"])
+    else:
+        cv.outline()
 
     grid = cv.c
     if pose["ground"] == "bbox":
         rows = np.where((grid != "").any(axis=1))[0]
-        shift = AY - 1 - rows.max()
+        shift = AY * Z - 1 - rows.max()
         grid = np.roll(grid, shift, axis=0)
     return grid, pt
 
@@ -647,9 +763,9 @@ def crop(grid):
     f = grid != ""
     rows = np.where(f.any(axis=1))[0]
     cols = np.where(f.any(axis=0))[0]
-    y0, y1 = rows.min(), max(rows.max(), AY - 1)
+    y0, y1 = rows.min(), max(rows.max(), AY * Z - 1)
     x0, x1 = cols.min(), cols.max()
-    return grid[y0:y1 + 1, x0:x1 + 1], AX - x0, AY - y0   # anchor relative to crop
+    return grid[y0:y1 + 1, x0:x1 + 1], AX * Z - x0, AY * Z - y0   # anchor relative to crop
 
 
 def to_png(grid, palette, scale=8):
@@ -676,6 +792,9 @@ def generate(spec, overrides):
         spec = dict(spec)
         for k in SCALE_KEYS:
             spec[k] = spec[k] * SPRITE_SCALE
+    if spec["name"] in os.environ.get("HD", "").split(",") or spec.get("hd"):
+        spec = dict(spec, hd=True)
+        spec["palette"], spec["_ext"] = hd_palette(spec)
     poses = dict(BASE_POSES)
     poses.update(overrides)
     out = []
