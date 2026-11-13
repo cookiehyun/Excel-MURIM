@@ -225,4 +225,5 @@ Private Sub PauseRender()
         End If
         PixelFont.DrawText lbl, cx, y, c, 1, 1
     Next k
+    PixelFont.DrawText "ESC OR S = RESUME", cx, 74, RGB(110, 100, 130), 1, 1
 End Sub

@@ -134,6 +134,10 @@ Public Function IsPressed(ByVal b As Long) As Boolean
     IsPressed = mCur(b) And Not mPrev(b)
 End Function
 
+Public Function HasFocus() As Boolean
+    HasFocus = AppHasFocus()
+End Function
+
 ' Ignore keys while another app is in front (GetAsyncKeyState is global).
 Private Function AppHasFocus() As Boolean
     Dim pid As Long

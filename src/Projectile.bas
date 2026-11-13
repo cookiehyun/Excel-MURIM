@@ -55,6 +55,7 @@ Public Sub Spawn(ByVal owner As Long, ByVal mv As Long)
         End With
     End If
     mMv(owner) = mv
+    mAnimOwn(owner) = OwnAnim(owner)          ' art of whoever throws it now (tag mode swaps fighters)
     mHits(owner) = Data.MvP2(mv)
     If mHits(owner) < 1 Then mHits(owner) = 1
     mCD(owner) = 0

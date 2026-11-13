@@ -73,9 +73,15 @@ Windows 엑셀(.xlsm) 전용입니다. 맥 엑셀에서는 돌아가지 않습�
 | 1P | W A S D | R / T | F / G |
 | 2P | 방향키 | K / L | , / . |
 
-- 경기 중에 다른 창을 클릭하면 자동으로 일시정지됩니다. S나 RESUME으로 이어서 하면 됩니다.
+- 경기 중에 다른 창을 클릭하면 자동으로 일시정지됩니다. 엑셀로 돌아와서 Esc나 S를 누르면 이어집니다. 다른 창에 있는 동안에는 화면을 그리지 않아서 PC가 덜 바쁩니다.
 - 게임 중에는 셀을 클릭할 수 없습니다. 게임을 끝내면 다시 됩니다.
 - 키보드에 따라 여러 키를 한꺼번에 누르면 일부가 안 먹힐 수 있습니다.
+
+## 느릴 때
+
+- 게임 중 엑셀 아래 상태 표시줄에 FPS와 render ms/frame(한 화면 그리는 데 걸린 시간)이 나옵니다. FPS 20이 최대입니다.
+- Alt+F8 → `RenderBenchmark`를 실행하면 20초 정도 걸려 이 PC에서 화면 갱신 방식 두 가지의 속도를 재서 보여줍니다.
+- 엑셀 화면 확대를 줄이거나, 파일 > 옵션 > 고급 > "하드웨어 그래픽 가속 사용 안 함"을 바꿔 보면 PC에 따라 빨라지기도 합니다.
 
 ## 캐릭터
 
@@ -178,9 +184,15 @@ Two-player default keys (change them in KEY CONFIG; picking a key that's already
 | 1P | W A S D | R / T | F / G |
 | 2P | Arrow keys | K / L | , / . |
 
-- Clicking another window during a fight pauses the game. Press S or pick RESUME to continue.
+- Clicking another window during a fight pauses the game. Come back to Excel and press Esc or S to continue. Nothing is drawn while Excel is in the background.
 - You can't click cells while the game is running. That comes back when you quit.
 - Some keyboards drop keys when many are held at once.
+
+## If it runs slowly
+
+- During a fight the Excel status bar shows FPS and render ms/frame (time to draw one frame). 20 FPS is the maximum.
+- Alt+F8 → `RenderBenchmark` takes about 20 seconds and measures two screen-update options on your PC.
+- A smaller Excel zoom, or toggling File > Options > Advanced > "Disable hardware graphics acceleration", helps on some PCs.
 
 ## Fighters
 
@@ -264,7 +276,7 @@ excel-murim/
     Game.bas          상태 전환, 한 틱 진행과 그리기, 일시정지 메뉴
     KeyInput.bas      키 입력 (GetAsyncKeyState), 창 포커스 확인
     KeyConfig.bas     2인 키 설정 화면, data/keys.txt 저장
-    Renderer.bas      셀 픽셀 버퍼, 스프라이트, 바뀐 셀만 칠하기
+    Renderer.bas      셀 픽셀 버퍼, 스프라이트, 바뀐 부분만 사각형으로 묶어 칠하기
     Data.bas          data/*.txt 읽기
     Screens.bas       시작, 캐릭터·난이도·무대 선택 화면
     Arcade.bas        아케이드 대진, 컨티뉴, 엔딩
@@ -277,7 +289,7 @@ excel-murim/
     FX.bas            타격 이펙트
     Hud.bas           체력·내공·게이지 바
     PixelFont.bas     픽셀 폰트
-    WinApi.bas        Sleep (엑셀 전용)
+    WinApi.bas        Sleep, 정밀 타이머 (엑셀 전용)
     Gallery.bas       스프라이트 모아보기
     DevTools.bas      src와 워크북 동기화 (ImportSrc / ExportSrc)
   data/               실행 중에 읽는 데이터
@@ -357,7 +369,7 @@ excel-murim/
     Game.bas          game state, one tick and one frame, pause menu
     KeyInput.bas      keyboard (GetAsyncKeyState), window focus check
     KeyConfig.bas     two-player key settings, data/keys.txt
-    Renderer.bas      cell pixel buffer, sprites, repaint only changed cells
+    Renderer.bas      cell pixel buffer, sprites, repaint only changed areas as merged rectangles
     Data.bas          reads data/*.txt
     Screens.bas       title, fighter / level / stage select
     Arcade.bas        arcade ladder, continue, endings
@@ -370,7 +382,7 @@ excel-murim/
     FX.bas            hit effects
     Hud.bas           health, inner energy and super bars
     PixelFont.bas     pixel fonts
-    WinApi.bas        Sleep (Excel only)
+    WinApi.bas        Sleep, high-resolution timer (Excel only)
     Gallery.bas       sprite sheet viewer
     DevTools.bas      sync src with the workbook (ImportSrc / ExportSrc)
   data/               data read at run time

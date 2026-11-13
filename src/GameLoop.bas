@@ -24,12 +24,18 @@ Public Sub StartGame()
     mRunning = True
 
     Dim prevT As Double, nowT As Double, frameT As Double, acc As Double, lastPump As Double
-    Dim steps As Long, r0 As Double, r1 As Double, waitMs As Long
+    Dim steps As Long, r0 As Double, r1 As Double, waitMs As Long, focused As Boolean, wasFocused As Boolean
     Dim statT As Double, statFrames As Long, statTicks As Long, statPaints As Long, statRender As Double
 
     prevT = WinApi.NowSec()
     statT = prevT: lastPump = prevT
+    wasFocused = True
     Do While mRunning
+        ' another window in front: keep ticking (the fight auto-pauses) but do not paint;
+        ' give Windows plenty of time, and repaint everything once Excel is back
+        focused = KeyInput.HasFocus()
+        If focused And Not wasFocused Then Renderer.Invalidate
+        wasFocused = focused
         nowT = WinApi.NowSec()
         frameT = nowT - prevT
         If frameT > MAX_FRAME_TIME Then frameT = MAX_FRAME_TIME
@@ -47,7 +53,7 @@ Public Sub StartGame()
         If steps = MAX_STEPS Then acc = 0                ' too slow: drop time instead of spiraling
         statTicks = statTicks + steps
 
-        If steps > 0 And mRunning Then
+        If steps > 0 And mRunning And focused Then
             r0 = WinApi.NowSec()
             Game.GameRender
             r1 = WinApi.NowSec()
@@ -56,9 +62,13 @@ Public Sub StartGame()
             statPaints = statPaints + Renderer.PaintCalls
             DoEvents                                     ' let Excel show the frame (once per frame, not per loop)
             lastPump = r1
-        ElseIf nowT - lastPump > 0.1 Then
-            DoEvents                                     ' keep Excel responsive while idle
+        ElseIf nowT - lastPump > 0.015 Then
+            DoEvents                                     ' keep Excel / Windows responsive
             lastPump = nowT
+        End If
+        If Not focused Then
+            WinApi.SleepMs 20
+            DoEvents
         End If
 
         ' stats once per second

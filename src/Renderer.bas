@@ -90,6 +90,17 @@ Public Sub Init()
     mFull = True
 End Sub
 
+' Repaint every cell on the next Flush (e.g. after Excel was in the background).
+Public Sub Invalidate()
+    Dim x As Long, y As Long
+    For y = 0 To SCREEN_H - 1
+        For x = 0 To SCREEN_W - 1
+            mFront(x, y) = -1
+        Next x
+    Next y
+    mFull = True
+End Sub
+
 ' Record that row y was drawn between x0 and x1 this frame.
 Private Sub Mark(ByVal y As Long, ByVal x0 As Long, ByVal x1 As Long)
     If x0 < 0 Then x0 = 0
