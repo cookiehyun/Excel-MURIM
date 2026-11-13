@@ -1,4 +1,4 @@
-# Excel Fighter
+# Excel MUHYEOP
 
 엑셀 VBA로 만드는 실시간 2D 격투 게임 (Windows 엑셀, `.xlsm`)
 
