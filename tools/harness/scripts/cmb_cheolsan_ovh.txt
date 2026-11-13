@@ -1,0 +1,7 @@
+CMD start 0 1 0 1
+CMD chars cheolsan danwoo
+CMD dummy 1
+CMD place 50 72
+3 -
+1 R+S
+30 -
