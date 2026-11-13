@@ -283,6 +283,86 @@ Private Sub Setup(ByVal i As Long, ByVal prefix As String, ByVal x As Double, By
     ResetOne i
 End Sub
 
+' Field-by-field copy (plain UDT assignment is not a reliable deep copy in every VBA host).
+Public Sub CopyFighter(dst As TFighter, src As TFighter)
+    Dim k As Long
+    dst.prefix = src.prefix
+    dst.state = src.state
+    dst.stTick = src.stTick
+    dst.x = src.x
+    dst.footY = src.footY
+    dst.vx = src.vx
+    dst.vy = src.vy
+    dst.slide = src.slide
+    dst.onGround = src.onGround
+    dst.crouch = src.crouch
+    dst.backward = src.backward
+    dst.facing = src.facing
+    dst.mv = src.mv
+    dst.hasHit = src.hasHit
+    dst.chain = src.chain
+    dst.airAttacked = src.airAttacked
+    dst.stun = src.stun
+    dst.stunTotal = src.stunTotal
+    dst.downPhase = src.downPhase
+    dst.flash = src.flash
+    dst.bufAtk = src.bufAtk
+    dst.bufAge = src.bufAge
+    dst.bufDash = src.bufDash
+    dst.health = src.health
+    dst.maxHealth = src.maxHealth
+    dst.healthShown = src.healthShown
+    dst.redCap = src.redCap
+    dst.trailDelay = src.trailDelay
+    dst.meter = src.meter
+    dst.naegong = src.naegong
+    dst.ngFlash = src.ngFlash
+    dst.inDir = src.inDir
+    dst.inPress = src.inPress
+    dst.inHeld = src.inHeld
+    For k = 0 To 31
+        dst.hist(k) = src.hist(k)
+    Next k
+    dst.histPos = src.histPos
+    dst.walkSpeed = src.walkSpeed
+    dst.dashSpeed = src.dashSpeed
+    dst.jumpVY = src.jumpVY
+    dst.jumpVX = src.jumpVX
+    dst.halfW = src.halfW
+    dst.hurtH = src.hurtH
+    dst.hurtHC = src.hurtHC
+    dst.startX = src.startX
+    dst.aIdle = src.aIdle
+    dst.aWalk = src.aWalk
+    dst.sCrouch = src.sCrouch
+    dst.sJump = src.sJump
+    dst.sGuard = src.sGuard
+    dst.sCGuard = src.sCGuard
+    dst.sHit0 = src.sHit0
+    dst.sHit1 = src.sHit1
+    dst.sCHit = src.sCHit
+    dst.sDown0 = src.sDown0
+    dst.sDown1 = src.sDown1
+    dst.sDash = src.sDash
+    dst.sBDash = src.sBDash
+    dst.sPunchA = src.sPunchA
+    dst.sPunchB = src.sPunchB
+    dst.sLift = src.sLift
+    dst.sSlam = src.sSlam
+    dst.sSlashA = src.sSlashA
+    dst.sSlashB = src.sSlashB
+    dst.sSlashC = src.sSlashC
+    dst.seqFx = src.seqFx
+    dst.superName = src.superName
+    dst.hitCount = src.hitCount
+    For k = 0 To 13
+        dst.moves(k) = src.moves(k)
+    Next k
+    For k = 0 To 2
+        dst.spOrder(k) = src.spOrder(k)
+    Next k
+End Sub
+
 Public Sub ResetRound(Optional ByVal keepMeter As Boolean = False)
     Dim m0 As Long, m1 As Long
     m0 = F(0).meter: m1 = F(1).meter

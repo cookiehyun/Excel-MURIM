@@ -25,10 +25,13 @@ End Property
 Public Sub Begin(ByVal p1b As String, ByVal p2b As String)
     Dim keep0 As TFighter, keep1 As TFighter, ctl As Long
     ctl = Fighter.Controlled
-    keep0 = Fighter.F(0): keep1 = Fighter.F(1)
+    Fighter.CopyFighter keep0, Fighter.F(0)
+    Fighter.CopyFighter keep1, Fighter.F(1)
     Fighter.Init p1b, p2b, ctl
-    mReserve(0) = Fighter.F(0): mReserve(1) = Fighter.F(1)
-    Fighter.F(0) = keep0: Fighter.F(1) = keep1
+    Fighter.CopyFighter mReserve(0), Fighter.F(0)
+    Fighter.CopyFighter mReserve(1), Fighter.F(1)
+    Fighter.CopyFighter Fighter.F(0), keep0
+    Fighter.CopyFighter Fighter.F(1), keep1
     mOn = True
     mCool(0) = 0: mCool(1) = 0
 End Sub
@@ -134,11 +137,11 @@ End Function
 Public Sub TryTag(ByVal i As Long)
     Dim outgoing As TFighter, x As Double, fc As Long, meter As Long
     If Not CanTag(i) Then Exit Sub
-    outgoing = Fighter.F(i)
+    Fighter.CopyFighter outgoing, Fighter.F(i)
     x = outgoing.x: fc = outgoing.facing: meter = outgoing.meter
     FX.Spawn Int(x + 0.5), Int(outgoing.footY) - 16, FX_DARK                      ' leaves in a puff
-    Fighter.F(i) = mReserve(i)
-    mReserve(i) = outgoing
+    Fighter.CopyFighter Fighter.F(i), mReserve(i)
+    Fighter.CopyFighter mReserve(i), outgoing
     mReserve(i).state = ST_IDLE
     mReserve(i).stTick = 0
     mReserve(i).bufAtk = -1
