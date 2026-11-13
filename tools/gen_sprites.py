@@ -370,7 +370,9 @@ SEOLHWA = dict(
         "p": "C8D0DC", "P": "A0AABA",          # light trousers
         "n": "2E4A78",                          # dark blue shoes
         "r": "E86A8A",                          # pink ribbons
+        "t": "FFE0EC", "T": "F6A8C4",          # pink trail
     },
+    petals=True,
     look=dict(arm_front="b", arm_back="B", arm_front2="b", arm_back2="B",
               leg_front="p", leg_back="P", boot="n",
               torso="b", torso_dark="B", skirt="b", skirt_dark="B",
@@ -503,16 +505,21 @@ SEOLHWA_OVERRIDES = {
     "walk_1": P(lean=4, lf=(8, 0), lb=(-5, -40), af=KICK_GUARD_F, ab=(25, 160), open_hand=True),
     "walk_2": P(lean=4, lf=(-18, -25), lb=(25, 5), af=KICK_GUARD_F, ab=(25, 160), open_hand=True),
     "walk_3": P(lean=4, lf=(-5, -40), lb=(8, 0), af=KICK_GUARD_F, ab=(25, 160), open_hand=True),
-    "lk_1": P(lean=-12, lf=(84, 88), lb=(-6, 0), af=(60, 150), ab=(-20, 40)),
-    "hk_0": P(lean=-20, lf=(130, 20), lb=(-4, 0), af=(40, 160), ab=(-30, 30)),
-    "hk_1": P(lean=-34, lf=(132, 136), lb=(-4, 0), af=(30, 165), ab=(-40, 10)),       # head-high kick
-    "jk": P(lean=-18, lf=(80, 82), lb=(110, 20), af=(40, 160), ground="air"),         # flying kick
+    # light: whip-fast snap kick
+    "lk_0": P(lean=-4, lf=(70, 140), lb=(-6, 0), af=(60, 150), ab=(-20, 40), open_hand=True),
+    "lk_1": P(lean=-12, lf=(86, 88), lb=(-6, 0), af=(60, 150), ab=(-20, 40), open_hand=True, trail=("kick", 60)),
+    # heavy: spinning back kick - chamber, turn away, heel shoots out behind toward the opponent
+    "hk_0": P(lean=-10, lf=(110, 40), lb=(-4, 0), af=(40, 160), ab=(-30, 30), open_hand=True),
+    "hk_t": P(lean=10, lf=(-40, -110), lb=(4, 0), af=(60, 140), ab=(20, 150), open_hand=True, flip=True),
+    "hk_1": P(lean=30, lf=(-112, -112), lb=(6, 0), af=(40, 120), ab=(80, 150), open_hand=True, flip=True, trail=("kick", -120)),
+    "hk_r": P(lean=14, lf=(-50, -70), lb=(6, 0), af=(50, 140), ab=(40, 150), open_hand=True, flip=True),
+    "jk": P(lean=-18, lf=(80, 82), lb=(110, 20), af=(40, 160), ground="air", trail=("kick", 70)),     # flying kick
     "dp_0": P(lean=24, lf=CROUCH_F, lb=CROUCH_B, af=(30, 70), ab=(-10, 60)),
-    "dp_1": P(lean=-28, lf=(158, 165), lb=(40, -20), af=(-20, 40), ab=(60, 140), ground="air"),   # rising spin kick
+    "dp_1": P(lean=-28, lf=(158, 165), lb=(40, -20), af=(-20, 40), ab=(60, 140), ground="air", trail=("kick", 110)),   # rising spin kick
     "rush_0": P(lean=-6, lf=(70, 10), lb=(-15, -5), af=(50, 150), ab=(-20, 40)),
-    "rush_1": P(lean=-24, lf=(94, 92), lb=(-12, -2), af=(40, 165), ab=(-30, 20)),     # driving side kick
+    "rush_1": P(lean=-24, lf=(94, 92), lb=(-12, -2), af=(40, 165), ab=(-30, 20), trail=("kick", 70)),     # driving side kick
     "rush_2": P(lean=-30, lf=(-10, 0), lb=(125, 130), af=(70, 150), ab=(-40, 10)),      # switch: rear high kick
-    "rush_3": P(lean=-18, lf=(100, 96), lb=(-20, -10), af=(-30, 20), ab=(60, 160), flip=True),   # spinning back kick
+    "rush_3": P(lean=-18, lf=(100, 96), lb=(-20, -10), af=(-30, 20), ab=(60, 160), flip=True, trail=("kick", 80)),   # spinning back kick
     # rising somersault kick (623K): kick up -> flip over backwards -> land
     "dp_2": P(lean=-20, lf=(150, 160), lb=(60, 10), af=(-40, 20), ab=(60, 130), ground="air", rot=-70),
     "dp_3": P(lean=0, lf=TUCK_F, lb=TUCK_B, af=(40, 90), ab=(30, 80), ground="air", rot=-160),
@@ -581,6 +588,10 @@ MOVE_ANIMS = {
         ("sp2_rec", 3, ["rush_3", "rush_3", "rush_0"]),
     ],
     "seolhwa": [
+        ("lk_pre", 1, ["lk_0"]),
+        ("hk_pre", 2, ["hk_0", "hk_t", "hk_t"]),
+        ("hk_seq", 2, ["hk_1"]),
+        ("hk_rec", 3, ["hk_r", "hk_r", "idle_1"]),
         ("sp1_seq", 2, ["rush_1", "rush_2", "rush_3"]),
         ("sp2_seq", 2, ["dp_1", "dp_1", "dp_2", "dp_3", "dp_4", "dp_5"]),
     ],
@@ -961,6 +972,17 @@ def build(spec, pose):
         near_end = np.abs(((pang - a1 + 540) % 360) - 180) < abs(a1 - a0) * 0.45
         cv.c[band & (dist >= R_ - 1.4)] = "t"
         cv.c[band & (dist < R_ - 1.4) & near_end] = "T"
+        if spec.get("petals"):
+            # flower petals scattered along and just outside the arc
+            ys_i, xs_i = np.nonzero(band)
+            for y_, x_ in zip(ys_i, xs_i):
+                hsh = (x_ * 7 + y_ * 13) % 9
+                if hsh == 0:
+                    cv.c[y_, x_] = "r"
+                elif hsh == 4:
+                    oy_, ox_ = y_ - 2 * Z, x_ + 1 * Z
+                    if 0 <= oy_ < N and 0 <= ox_ < N and cv.c[oy_, ox_] == "":
+                        cv.c[oy_, ox_] = "r"
 
     grid = cv.c
     if pose.get("flip"):

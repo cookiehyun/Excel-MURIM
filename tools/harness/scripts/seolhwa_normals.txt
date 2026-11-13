@@ -1,0 +1,11 @@
+# seolhwa light and heavy kicks on an idle dummy
+CMD start 0 1 0 1
+CMD chars seolhwa danwoo
+CMD dummy 1
+CMD place 70 92
+3 -
+1 Z
+14 -
+CMD place 70 88
+1 X
+26 -
