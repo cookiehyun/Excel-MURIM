@@ -78,7 +78,7 @@ Fail:
     n = Err.Number: d = Err.Description
     mRunning = False
     EndSession
-    If n <> 18 Then MsgBox "Error " & n & ": " & d, vbExclamation, "Excel Fighter"   ' 18 = user break
+    If n <> 18 Then MsgBox "Error " & n & ": " & d, vbExclamation, "Excel Murim"   ' 18 = user break
 End Sub
 
 Public Sub StopGame()

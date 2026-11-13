@@ -27,16 +27,16 @@
 ## 2. 새 워크북 만들고 저장
 1. 1단계에서 연 빈 통합 문서에서 **F12** (다른 이름으로 저장).
 2. 위치: **`STREET` 폴더 바로 안** (`src`, `data` 폴더가 보이는 곳. `src` 안이 아님).
-3. 파일 이름: `ExcelFighter`
+3. 파일 이름: `ExcelMurim`
 4. 파일 형식: **Excel 매크로 사용 통합 문서 (\*.xlsm)** ← 반드시. `.xlsx`면 코드가 저장되지 않는다.
-5. **저장**. 탐색기에서 `STREET\ExcelFighter.xlsm` 이 `src`, `data`와 나란히 있는지 확인.
+5. **저장**. 탐색기에서 `STREET\ExcelMurim.xlsm` 이 `src`, `data`와 나란히 있는지 확인.
 
 ## 3. DevTools 가져오기 (워크북당 한 번)
 1. 엑셀에서 **Alt+F11** → VBA 편집기.
-2. **Ctrl+R** → 왼쪽에 프로젝트 탐색기. `VBAProject (ExcelFighter.xlsm)` 이 보여야 한다.
-3. 프로젝트 탐색기에서 `VBAProject (ExcelFighter.xlsm)`을 한 번 클릭해 선택.
+2. **Ctrl+R** → 왼쪽에 프로젝트 탐색기. `VBAProject (ExcelMurim.xlsm)` 이 보여야 한다.
+3. 프로젝트 탐색기에서 `VBAProject (ExcelMurim.xlsm)`을 한 번 클릭해 선택.
 4. 메뉴 **파일 → 파일 가져오기...** → `STREET\src\DevTools.bas` → 열기.
-5. `VBAProject (ExcelFighter.xlsm)` 아래 **모듈** 폴더에 `DevTools`가 생겼는지 확인.
+5. `VBAProject (ExcelMurim.xlsm)` 아래 **모듈** 폴더에 `DevTools`가 생겼는지 확인.
 
 ## 4. 나머지 모듈 가져오기
 1. 엑셀 창으로 돌아가 **Alt+F8** (매크로).

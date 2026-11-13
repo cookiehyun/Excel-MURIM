@@ -209,6 +209,7 @@ MUYEONG = dict(
         "p": "34343E", "P": "26262E",
         "n": "3A2C24",
         "W": "DCE4EC", "Q": "FFFFFF",          # blade / glint
+        "t": "E8F2FA", "T": "A9C4DC",          # slash trail
         "y": "C9A040", "m": "5A2A20",          # guard / hilt
         "r": "C23434",                          # tassel
     },
@@ -232,11 +233,11 @@ TUCK_F = (100, -10)
 TUCK_B = (60, -45)
 
 def P(lean=8, lf=STANCE_F, lb=STANCE_B, af=GUARD_F, ab=GUARD_B,
-      ground="feet", hip_y=None, rot=0, open_hand=False, wa=None, flip=False):
+      ground="feet", hip_y=None, rot=0, open_hand=False, wa=None, flip=False, trail=None):
     """wa = weapon angle (absolute, from down, + forward); None = continue the front forearm
     flip = mirror the finished pose (the fighter turned around mid-spin)"""
     return dict(lean=lean, lf=lf, lb=lb, af=af, ab=ab, ground=ground,
-                hip_y=hip_y, rot=rot, open_hand=open_hand, wa=wa, flip=flip)
+                hip_y=hip_y, rot=rot, open_hand=open_hand, wa=wa, flip=flip, trail=trail)
 
 BASE_POSES = {
     "idle_0": P(),
@@ -479,10 +480,15 @@ MUYEONG_OVERRIDES = {
     "walk_3": P(lf=(-5, -40), lb=(8, 0), af=SWORD_GUARD, wa=125),
     "crouch": P(lean=20, lf=CROUCH_F, lb=CROUCH_B, af=(50, 100), wa=110),
     "jump": P(lean=10, lf=TUCK_F, lb=TUCK_B, af=(40, 120), ground="air", wa=135),
-    "lp_0": P(lean=8, af=(40, 80), wa=95),                                   # thrust
-    "lp_1": P(lean=18, lf=(32, 2), lb=(-32, -18), af=(92, 90), wa=90),
-    "hp_0": P(lean=-12, af=(-50, 170), ab=(30, 140), wa=205),               # big horizontal slash
-    "hp_1": P(lean=24, lf=(40, 0), lb=(-40, -40), af=(100, 100), ab=(10, 120), wa=100),
+    # quick thrust: draw the blade back to the hip, then lunge with the rear arm thrown back for balance
+    "lp_0": P(lean=-2, lf=(26, 6), lb=(-30, -16), af=(-10, 95), ab=(40, 120), wa=92),
+    "lp_1": P(lean=22, lf=(48, 4), lb=(-50, -32), af=(92, 92), ab=(-70, -95), wa=91),
+    # heavy: two-handed overhead cut, raised over the shoulder, swept down in front (with a slash trail)
+    "hp_0": P(lean=-10, lf=(22, 4), lb=(-30, -18), af=(150, 120), ab=(155, 125), wa=200),
+    "hp_a": P(lean=-16, lf=(20, 2), lb=(-32, -20), af=(172, 150), ab=(170, 150), wa=215),
+    "hp_1": P(lean=26, lf=(46, 2), lb=(-48, -38), af=(110, 80), ab=(100, 85), wa=70, trail=(215, 70)),
+    "hp_2": P(lean=32, lf=(48, 0), lb=(-50, -40), af=(70, 30), ab=(65, 35), wa=25, trail=(110, 25)),
+    "hp_3": P(lean=18, lf=(34, 4), lb=(-40, -26), af=(40, 80), ab=(40, 90), wa=60),
     "clp": P(lean=20, lf=CROUCH_F, lb=CROUCH_B, af=(88, 86), wa=88),
     "chp_0": P(lean=24, lf=CROUCH_F, lb=CROUCH_B, af=(-20, 30), wa=-30),
     "chp_1": P(lean=2, lf=(45, -5), lb=(10, -50), af=(160, 176), wa=178),   # rising slash
@@ -517,6 +523,10 @@ MOVE_ANIMS = {
         ("sp2_seq", 2, ["rush_1", "rush_2", "rush_3"]),
     ],
     "muyeong": [
+        ("lp_rec", 2, ["lp_1", "lp_0"]),
+        ("hp_pre", 2, ["hp_0", "hp_a", "hp_a"]),
+        ("hp_seq", 2, ["hp_1"]),
+        ("hp_rec", 3, ["hp_2", "hp_2", "hp_3"]),
         ("sp2_seq", 2, ["rush_1", "rush_2"]),
         ("sp2_rec", 3, ["rush_3", "rush_3", "rush_0"]),
     ],
@@ -857,6 +867,21 @@ def build(spec, pose):
         cv.c = hd_finish(cv.c, spec["_ext"])
     else:
         cv.outline()
+    if pose.get("trail") and "tip" in pt:
+        # slash smear: a light arc swept by the blade tip around the shoulder, from angle a0 to a1
+        a0, a1 = pose["trail"]
+        sx, sy = pt["shoulder"]
+        ys_, xs_ = mgrid()
+        dx_, dy_ = xs_ + 0.5 - sx, ys_ + 0.5 - sy
+        dist = np.hypot(dx_, dy_)
+        R_ = math.hypot(pt["tip"][0] - sx, pt["tip"][1] - sy)
+        pang = np.degrees(np.arctan2(dx_, dy_)) % 360
+        lo, hi = min(a0, a1) % 360, max(a0, a1) % 360
+        inarc = (pang >= lo) & (pang <= hi) if lo <= hi else (pang >= lo) | (pang <= hi)
+        band = inarc & (dist <= R_ + 0.3) & (dist >= R_ - 3.2) & (cv.c == "")
+        near_end = np.abs(((pang - a1 + 540) % 360) - 180) < abs(a1 - a0) * 0.45
+        cv.c[band & (dist >= R_ - 1.4)] = "t"
+        cv.c[band & (dist < R_ - 1.4) & near_end] = "T"
 
     grid = cv.c
     if pose.get("flip"):
