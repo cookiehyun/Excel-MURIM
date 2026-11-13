@@ -198,6 +198,8 @@ Private Sub SetupCharacter(ByVal i As Long, ByVal prefix As String, ByVal x As D
         Setup i, prefix, x, 1.8, 2.8, -4.2, 1.5, 6, 1040, 31, 22
     Case "hongryeon"
         Setup i, prefix, x, 2#, 3.2, -4.6, 1.8, 5, 980, 29, 20
+    Case "cheonma"                                       ' boss: bigger, tougher
+        Setup i, prefix, x, 1.9, 3#, -4.3, 1.6, 7, 1300, 32, 23
     Case Else
         Setup i, "danwoo", x, 2#, 3.2, -4.5, 1.8, 6, 1000, 30, 21
     End Select
@@ -216,6 +218,9 @@ Private Sub SetupCharacter(ByVal i As Long, ByVal prefix As String, ByVal x As D
             .superName = "CHEONMA GANGRIM"
             .seqFx = FX_DARK
         Case "hongryeon": .superName = "HONGRYEON EOPHWA"
+        Case "cheonma"
+            .superName = "CHEONMA MUHWANG"
+            .seqFx = FX_DARK
         Case Else: .superName = "CHEONPUNG MANJANG"
         End Select
     End With
@@ -1185,6 +1190,12 @@ Private Function CurrentSprite(ByVal i As Long) As Long
                 End If
             ElseIf .state = ST_THROW Then
                 If t >= Data.MvStartup(.mv) Then CurrentSprite = Data.MvSprA(.mv) Else CurrentSprite = Data.MvSprS(.mv)
+            ElseIf t < Data.MvStartup(.mv) And Data.MvSeqPre(.mv) >= 0 Then
+                CurrentSprite = Data.AnimFrameHold(Data.MvSeqPre(.mv), t)
+            ElseIf t >= Data.MvStartup(.mv) And Data.MvSeqAct(.mv) >= 0 And (InActive(i) Or Not .onGround) Then
+                CurrentSprite = Data.AnimFrameHold(Data.MvSeqAct(.mv), t - Data.MvStartup(.mv))
+            ElseIf InRecovery(i) And Data.MvSeqRec(.mv) >= 0 Then
+                CurrentSprite = Data.AnimFrameHold(Data.MvSeqRec(.mv), t - Data.MvStartup(.mv) - Data.MvActive(.mv))
             ElseIf Data.MvType(.mv) = MT_RISE And Not .onGround Then
                 CurrentSprite = Data.MvSprA(.mv)
             ElseIf InActive(i) Then

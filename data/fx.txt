@@ -12,6 +12,9 @@ PAL F E04050
 PAL y F0C850
 PAL Q FFE6A0
 PAL z 2A1018
+PAL r C01E28
+PAL R FF6A3C
+PAL o 300610
 SPRITE fan_0 11 11 5 5
 ...........
 ...........
@@ -84,6 +87,30 @@ SPRITE blade_1 9 16 4 8
 ...kCwk..
 ..kCwwk..
 .kCwwk...
+SPRITE orb_0 17 11 8 5
+........orrrrro..
+.......orrRRRrro.
+......orrRRRRRrro
+....oorrRRQQyRRrr
+o.oo.orRRQQyQQRRr
+oo.ooorRRQyQQyRRr
+.oo.oorRRyQQyQRRr
+...o.orrRRQyQRRrr
+......orrRRRRRrro
+.......orrRRRrro.
+........orrrrro..
+SPRITE orb_1 17 11 8 5
+........orrrrro..
+.......orrRRRrro.
+......orrRRRRRrro
+...ooorrRRQyQRRrr
+.oo.oorRRQyQQyRRr
+o.oo.orRRyQQyQRRr
+oo.ooorRRQQyQQRRr
+....oorrRRyQQRRrr
+......orrRRRRRrro
+.......orrRRRrro.
+........orrrrro..
 SPRITE wind_0 16 12 8 6
 ........kbbk....
 .......bcCCwb...
@@ -156,4 +183,5 @@ ANIM wind 2 wind_0 wind_1
 ANIM proj_muyeong 2 blade_0 blade_1
 ANIM proj_heukrim 2 needle_0 needle_1
 ANIM proj_hongryeon 1 fan_0 fan_1
+ANIM proj_cheonma 2 orb_0 orb_1
 ANIM bigwind 2 bigwind_0 bigwind_1

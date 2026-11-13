@@ -86,6 +86,21 @@ heukrim    throw S    3       1      8        110    0       0         H     1  
 heukrim  sp1  S  4  1  8  65  10  6  H  0  0  0  8  5  sp_0  sp_1  P  4.2  1  26P
 heukrim  sp2  S  7  1  7  0  0  0  H  0  0  0  0  0  rush_0  rush_1  TP  0  0  24K
 heukrim    super S    6       4      18       320    12      6         H     1  8   -32 14  22  rush_0     sp_1      ST   0    0  2626P
+# cheonma (arcade final boss): heukrim-style kit, harder hitting, faster orb
+cheonma  lp  S  3  2  5  35  6  4  H  0  10  -29  8  5  lp_0  lp_1  N  0  0  -
+cheonma  hp  S  4  3  9  105  11  8  H  0  11  -29  9  7  hp_0  hp_1  N  0  0  -
+cheonma  lk  S  3  2  6  45  7  5  H  0  12  -19  9  6  lk_0  lk_1  N  0  0  -
+cheonma  hk  S  5  3  9  115  12  9  H  0  9  -30  9  6  hk_0  hk_1  N  0  0  -
+cheonma  clp  C  3  2  5  30  6  4  H  0  10  -22  8  5  crouch  clp  N  0  0  -
+cheonma  chp  C  4  3  10  90  11  8  H  0  -2  -40  9  9  chp_0  chp_1  N  0  0  -
+cheonma  clk  C  4  2  5  35  8  4  L  0  11  -6  9  6  crouch  clk  N  0  0  -
+cheonma  chk  C  5  3  10  105  12  9  L  1  11  -5  9  5  crouch  chk  N  0  0  -
+cheonma  jp  A  4  4  0  70  8  6  O  0  7  -22  7  6  jump  jp  N  0  0  -
+cheonma  jk  A  5  5  0  90  9  7  O  0  11  -12  8  6  jump  jk  N  0  0  -
+cheonma  throw  S  3  1  8  125  0  0  H  1  0  -30  16  10  throw_0  throw_1  T  0  0  -
+cheonma  sp1  S  4  1  8  75  10  6  H  0  0  0  8  5  sp_0  sp_1  P  4.8  1  26P
+cheonma  sp2  S  7  1  7  0  0  0  H  0  0  0  0  0  rush_0  rush_1  TP  0  0  24K
+cheonma  super  S  6  4  18  370  12  6  H  1  8  -32  14  22  rush_0  sp_1  ST  0  0  2626P
 # hongryeon (fan dancer): mid-range fans, returning fan throw, lotus spin anti-air, fire-pillar super
 hongryeon  lp    S    3       2      5        28     6       4         H     0  10  -28 9   7   lp_0       lp_1      N    0    0  -
 hongryeon  hp    S    4       3      8        80     10      7         H     0  9   -33 10  10  hp_0       hp_1      N    0    0  -

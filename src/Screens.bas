@@ -63,10 +63,15 @@ End Function
 
 ' Head-and-shoulders portrait of roster slot k in a 20x20 box at (x, y).
 Public Sub DrawPortraitAt(ByVal k As Long, ByVal x As Long, ByVal y As Long)
+    DrawPortraitOf rPrefix(k), rHeadX(k), rHeadY(k), x, y
+End Sub
+
+' Same for any character; (headX, headY) = head centre in idle_0 relative to the anchor.
+Public Sub DrawPortraitOf(ByVal prefix As String, ByVal headX As Long, ByVal headY As Long, ByVal x As Long, ByVal y As Long)
     Dim id As Long
     Renderer.FillRect x, y, 20, 20, RGB(26, 22, 36)
-    id = Data.SpriteId(rPrefix(k) & ".idle_0")
-    Renderer.DrawSpriteScaled id, x + 10 - rHeadX(k) * 2, y + 9 - rHeadY(k) * 2, False, 2, x + 1, y + 1, x + 18, y + 18
+    id = Data.SpriteId(prefix & ".idle_0")
+    Renderer.DrawSpriteScaled id, x + 10 - headX * 2, y + 9 - headY * 2, False, 2, x + 1, y + 1, x + 18, y + 18
 End Sub
 
 ' Full-body x2 view of a character, body centred on x, feet at y = 96.

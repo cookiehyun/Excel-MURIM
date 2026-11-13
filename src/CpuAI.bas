@@ -421,6 +421,7 @@ End Function
 Private Function Zoner(ByVal i As Long) As Double
     Select Case Fighter.F(i).prefix
     Case "heukrim": Zoner = 1#
+    Case "cheonma": Zoner = 0.6
     Case "hongryeon": Zoner = 0.7
     Case "danwoo": Zoner = 0.3
     Case Else: Zoner = 0

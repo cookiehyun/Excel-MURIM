@@ -232,10 +232,11 @@ TUCK_F = (100, -10)
 TUCK_B = (60, -45)
 
 def P(lean=8, lf=STANCE_F, lb=STANCE_B, af=GUARD_F, ab=GUARD_B,
-      ground="feet", hip_y=None, rot=0, open_hand=False, wa=None):
-    """wa = weapon angle (absolute, from down, + forward); None = continue the front forearm"""
+      ground="feet", hip_y=None, rot=0, open_hand=False, wa=None, flip=False):
+    """wa = weapon angle (absolute, from down, + forward); None = continue the front forearm
+    flip = mirror the finished pose (the fighter turned around mid-spin)"""
     return dict(lean=lean, lf=lf, lb=lb, af=af, ab=ab, ground=ground,
-                hip_y=hip_y, rot=rot, open_hand=open_hand, wa=wa)
+                hip_y=hip_y, rot=rot, open_hand=open_hand, wa=wa, flip=flip)
 
 BASE_POSES = {
     "idle_0": P(),
@@ -280,6 +281,15 @@ BASE_POSES = {
     "sp_1": P(lean=20, lf=(40, 0), lb=(-40, -40), af=(90, 90), ab=(84, 86), open_hand=True),
 }
 
+DANWOO_OVERRIDES = {
+    # rising palm (623P): palm up -> twisting climb -> turn at the peak -> tuck and fall
+    "dp_2": P(lean=-18, lf=(60, -40), lb=(-30, -45), af=(176, 180), ab=(-40, -90), ground="air", rot=-12, open_hand=True),
+    "dp_3": P(lean=-4, lf=TUCK_F, lb=TUCK_B, af=(160, 175), ab=(120, 150), ground="air", open_hand=True, flip=True),
+    "dp_4": P(lean=14, lf=TUCK_F, lb=TUCK_B, af=(70, 110), ab=(50, 90), ground="air", open_hand=True),
+    # palm blast: gather at the hip first
+    "sp_a": P(lean=4, lf=(32, 2), lb=(-32, -18), af=(-40, 60), ab=(-50, 55), open_hand=True),
+}
+
 CHEOLSAN_OVERRIDES = {
     "idle_0": P(lean=12, lf=(32, 8), lb=(-32, -12), af=(60, 105), ab=(30, 120), open_hand=True),
     "idle_1": P(lean=13, lf=(35, 11), lb=(-35, -15), af=(58, 100), ab=(28, 115), open_hand=True),
@@ -289,6 +299,9 @@ CHEOLSAN_OVERRIDES = {
     "walk_3": P(lean=12, lf=(-5, -40), lb=(10, 0), af=(60, 105), ab=(30, 120), open_hand=True),
     "sp_0": P(lean=10, af=(110, 120), ab=(100, 125), open_hand=True),
     "sp_1": P(lean=30, lf=(40, 0), lb=(-40, -40), af=(95, 75), ab=(90, 80), open_hand=True),
+    # shoulder charge: stomping steps while driving forward
+    "rush_2": P(lean=40, lf=(-20, -40), lb=(40, -5), af=(115, 55), ab=(95, 35)),
+    "rush_3": P(lean=36, lf=(20, -10), lb=(-30, -10), af=(120, 50), ab=(100, 30)),
 }
 
 SEOLHWA = dict(
@@ -399,9 +412,17 @@ HONGRYEON_OVERRIDES = {
     "sp_0": P(lean=-8, af=(-40, 170), ab=(30, 80), wa=210),                  # fan throw wind-up
     "sp_1": P(lean=20, lf=(38, 2), lb=(-38, -30), af=(100, 96), ab=(-10, 40), wa=95),
     "dp_0": P(lean=20, lf=CROUCH_F, lb=CROUCH_B, af=(40, 80), ab=(30, 70), wa=100),
-    "dp_1": P(lean=-6, lf=(60, -20), lb=(-20, -30), af=(150, 165), ab=(150, 165), ground="air", wa=175),   # lotus spin
+    # lotus spin (623K): launch kick -> turn -> spinning crescent kick -> turn -> descend
+    "dp_1": P(lean=-14, lf=(150, 158), lb=(-10, -30), af=(120, 150), ab=(-50, -110), ground="air", wa=150),
+    "dp_2": P(lean=4, lf=(70, 20), lb=(-60, -20), af=(95, 92), ab=(95, 92), ground="air", wa=92, flip=True),
+    "dp_3": P(lean=-22, lf=(100, 98), lb=(-20, -60), af=(170, 178), ab=(160, 175), ground="air", wa=180),
+    "dp_4": P(lean=10, lf=(40, -30), lb=(120, 100), af=(150, 120), ab=(140, 110), ground="air", wa=115, flip=True),
+    "dp_5": P(lean=12, lf=TUCK_F, lb=TUCK_B, af=(60, 40), ab=(50, 30), ground="air", wa=35),
     "rush_0": P(lean=-6, af=(20, 160), ab=(10, 150), wa=170),
     "rush_1": P(lean=26, lf=(45, 5), lb=(-45, -40), af=(100, 100), ab=(80, 90), wa=100),
+    "sp_2": P(lean=4, lf=(30, 5), lb=(-30, -15), af=(60, 130), ab=(80, 140), wa=150, flip=True),   # spin after the throw
+    "su_0": P(lean=-10, lf=(20, 0), lb=(-30, -20), af=(170, 178), ab=(150, 170), wa=180),         # fire dance
+    "su_1": P(lean=-6, lf=(30, 5), lb=(-20, -15), af=(120, 160), ab=(160, 175), wa=150, flip=True),
 }
 
 CLAW_F = (70, 95)
@@ -419,6 +440,8 @@ HEUKRIM_OVERRIDES = {
     "sp_1": P(lean=22, lf=(35, 2), lb=(-35, -25), af=(105, 100), ab=(30, 120), open_hand=True),
     "rush_0": P(lean=30, lf=CROUCH_F, lb=CROUCH_B, af=(10, 170), ab=(-10, 170), open_hand=True),   # vanish
     "rush_1": P(lean=-10, af=(150, 160), ab=(140, 170), open_hand=True),          # reappear, arms raised
+    "rush_2": P(lean=40, lf=CROUCH_F, lb=CROUCH_B, af=(-20, 175), ab=(-30, 170), open_hand=True),   # sinking into shadow
+    "sp_a": P(lean=-6, af=(150, 120), ab=(160, 140), open_hand=True),            # needles drawn overhead
 }
 
 KICK_GUARD_F = (55, 140)
@@ -437,6 +460,13 @@ SEOLHWA_OVERRIDES = {
     "dp_1": P(lean=-28, lf=(158, 165), lb=(40, -20), af=(-20, 40), ab=(60, 140), ground="air"),   # rising spin kick
     "rush_0": P(lean=-6, lf=(70, 10), lb=(-15, -5), af=(50, 150), ab=(-20, 40)),
     "rush_1": P(lean=-24, lf=(94, 92), lb=(-12, -2), af=(40, 165), ab=(-30, 20)),     # driving side kick
+    "rush_2": P(lean=-30, lf=(-10, 0), lb=(125, 130), af=(70, 150), ab=(-40, 10)),      # switch: rear high kick
+    "rush_3": P(lean=-18, lf=(100, 96), lb=(-20, -10), af=(-30, 20), ab=(60, 160), flip=True),   # spinning back kick
+    # rising somersault kick (623K): kick up -> flip over backwards -> land
+    "dp_2": P(lean=-20, lf=(150, 160), lb=(60, 10), af=(-40, 20), ab=(60, 130), ground="air", rot=-70),
+    "dp_3": P(lean=0, lf=TUCK_F, lb=TUCK_B, af=(40, 90), ab=(30, 80), ground="air", rot=-160),
+    "dp_4": P(lean=0, lf=TUCK_F, lb=TUCK_B, af=(40, 90), ab=(30, 80), ground="air", rot=-250),
+    "dp_5": P(lean=10, lf=(30, -10), lb=(-20, -30), af=(60, 150), ab=(30, 120), ground="air"),
 }
 
 SWORD_GUARD = (45, 115)
@@ -464,6 +494,8 @@ MUYEONG_OVERRIDES = {
     "sp_1": P(lean=22, lf=(40, 0), lb=(-40, -40), af=(95, 95), wa=95),
     "rush_0": P(lean=-10, lf=(30, 5), lb=(-35, -20), af=(10, 40), wa=-25),   # dash slash
     "rush_1": P(lean=34, lf=(60, 5), lb=(-55, -45), af=(95, 88), wa=92),
+    "rush_2": P(lean=30, lf=(70, 10), lb=(-60, -50), af=(140, 170), wa=175),   # cut rising through
+    "rush_3": P(lean=20, lf=(60, 0), lb=(-60, -50), af=(-10, 60), ab=(30, 100), wa=-60),   # follow-through, blade behind
 }
 
 ANIMS = [  # name, ticks per frame, frames
@@ -472,6 +504,40 @@ ANIMS = [  # name, ticks per frame, frames
     ("crouch", 1, ["crouch"]),
     ("jump", 1, ["jump"]),
 ]
+
+# per-character move animations: <move>_pre (startup) / _seq (active + airborne) / _rec (recovery);
+# frames play once and the last one is held (see Data.ResolveMoveAnims)
+MOVE_ANIMS = {
+    "danwoo": [
+        ("sp1_pre", 2, ["sp_a", "sp_0"]),
+        ("super_pre", 2, ["sp_a", "sp_0"]),
+        ("sp2_seq", 2, ["dp_1", "dp_1", "dp_2", "dp_2", "dp_3", "dp_4"]),
+    ],
+    "cheolsan": [
+        ("sp2_seq", 2, ["rush_1", "rush_2", "rush_3"]),
+    ],
+    "muyeong": [
+        ("sp2_seq", 2, ["rush_1", "rush_2"]),
+        ("sp2_rec", 3, ["rush_3", "rush_3", "rush_0"]),
+    ],
+    "seolhwa": [
+        ("sp1_seq", 2, ["rush_1", "rush_2", "rush_3"]),
+        ("sp2_seq", 2, ["dp_1", "dp_1", "dp_2", "dp_3", "dp_4", "dp_5"]),
+    ],
+    "heukrim": [
+        ("sp1_pre", 2, ["sp_a", "sp_0"]),
+        ("sp2_pre", 2, ["rush_0", "rush_2"]),
+    ],
+    "cheonma": [
+        ("sp1_pre", 2, ["sp_a", "sp_0"]),
+        ("sp2_pre", 2, ["rush_0", "rush_2"]),
+    ],
+    "hongryeon": [
+        ("sp1_rec", 4, ["sp_2", "rush_0"]),
+        ("sp2_seq", 2, ["dp_1", "dp_2", "dp_3", "dp_4", "dp_1", "dp_2", "dp_3", "dp_5"]),
+        ("super_pre", 2, ["su_0", "su_1", "su_0", "su_1"]),
+    ],
+}
 
 # ---------------------------------------------------------------- rasterizer
 
@@ -793,6 +859,8 @@ def build(spec, pose):
         cv.outline()
 
     grid = cv.c
+    if pose.get("flip"):
+        grid = np.roll(grid[:, ::-1], 1, axis=1)
     if pose["ground"] == "bbox":
         rows = np.where((grid != "").any(axis=1))[0]
         shift = AY * Z - 1 - rows.max()
@@ -858,7 +926,7 @@ def generate(spec, overrides):
         for row in g:
             out.append("".join(c if c else "." for c in row))
         previews.append((name, g))
-    for name, tpf, frames in ANIMS:
+    for name, tpf, frames in ANIMS + MOVE_ANIMS.get(spec["name"], []):
         out.append(f"ANIM {name} {tpf} " + " ".join(frames))
     path = os.path.join(OUT_DIR or os.path.join(ROOT, "data"), f"{spec['name']}.txt")
     with open(path, "w", newline="\r\n") as f:
@@ -886,7 +954,7 @@ def generate(spec, overrides):
 
 if __name__ == "__main__":
     only = os.environ.get("ONLY")
-    for spec, ov in ((DANWOO, {}), (CHEOLSAN, CHEOLSAN_OVERRIDES), (MUYEONG, MUYEONG_OVERRIDES),
+    for spec, ov in ((DANWOO, DANWOO_OVERRIDES), (CHEOLSAN, CHEOLSAN_OVERRIDES), (MUYEONG, MUYEONG_OVERRIDES),
                      (SEOLHWA, SEOLHWA_OVERRIDES), (HEUKRIM, HEUKRIM_OVERRIDES),
                      (HONGRYEON, HONGRYEON_OVERRIDES), (CHEONMA, HEUKRIM_OVERRIDES)):
         if only and spec["name"] != only:

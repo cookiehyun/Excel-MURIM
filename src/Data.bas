@@ -42,6 +42,8 @@ Public MvDamage() As Long, MvHitstun() As Long, MvBlockstun() As Long, MvLevel()
 Public MvHbX() As Long, MvHbY() As Long, MvHbW() As Long, MvHbH() As Long
 Public MvSprS() As Long, MvSprA() As Long
 Public MvType() As Long, MvP1() As Double, MvP2() As Double, MvCmd() As String
+Public MvSeqPre() As Long, MvSeqAct() As Long, MvSeqRec() As Long   ' optional per-move anims (-1 = none)
+Private mMvKey() As String
 
 Public Const MT_NORMAL As Long = 0
 Public Const MT_THROW As Long = 1
@@ -79,6 +81,7 @@ Public Sub LoadAll()
     LoadSpriteFile "seolhwa"
     LoadSpriteFile "heukrim"
     LoadSpriteFile "hongryeon"
+    LoadSpriteFile "cheonma"                       ' arcade final boss (not on the select screen)
     LoadSpriteFile "fx"
     ' stages: file name, display name (order = stage select order)
     Dim st As Variant, k As Long
@@ -92,7 +95,24 @@ Public Sub LoadAll()
     Next k
     LoadMoves
     ResolveAnimFrames
+    ResolveMoveAnims
 End Sub
+
+' Optional multi-frame motion per move, from ANIM records in the character file:
+'   <move>_pre (startup), <move>_seq (active and airborne part), <move>_rec (recovery).
+Private Sub ResolveMoveAnims()
+    Dim k As Long
+    ReDim MvSeqPre(0 To MvCount): ReDim MvSeqAct(0 To MvCount): ReDim MvSeqRec(0 To MvCount)
+    For k = 0 To MvCount - 1
+        MvSeqPre(k) = OptAnim(mMvKey(k) & "_pre")
+        MvSeqAct(k) = OptAnim(mMvKey(k) & "_seq")
+        MvSeqRec(k) = OptAnim(mMvKey(k) & "_rec")
+    Next k
+End Sub
+
+Private Function OptAnim(ByVal nm As String) As Long
+    If HasAnim(nm) Then OptAnim = AnimId(nm) Else OptAnim = -1
+End Function
 
 Private Sub ResolveAnimFrames()
     Dim k As Long
@@ -131,6 +151,15 @@ Public Function AnimId(ByVal nm As String) As Long
     Exit Function
 Missing:
     Err.Raise ERR_BASE + 514, "Data", "Anim not found: " & nm
+End Function
+
+' Sprite id at tick t, playing once and then holding the last frame.
+Public Function AnimFrameHold(ByVal a As Long, ByVal t As Long) As Long
+    Dim k As Long
+    k = t \ AnimTPF(a)
+    If k > AnimLen(a) - 1 Then k = AnimLen(a) - 1
+    If k < 0 Then k = 0
+    AnimFrameHold = AnimFrames(AnimStart(a) + k)
 End Function
 
 ' Sprite id of the frame shown at tick t of an animation (loops). reverse = play backwards.
@@ -269,6 +298,7 @@ Private Sub LoadMoves()
     ReDim MvHbX(0 To n): ReDim MvHbY(0 To n): ReDim MvHbW(0 To n): ReDim MvHbH(0 To n)
     ReDim MvSprS(0 To n): ReDim MvSprA(0 To n)
     ReDim MvType(0 To n): ReDim MvP1(0 To n): ReDim MvP2(0 To n): ReDim MvCmd(0 To n)
+    ReDim mMvKey(0 To n)
     Set mMoveIdx = New Collection
     MvCount = 0
 
@@ -316,6 +346,7 @@ Private Sub LoadMoves()
             MvP2(id) = Val(p(19))
             If p(20) = "-" Then MvCmd(id) = "" Else MvCmd(id) = p(20)
             mMoveIdx.Add id, p(0) & "." & p(1)
+            mMvKey(id) = p(0) & "." & p(1)
             MvCount = MvCount + 1
         End If
     Next i

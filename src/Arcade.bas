@@ -9,7 +9,7 @@ Option Explicit
 '   ENDING   : ending text, A = title
 
 Private Const FIGHTS As Long = 6
-Private Const BOSS_PREFIX As String = "heukrim"     ' placeholder until the boss character exists
+Private Const BOSS_PREFIX As String = "cheonma"
 Private Const BOSS_NAME As String = "CHEONMA"
 
 Private mOrder(0 To FIGHTS - 1) As String
@@ -172,6 +172,8 @@ Private Sub LadderRender()
             PixelFont.DrawBig "?", x + 10, y + 3, RGB(150, 50, 50), 2
         ElseIf Screens.RosterIndex(mOrder(k)) >= 0 Then
             Screens.DrawPortraitAt Screens.RosterIndex(mOrder(k)), x, y
+        Else
+            Screens.DrawPortraitOf mOrder(k), 4, -35, x, y                     ' boss (head point from docs/cheonma_points.txt)
         End If
         If k < mIdx Then                                                    ' beaten: red cross
             For c = 2 To 17
