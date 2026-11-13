@@ -160,7 +160,7 @@ Private Function FindSpecial(ByVal i As Long, ByVal mt As Long) As Long
     For s = MV_SP1 To MV_SP2
         st = SpecialType(i, s)
         If st = MT_PROJ_BOOM Then st = MT_PROJ                ' a returning fan is used like any projectile
-        If st = mt Then
+        If st = mt And Fighter.CanAfford(i, s) Then
             FindSpecial = s
             Exit Function
         End If

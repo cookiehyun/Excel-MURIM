@@ -1,0 +1,26 @@
+# danwoo throws fireballs as fast as possible: 2 come out from a full gauge, the 3rd fails (jab instead), later one more after refill
+CMD start 0 1 0 1
+CMD chars danwoo cheolsan
+CMD dummy 1
+CMD place 40 170
+3 -
+1 D
+1 D+R
+1 R+A
+60 -
+1 D
+1 D+R
+1 R+A
+60 -
+1 D
+1 D+R
+1 R+A
+20 -
+1 D
+1 D+R
+1 R+A
+80 -
+1 D
+1 D+R
+1 R+A
+40 -

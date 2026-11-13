@@ -45,6 +45,8 @@ Public Const B_LK As Long = 4
 Public Const B_HK As Long = 8
 
 Public Const METER_MAX As Long = 1000
+Public Const NAEGONG_MAX As Long = 1000      ' inner energy: paid by special moves 1 / 2, refills over time
+Private Const NAEGONG_REGEN As Long = 7      ' per tick (400 = about 3 seconds)
 
 Public Const DUMMY_CPU As Long = 0
 Public Const DUMMY_IDLE As Long = 1
@@ -96,6 +98,8 @@ Public Type TFighter
     healthShown As Double    ' red damage trail on the health bar
     trailDelay As Long
     meter As Long            ' super gauge 0..METER_MAX
+    naegong As Long          ' inner energy 0..NAEGONG_MAX (special moves)
+    ngFlash As Long          ' ticks left of the "not enough naegong" blink
     ' input this tick
     inDir As Long
     inPress As Long
@@ -304,6 +308,8 @@ Private Sub ResetOne(ByVal i As Long)
         .bufDash = 0
         .chain = 0
         .meter = 0
+        .naegong = NAEGONG_MAX
+        .ngFlash = 0
         .inDir = 5: .inPress = 0: .inHeld = 0
         For k = 0 To HIST_LEN - 1
             .hist(k) = 5
@@ -458,8 +464,11 @@ Private Function DecodeAttack(ByVal i As Long) As Long
                             End If
                         End If
                     ElseIf MatchMotion(i, Left$(cmd, Len(cmd) - 1), MOTION_WINDOW) Then
-                        DecodeAttack = slot
-                        Exit Function
+                        If CanAfford(i, slot) Then
+                            DecodeAttack = slot
+                            Exit Function
+                        End If
+                        .ngFlash = 12                               ' motion done but no naegong: blink the gauge
                     End If
                 End If
             End If
@@ -470,6 +479,11 @@ Private Function DecodeAttack(ByVal i As Long) As Long
         If (press And B_HP) <> 0 Then DecodeAttack = MV_HP
         If (press And B_HK) <> 0 Then DecodeAttack = MV_HK
     End With
+End Function
+
+' Enough naegong for the special in this slot?
+Public Function CanAfford(ByVal i As Long, ByVal slot As Long) As Boolean
+    CanAfford = (F(i).naegong >= Data.MvCost(F(i).moves(slot)))
 End Function
 
 Private Function TakeAttack(ByVal i As Long) As Long
@@ -508,6 +522,11 @@ Private Sub UpdateFighter(ByVal i As Long)
         d = (.inDir <= 3)
         wantGuard = back And Threatened(i)
         .stTick = .stTick + 1
+        If .naegong < NAEGONG_MAX And Not (.state = ST_ATTACK And Data.MvCost(.mv) > 0) Then
+            .naegong = .naegong + NAEGONG_REGEN                 ' no regen while a special is out
+            If .naegong > NAEGONG_MAX Then .naegong = NAEGONG_MAX
+        End If
+        If .ngFlash > 0 Then .ngFlash = .ngFlash - 1
         If .slide <> 0 Then
             .x = .x + .slide
             .slide = .slide * 0.6
@@ -749,11 +768,13 @@ Private Function StartAttack(ByVal i As Long, ByVal atk As Long, ByVal crouching
             mv = .moves(atk)
             mt = Data.MvType(mv)
             If (mt = MT_PROJ Or mt = MT_SUPER_PROJ Or mt = MT_PROJ_BOOM Or mt = MT_SUPER_FIRE) And Projectile.Alive(i) Then Exit Function
+            If Not CanAfford(i, atk) Then Exit Function
             If atk = MV_SUPER Then
                 If .meter < METER_MAX Then Exit Function
                 .meter = 0
                 Combat.StartSuper i
             End If
+            .naegong = .naegong - Data.MvCost(mv)
             crouching = False
         ElseIf crouching Then
             mv = .moves(atk + 4)

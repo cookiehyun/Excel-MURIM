@@ -11,9 +11,11 @@ Private Const P2_X As Long = 106                     ' right bar outer x (SCREEN
 Private Const TRAIL_SPEED As Double = 6              ' hp per tick
 Private Const METER_W As Long = 48
 Private Const METER_Y As Long = 96
+Private Const NG_W As Long = 36
+Private Const NG_Y As Long = 92
 
 Private cBorder As Long, cEmpty As Long, cHp As Long, cHpDark As Long, cTrail As Long, cLow As Long
-Private cMeter As Long, cMeterFull As Long
+Private cMeter As Long, cMeterFull As Long, cNg As Long, cNgLow As Long
 Private mTick As Long
 
 Public Sub Init()
@@ -25,6 +27,8 @@ Public Sub Init()
     cLow = RGB(240, 90, 60)
     cMeter = RGB(80, 200, 230)
     cMeterFull = RGB(255, 240, 140)
+    cNg = RGB(110, 220, 140)
+    cNgLow = RGB(230, 80, 70)
 End Sub
 
 Public Sub Update()
@@ -52,6 +56,8 @@ Public Sub Draw()
     PixelFont.DrawText UCase$(Fighter.F(1).prefix), P2_X + BAR_W + 1, 8, RGB(230, 230, 240), 1, 2
     DrawMeter 0, P1_X, False
     DrawMeter 1, SCREEN_W - P1_X - METER_W - 2, True
+    DrawNaegong 0, P1_X, False
+    DrawNaegong 1, SCREEN_W - P1_X - NG_W - 2, True
     If Combat.ComboCount(0) >= 2 Then PixelFont.DrawText Combat.ComboCount(0) & " HITS", P1_X + 1, 15, RGB(255, 220, 90)
     If Combat.ComboCount(1) >= 2 Then PixelFont.DrawText Combat.ComboCount(1) & " HITS", P2_X + BAR_W + 1, 15, RGB(255, 220, 90), 1, 2
     t = Combat.BannerText
@@ -107,6 +113,24 @@ Private Sub DrawMeter(ByVal i As Long, ByVal ox As Long, ByVal fromRight As Bool
     Else
         Renderer.FillRect ox + 1, METER_Y + 1, w, 1, c
         If full Then PixelFont.DrawText "MAX", ox + METER_W + 5, METER_Y - 2, cMeterFull
+    End If
+End Sub
+
+' Inner energy (naegong) bar just above the super gauge; blinks red when a special failed for lack of it.
+Private Sub DrawNaegong(ByVal i As Long, ByVal ox As Long, ByVal fromRight As Boolean)
+    Dim w As Long, c As Long
+    w = (NG_W * Fighter.F(i).naegong) \ NAEGONG_MAX
+    Renderer.FillRect ox, NG_Y, NG_W + 2, 3, cBorder
+    If Fighter.F(i).ngFlash > 0 And (mTick \ 2) Mod 2 = 0 Then
+        Renderer.FillRect ox + 1, NG_Y + 1, NG_W, 1, cNgLow
+    Else
+        Renderer.FillRect ox + 1, NG_Y + 1, NG_W, 1, cEmpty
+    End If
+    c = cNg
+    If fromRight Then
+        Renderer.FillRect ox + 1 + NG_W - w, NG_Y + 1, w, 1, c
+    Else
+        Renderer.FillRect ox + 1, NG_Y + 1, w, 1, c
     End If
 End Sub
 

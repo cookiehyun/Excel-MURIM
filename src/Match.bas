@@ -177,6 +177,7 @@ Private Sub TrainingRefill()
                 If mCalm(i) = REFILL_DELAY Then .health = .maxHealth
             End If
             If .meter < METER_MAX And st <> ST_ATTACK Then .meter = METER_MAX
+            If st <> ST_ATTACK Then .naegong = NAEGONG_MAX
         End With
     Next i
 End Sub

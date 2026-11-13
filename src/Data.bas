@@ -42,6 +42,7 @@ Public MvDamage() As Long, MvHitstun() As Long, MvBlockstun() As Long, MvLevel()
 Public MvHbX() As Long, MvHbY() As Long, MvHbW() As Long, MvHbH() As Long
 Public MvSprS() As Long, MvSprA() As Long
 Public MvType() As Long, MvP1() As Double, MvP2() As Double, MvCmd() As String
+Public MvCost() As Long                    ' naegong cost (optional 22nd column of moves.txt, default 0)
 Public MvSeqPre() As Long, MvSeqAct() As Long, MvSeqRec() As Long   ' optional per-move anims (-1 = none)
 Private mMvKey() As String
 
@@ -299,6 +300,7 @@ Private Sub LoadMoves()
     ReDim MvSprS(0 To n): ReDim MvSprA(0 To n)
     ReDim MvType(0 To n): ReDim MvP1(0 To n): ReDim MvP2(0 To n): ReDim MvCmd(0 To n)
     ReDim mMvKey(0 To n)
+    ReDim MvCost(0 To n)
     Set mMoveIdx = New Collection
     MvCount = 0
 
@@ -345,6 +347,7 @@ Private Sub LoadMoves()
             MvP1(id) = Val(p(18))
             MvP2(id) = Val(p(19))
             If p(20) = "-" Then MvCmd(id) = "" Else MvCmd(id) = p(20)
+            If UBound(p) >= 21 Then MvCost(id) = CLng(p(21)) Else MvCost(id) = 0
             mMoveIdx.Add id, p(0) & "." & p(1)
             mMvKey(id) = p(0) & "." & p(1)
             MvCount = MvCount + 1
