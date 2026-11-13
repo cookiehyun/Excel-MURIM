@@ -120,6 +120,12 @@ P = A 또는 S, K = Z 또는 X, → 는 상대 쪽. 궁극기는 게이지 MAX�
 
 밸런스: CPU끼리 측정한 전체 승률 44~54% ([docs/BALANCE.md](docs/BALANCE.md)).
 
+## 아케이드 모드
+타이틀 → ARCADE → 캐릭터 → 난이도 → 나머지 5명(무작위 순서) → 최종 보스 **천마(CHEONMA)** → 엔딩
+- 4번째 상대부터 CPU 한 단계 상승, 보스는 항상 HARD
+- 패배 시 CONTINUE? 9→0 (A = 재도전, S = 포기 → GAME OVER)
+- 천마: 체력 1300, 흑림 계열 기술 강화판 (마공탄 26P, 순간이동 24K, 궁극기 2626P "CHEONMA MUHWANG")
+
 ## 라운드 (VS CPU)
 
 - 60초 타이머, ROUND n → FIGHT! 동안 조작 잠김, KO 또는 TIME(체력 비율 높은 쪽 승)

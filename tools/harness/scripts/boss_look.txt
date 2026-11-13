@@ -1,0 +1,18 @@
+CMD start 1 1 0 1
+CMD chars danwoo cheonma
+CMD dummy 1
+CMD place 60 130
+3 -
+1 D
+1 D+L
+1 L+A
+30 -
+CMD meter 1 1000
+CMD place 60 110
+1 D
+1 D+L
+1 L
+1 D
+1 D+L
+1 L+A
+70 -
