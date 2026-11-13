@@ -36,7 +36,7 @@ def keyinput_stub():
     names = {"L": "BTN_LEFT", "R": "BTN_RIGHT", "U": "BTN_UP", "D": "BTN_DOWN",
              "A": "BTN_LP", "S": "BTN_HP", "Z": "BTN_LK", "X": "BTN_HK", "ESC": "BTN_QUIT",
              "TAB": "BTN_SWAP", "H": "BTN_DBG_HIT", "J": "BTN_DBG_DOWN", "DD": "BTN_DBG_DUMMY",
-             "F1": "BTN_DBG_BOX"}
+             "F1": "BTN_DBG_BOX", "C": "BTN_TAG"}
     cases = "\n".join(f'    Case "{k}": mNext({v}) = True' for k, v in names.items())
     return f"""Option VBASupport 1
 Option Explicit

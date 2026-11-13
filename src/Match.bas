@@ -44,6 +44,7 @@ End Sub
 
 Private Sub StartRound(ByVal keepMeter As Boolean)
     Fighter.ResetRound keepMeter
+    Tag.ResetRound
     Projectile.Clear
     Combat.Init
     FX.Init
@@ -147,8 +148,13 @@ End Sub
 ' Decide the round: KO = whoever still stands; time = higher health ratio.
 Private Sub RoundOver()
     Dim r0 As Double, r1 As Double
-    r0 = Fighter.F(0).health / Fighter.F(0).maxHealth
-    r1 = Fighter.F(1).health / Fighter.F(1).maxHealth
+    If Tag.Active Then
+        r0 = Tag.TeamRatio(0)                          ' tag: whole team's health
+        r1 = Tag.TeamRatio(1)
+    Else
+        r0 = Fighter.F(0).health / Fighter.F(0).maxHealth
+        r1 = Fighter.F(1).health / Fighter.F(1).maxHealth
+    End If
     If r0 > r1 Then
         mRoundWinner = 0
     ElseIf r1 > r0 Then

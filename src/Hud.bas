@@ -15,7 +15,7 @@ Private Const NG_W As Long = 36
 Private Const NG_Y As Long = 92
 
 Private cBorder As Long, cEmpty As Long, cHp As Long, cHpDark As Long, cTrail As Long, cLow As Long
-Private cMeter As Long, cMeterFull As Long, cNg As Long, cNgLow As Long
+Private cMeter As Long, cMeterFull As Long, cNg As Long, cNgLow As Long, cRed As Long
 Private mTick As Long
 
 Public Sub Init()
@@ -29,6 +29,7 @@ Public Sub Init()
     cMeterFull = RGB(255, 240, 140)
     cNg = RGB(110, 220, 140)
     cNgLow = RGB(230, 80, 70)
+    cRed = RGB(110, 30, 40)
 End Sub
 
 Public Sub Update()
@@ -54,6 +55,10 @@ Public Sub Draw()
     DrawBar 1, P2_X, True
     PixelFont.DrawText UCase$(Fighter.F(0).prefix), P1_X + 1, 8, RGB(230, 230, 240)
     PixelFont.DrawText UCase$(Fighter.F(1).prefix), P2_X + BAR_W + 1, 8, RGB(230, 230, 240), 1, 2
+    If Tag.Active Then
+        DrawReserve 0, P1_X, False
+        DrawReserve 1, P2_X, True
+    End If
     DrawMeter 0, P1_X, False
     DrawMeter 1, SCREEN_W - P1_X - METER_W - 2, True
     DrawNaegong 0, P1_X, False
@@ -76,7 +81,7 @@ End Sub
 
 ' fromRight = True: bar is anchored on its right edge and drains toward the right (P2 mirror).
 Private Sub DrawBar(ByVal i As Long, ByVal ox As Long, ByVal fromRight As Boolean)
-    Dim wHp As Long, wTrail As Long, top As Long, low As Boolean
+    Dim wHp As Long, wTrail As Long, top As Long, low As Boolean, wRed As Long
     With Fighter.F(i)
         wHp = (BAR_W * .health + .maxHealth - 1) \ .maxHealth
         wTrail = (BAR_W * Int(.healthShown) + .maxHealth - 1) \ .maxHealth
@@ -85,6 +90,14 @@ Private Sub DrawBar(ByVal i As Long, ByVal ox As Long, ByVal fromRight As Boolea
     Renderer.FillRect ox, BAR_Y, BAR_W + 2, 4, cBorder
     Renderer.FillRect ox + 1, BAR_Y + 1, BAR_W, 2, cEmpty
     top = IIf(low, cLow, cHp)
+    If Tag.Active Then                                      ' recoverable (red) part, drawn under the trail
+        wRed = (BAR_W * Fighter.F(i).redCap + Fighter.F(i).maxHealth - 1) \ Fighter.F(i).maxHealth
+        If fromRight Then
+            Renderer.FillRect ox + 1 + BAR_W - wRed, BAR_Y + 1, wRed, 2, cRed
+        Else
+            Renderer.FillRect ox + 1, BAR_Y + 1, wRed, 2, cRed
+        End If
+    End If
     If fromRight Then
         Renderer.FillRect ox + 1 + BAR_W - wTrail, BAR_Y + 1, wTrail, 2, cTrail
         Renderer.FillRect ox + 1 + BAR_W - wHp, BAR_Y + 1, wHp, 1, top
@@ -113,6 +126,28 @@ Private Sub DrawMeter(ByVal i As Long, ByVal ox As Long, ByVal fromRight As Bool
     Else
         Renderer.FillRect ox + 1, METER_Y + 1, w, 1, c
         If full Then PixelFont.DrawText "MAX", ox + METER_W + 5, METER_Y - 2, cMeterFull
+    End If
+End Sub
+
+' Tag mode: the waiting partner's name and a thin health bar under the main bar.
+Private Sub DrawReserve(ByVal side As Long, ByVal ox As Long, ByVal fromRight As Boolean)
+    Dim w As Long, wr As Long, mx As Long, nm As String, c As Long
+    Const RW As Long = 40
+    mx = Tag.ReserveMax(side)
+    w = (RW * Tag.ReserveHealth(side) + mx - 1) \ mx
+    wr = (RW * Tag.ReserveRed(side) + mx - 1) \ mx
+    If Tag.ReserveHealth(side) <= 0 Then c = RGB(90, 80, 100) Else c = RGB(170, 160, 190)
+    nm = "+" & UCase$(Tag.ReservePrefix(side))
+    If fromRight Then
+        Renderer.FillRect ox + 1 + BAR_W - RW - 1, BAR_Y + 4, RW + 2, 2, cBorder
+        Renderer.FillRect ox + 1 + BAR_W - wr, BAR_Y + 4, wr, 1, cRed
+        Renderer.FillRect ox + 1 + BAR_W - w, BAR_Y + 4, w, 1, cHpDark
+        PixelFont.DrawText nm, ox + BAR_W - 44, 8, c, 1, 2
+    Else
+        Renderer.FillRect ox, BAR_Y + 4, RW + 2, 2, cBorder
+        Renderer.FillRect ox + 1, BAR_Y + 4, wr, 1, cRed
+        Renderer.FillRect ox + 1, BAR_Y + 4, w, 1, cHpDark
+        PixelFont.DrawText nm, ox + 46, 8, c
     End If
 End Sub
 

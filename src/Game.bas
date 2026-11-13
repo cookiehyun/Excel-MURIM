@@ -17,12 +17,15 @@ Public Const MODE_TRAINING As Long = 0
 Public Const MODE_VSCPU As Long = 1
 Public Const MODE_SANDBOX As Long = 2      ' harness: no rounds, no refills
 Public Const MODE_ARCADE As Long = 3
+Public Const MODE_TAG As Long = 4
 
 Public GameState As Long
 Public CpuLevel As Long                 ' CpuAI.LV_EASY / LV_NORMAL / LV_HARD
 Public HumanIndex As Long            ' which fighter the keyboard controls (0 = left)
 Public P1Char As String              ' character names picked on the select screen
 Public P2Char As String
+Public P1Char2 As String             ' tag mode partners
+Public P2Char2 As String
 Public StageIndex As Long            ' Data stage (0 = mountain gate)
 Public WatchMode As Boolean              ' CPU vs CPU
 Public GameMode As Long              ' MODE_TRAINING / MODE_VSCPU
@@ -54,13 +57,18 @@ End Sub
 Public Sub StartMatch(Optional ByVal seed As Long = 0)
     Renderer.SetStage StageIndex
     Fighter.Init P1Char, P2Char, HumanIndex
+    If GameMode = MODE_TAG Then
+        Tag.Begin P1Char2, P2Char2
+    Else
+        Tag.Off
+    End If
     Combat.Init
     Projectile.Init
     FX.Init
     mPaused = False
     CpuAI.Init CpuLevel, seed
     Dim rounds As Boolean, training As Boolean
-    rounds = (GameMode = MODE_VSCPU Or GameMode = MODE_ARCADE)
+    rounds = (GameMode = MODE_VSCPU Or GameMode = MODE_ARCADE Or GameMode = MODE_TAG)
     training = (GameMode = MODE_TRAINING)
     Match.BeginMatch rounds, training
     GameState = GS_FIGHT
@@ -121,6 +129,8 @@ Public Sub GameTick()
     ElseIf Combat.HitStop > 0 Then
         Combat.HitStop = Combat.HitStop - 1
     Else
+        Tag.Inputs Match.InputAllowed
+        Tag.Tick
         Fighter.Update
         Projectile.Update
         Combat.Resolve

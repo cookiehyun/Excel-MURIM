@@ -15,8 +15,8 @@ Private rHeadY(0 To ROSTER - 1) As Long           ' (from docs/<name>_points.txt
 Private mCursor As Long          ' title menu
 Private mMenuTick As Long
 Private mPhase As Long           ' select: 0 = player, 1 = opponent
-Private mSel(0 To 1) As Long     ' cursor per phase
-Private mPick(0 To 1) As Long    ' chosen roster slot per phase
+Private mSel(0 To 3) As Long     ' cursor per phase (tag mode: 0-1 = player team, 2-3 = CPU team)
+Private mPick(0 To 3) As Long    ' chosen roster slot per phase
 Private mLevelSel As Long
 Private mStageSel As Long
 
@@ -103,13 +103,14 @@ End Function
 
 Public Sub TitleTick()
     mMenuTick = mMenuTick + 1
-    If KeyInput.IsPressed(BTN_UP) Then mCursor = (mCursor + 2) Mod 3
-    If KeyInput.IsPressed(BTN_DOWN) Then mCursor = (mCursor + 1) Mod 3
+    If KeyInput.IsPressed(BTN_UP) Then mCursor = (mCursor + 3) Mod 4
+    If KeyInput.IsPressed(BTN_DOWN) Then mCursor = (mCursor + 1) Mod 4
     If KeyInput.IsPressed(BTN_QUIT) Then Game.QuitRequested = True       ' Esc on the title = quit
     If KeyInput.IsPressed(BTN_LP) Then
         Select Case mCursor
         Case 0: Game.GameMode = MODE_ARCADE
         Case 1: Game.GameMode = MODE_VSCPU
+        Case 2: Game.GameMode = MODE_TAG
         Case Else: Game.GameMode = MODE_TRAINING
         End Select
         Game.WatchMode = False
@@ -132,23 +133,24 @@ Public Sub TitleRender()
     Renderer.FillRect cx - 52, 45, 3, 3, RGB(200, 150, 60)
     Renderer.FillRect cx + 49, 45, 3, 3, RGB(200, 150, 60)
     ' menu
-    For k = 0 To 2
-        y = 55 + k * 12
+    For k = 0 To 3
+        y = 52 + k * 10
         Select Case k
         Case 0: lbl = "ARCADE"
         Case 1: lbl = "VS CPU"
+        Case 2: lbl = "TAG 2 VS 2"
         Case Else: lbl = "TRAINING"
         End Select
         If k = mCursor Then
-            Renderer.FillRect cx - 30, y - 3, 60, 10, RGB(40, 28, 20)
-            Renderer.DrawRectOutline cx - 30, y - 3, 60, 10, RGB(230, 180, 80)
+            Renderer.FillRect cx - 30, y - 2, 60, 9, RGB(40, 28, 20)
+            Renderer.DrawRectOutline cx - 30, y - 2, 60, 9, RGB(230, 180, 80)
             c = RGB(255, 236, 180)
             If (mMenuTick \ 6) Mod 2 = 0 Then
                 PixelFont.DrawText ">", cx - 26, y, RGB(255, 200, 90)
                 PixelFont.DrawText "<", cx + 24, y, RGB(255, 200, 90)
             End If
         Else
-            Renderer.FillRect cx - 30, y - 3, 60, 10, RGB(20, 16, 26)
+            Renderer.FillRect cx - 30, y - 2, 60, 9, RGB(20, 16, 26)
             c = RGB(130, 120, 150)
         End If
         PixelFont.DrawText lbl, cx, y, c, 1, 1
@@ -160,9 +162,27 @@ End Sub
 
 Public Sub SelectBegin()
     mPhase = 0
-    mSel(0) = 0: mSel(1) = 1
+    mSel(0) = 0: mSel(1) = 1: mSel(2) = 2: mSel(3) = 3
     Game.GameState = GS_SELECT
 End Sub
+
+Private Function TagMode() As Boolean
+    TagMode = (Game.GameMode = MODE_TAG)
+End Function
+
+' Is the current select phase choosing for the player's side?
+Private Function PlayerPhase() As Boolean
+    If TagMode() Then PlayerPhase = (mPhase <= 1) Else PlayerPhase = (mPhase = 0)
+End Function
+
+Private Function LastPhase() As Long
+    If TagMode() Then LastPhase = 3 Else LastPhase = 1
+End Function
+
+' Roster slot of the (first) CPU opponent.
+Private Function OppPick() As Long
+    If TagMode() Then OppPick = mPick(2) Else OppPick = mPick(1)
+End Function
 
 Public Sub SelectTick()
     Dim k As Long
@@ -178,22 +198,26 @@ Public Sub SelectTick()
         If mPhase = 0 And Game.GameMode = MODE_ARCADE Then
             mPick(1) = (k + 1) Mod ROSTER
             SelectDone
-        ElseIf mPhase = 0 Then
-            mPhase = 1
+        ElseIf mPhase < LastPhase() Then
+            mPhase = mPhase + 1
         Else
             SelectDone
         End If
     ElseIf KeyInput.IsPressed(BTN_HP) Then                                                     ' S = back
-        If mPhase = 1 Then mPhase = 0 Else Game.GameState = GS_MENU
+        If mPhase > 0 Then mPhase = mPhase - 1 Else Game.GameState = GS_MENU
     End If
 End Sub
 
 ' VS CPU -> level select; training -> start (stage select comes next).
 Private Sub SelectDone()
     Game.P1Char = rPrefix(mPick(0))
-    Game.P2Char = rPrefix(mPick(1))
+    Game.P2Char = rPrefix(OppPick())
+    If TagMode() Then
+        Game.P1Char2 = rPrefix(mPick(1))
+        Game.P2Char2 = rPrefix(mPick(3))
+    End If
     Game.HumanIndex = 0
-    If Game.GameMode = MODE_VSCPU Or Game.GameMode = MODE_ARCADE Then
+    If Game.GameMode = MODE_VSCPU Or Game.GameMode = MODE_ARCADE Or TagMode() Then
         mLevelSel = Game.CpuLevel
         Game.GameState = GS_LEVEL
     Else
@@ -214,7 +238,7 @@ Private Function BoxY(ByVal k As Long) As Long
 End Function
 
 Public Sub SelectRender()
-    Dim k As Long, hover As Long, cx As Long, opp As String
+    Dim k As Long, hover As Long, cx As Long, opp As String, t As String
     cx = SCREEN_W \ 2
     Renderer.BeginFrame True
     ' side panels for the two big views
@@ -222,7 +246,10 @@ Public Sub SelectRender()
     Renderer.FillRect 128, 10, 64, 90, RGB(40, 14, 18)
     Renderer.FillRect 63, 10, 1, 90, cP1
     Renderer.FillRect 128, 10, 1, 90, cP2
-    If mPhase = 0 Then
+    If TagMode() Then
+        If PlayerPhase() Then t = "SELECT TEAM " & (mPhase + 1) & "/2" Else t = "CPU TEAM " & (mPhase - 1) & "/2"
+        PixelFont.DrawBig t, cx, 2, cGold, 1
+    ElseIf mPhase = 0 Then
         PixelFont.DrawBig "SELECT FIGHTER", cx, 2, cGold, 1
     Else
         PixelFont.DrawBig "SELECT OPPONENT", cx, 2, cGold, 1
@@ -232,7 +259,19 @@ Public Sub SelectRender()
     PixelFont.DrawText opp, SCREEN_W - 3, 13, cP2, 1, 2
 
     ' big views: player on the left, opponent on the right
-    If mPhase = 0 Then
+    If TagMode() Then
+        If PlayerPhase() Then
+            BigView mSel(mPhase), 32, False, 0, 63
+        Else
+            BigView mPick(1), 32, False, 0, 63
+        End If
+        If PlayerPhase() Then
+            PixelFont.DrawBig "?", 160, 48, RGB(70, 40, 50), 3
+        Else
+            BigView mSel(mPhase), 160, True, 129, SCREEN_W - 1
+        End If
+        TeamNames
+    ElseIf mPhase = 0 Then
         BigView mSel(0), 32, False, 0, 63
         PixelFont.DrawBig "?", 160, 48, RGB(70, 40, 50), 3
     Else
@@ -253,6 +292,21 @@ Public Sub SelectRender()
         Portrait k
     Next k
     PixelFont.DrawText "A = OK  S = BACK", cx, 94, RGB(110, 100, 130), 1, 1
+End Sub
+
+' Tag mode: names already chosen, under the 1P / CPU labels.
+Private Sub TeamNames(Optional ByVal upto As Long = -1)
+    Dim k As Long
+    If upto < 0 Then upto = mPhase
+    For k = 0 To 3
+        If k < upto Then
+            If k <= 1 Then
+                PixelFont.DrawText rName(mPick(k)), 3, 19 + k * 6, cP1
+            Else
+                PixelFont.DrawText rName(mPick(k)), SCREEN_W - 3, 19 + (k - 2) * 6, cP2, 1, 2
+            End If
+        End If
+    Next k
 End Sub
 
 Private Sub StatRow(ByVal lbl As String, ByVal v As Long, ByVal y As Long)
@@ -294,10 +348,12 @@ Private Sub Portrait(ByVal k As Long)
     End If
     ' frames: chosen player slot (blue), cursor (gold for player, red for opponent)
     frameC = RGB(70, 60, 90)
-    If mPhase = 1 And k = mPick(0) Then frameC = cP1
+    If mPhase >= 1 And k = mPick(0) Then frameC = cP1
+    If TagMode() And mPhase >= 2 And k = mPick(1) Then frameC = cP1
+    If TagMode() And mPhase >= 3 And k = mPick(2) Then frameC = cP2
     blink = ((mMenuTick \ 5) Mod 2 = 0)
     If k = mSel(mPhase) And blink Then
-        If mPhase = 0 Then frameC = cGold Else frameC = cP2
+        If PlayerPhase() Then frameC = cGold Else frameC = cP2
     End If
     Renderer.DrawRectOutline x, y, 20, 20, frameC
     If k = mSel(mPhase) Then Renderer.DrawRectOutline x - 1, y - 1, 22, 22, frameC
@@ -317,7 +373,7 @@ Public Sub LevelTick()
             StageBegin
         End If
     ElseIf KeyInput.IsPressed(BTN_HP) Then
-        If Game.GameMode = MODE_ARCADE Then mPhase = 0 Else mPhase = 1
+        If Game.GameMode = MODE_ARCADE Then mPhase = 0 Else mPhase = LastPhase()
         Game.GameState = GS_SELECT
     End If
 End Sub
@@ -338,8 +394,9 @@ Public Sub LevelRender()
         PixelFont.DrawBig "?", 160, 48, RGB(110, 50, 60), 3
         PixelFont.DrawText "ARCADE", cx, 23, cDim, 1, 1
     Else
-        BigView mPick(1), 160, True, 129, SCREEN_W - 1
+        BigView OppPick(), 160, True, 129, SCREEN_W - 1
     End If
+    If TagMode() Then TeamNames 4
     PixelFont.DrawBig "VS", cx, 13, RGB(255, 240, 210), 2
 
     For k = 0 To 2
@@ -392,7 +449,7 @@ Public Sub StageTick()
         Game.StageIndex = mStageSel
         LaunchMatch
     ElseIf KeyInput.IsPressed(BTN_HP) Then
-        If Game.GameMode = MODE_VSCPU Then
+        If Game.GameMode = MODE_VSCPU Or TagMode() Then
             Game.GameState = GS_LEVEL
         Else
             mPhase = 1

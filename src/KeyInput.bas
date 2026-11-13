@@ -31,7 +31,8 @@ Public Const BTN_DBG_HIT As Long = 10   ' debug: hit the other fighter (H)
 Public Const BTN_DBG_DOWN As Long = 11  ' debug: knock the other fighter down (J)
 Public Const BTN_DBG_DUMMY As Long = 12 ' debug: toggle dummy attacks (D)
 Public Const BTN_DBG_BOX As Long = 13   ' debug: toggle hitbox display (F1)
-Public Const BTN_COUNT As Long = 14
+Public Const BTN_TAG As Long = 14         ' tag mode: switch fighters (C)
+Public Const BTN_COUNT As Long = 15
 
 Private mVK(0 To BTN_COUNT - 1) As Long
 Private mCur(0 To BTN_COUNT - 1) As Boolean
@@ -55,6 +56,7 @@ Public Sub Init()
     mVK(BTN_DBG_DOWN) = &H4A  ' J
     mVK(BTN_DBG_DUMMY) = &H44 ' D
     mVK(BTN_DBG_BOX) = &H70   ' F1
+    mVK(BTN_TAG) = &H43       ' C
     mPid = GetCurrentProcessId()
     mHadFocus = True
     mFocusLost = False

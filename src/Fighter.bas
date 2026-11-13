@@ -96,6 +96,7 @@ Public Type TFighter
     health As Long
     maxHealth As Long
     healthShown As Double    ' red damage trail on the health bar
+    redCap As Long           ' tag mode: health a resting fighter can recover up to
     trailDelay As Long
     meter As Long            ' super gauge 0..METER_MAX
     naegong As Long          ' inner energy 0..NAEGONG_MAX (special moves)
@@ -301,6 +302,7 @@ Private Sub ResetOne(ByVal i As Long)
         .facing = IIf(i = 0, 1, -1)
         .health = .maxHealth
         .healthShown = .maxHealth
+        .redCap = .maxHealth
         .trailDelay = 0
         .stun = 0
         .flash = 0

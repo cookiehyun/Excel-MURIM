@@ -215,6 +215,8 @@ Public Sub DealDamage(ByVal d As Long, ByVal dmg As Long)
     With Fighter.F(d)
         .health = .health - dmg
         If .health < 0 Then .health = 0
+        .redCap = .redCap - dmg \ 2                ' tag mode: half of the damage can be recovered
+        If .redCap < .health Then .redCap = .health
         .trailDelay = 12
     End With
     If Fighter.F(d).health = 0 And mKoTimer = 0 Then mKoTimer = KO_TICKS
