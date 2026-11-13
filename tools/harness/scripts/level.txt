@@ -1,7 +1,13 @@
-# title -> VS CPU -> Danwoo vs Cheolsan -> level: down to HARD -> start
+# title -> SINGLE -> VS CPU (2 vs 2) -> pick 4 -> level: down to HARD -> start
 4 -
-1 D
+1 A
 3 -
+1 D
+2 -
+1 A
+4 -
+1 A
+4 -
 1 A
 4 -
 1 A
@@ -9,6 +15,8 @@
 1 A
 6 -
 1 D
+6 -
+1 A
 6 -
 1 A
 20 -

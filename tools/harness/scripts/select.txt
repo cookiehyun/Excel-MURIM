@@ -1,18 +1,21 @@
-# title -> VS CPU -> pick Danwoo, hover Cheolsan, pick Cheolsan as opponent -> fight
+# title -> MULTIPLAYER -> VERSUS -> 1P Danwoo, 2P Cheolsan -> stage -> fight, both players move with their own keys
 4 -
 1 D
 3 -
 1 A
+3 -
+1 A
+6 -
+1 A
 6 -
 1 R
-6 -
-1 L
 4 -
 1 A
 6 -
-1 D
-6 -
-1 U
-6 -
 1 A
-20 -
+55 -
+5 1R+2L
+1 1A
+6 -
+1 2Z
+10 -

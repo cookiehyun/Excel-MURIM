@@ -37,6 +37,9 @@ def keyinput_stub():
              "A": "BTN_LP", "S": "BTN_HP", "Z": "BTN_LK", "X": "BTN_HK", "ESC": "BTN_QUIT",
              "TAB": "BTN_SWAP", "H": "BTN_DBG_HIT", "J": "BTN_DBG_DOWN", "DD": "BTN_DBG_DUMMY",
              "F1": "BTN_DBG_BOX", "C": "BTN_TAG"}
+    for k, nm in enumerate(("L", "R", "U", "D", "A", "S", "Z", "X")):   # multiplayer sets: 1L 1A ... / 2L 2A ...
+        names["1" + nm] = f"BTN_M1 + {k}"
+        names["2" + nm] = f"BTN_M2 + {k}"
     cases = "\n".join(f'    Case "{k}": mNext({v}) = True' for k, v in names.items())
     return f"""Option VBASupport 1
 Option Explicit

@@ -32,7 +32,11 @@ Public Const BTN_DBG_DOWN As Long = 11  ' debug: knock the other fighter down (J
 Public Const BTN_DBG_DUMMY As Long = 12 ' debug: toggle dummy attacks (D)
 Public Const BTN_DBG_BOX As Long = 13   ' debug: toggle hitbox display (F1)
 Public Const BTN_TAG As Long = 14         ' tag mode: switch fighters (C)
-Public Const BTN_COUNT As Long = 15
+' multiplayer key sets (order: left right up down LP HP LK HK)
+'   1P: W A S D move + R T / F G attacks      2P: arrows move + K L / , . attacks
+Public Const BTN_M1 As Long = 15          ' first button of the 1P multiplayer set
+Public Const BTN_M2 As Long = 23          ' first button of the 2P multiplayer set
+Public Const BTN_COUNT As Long = 31
 
 Private mVK(0 To BTN_COUNT - 1) As Long
 Private mCur(0 To BTN_COUNT - 1) As Boolean
@@ -57,6 +61,8 @@ Public Sub Init()
     mVK(BTN_DBG_DUMMY) = &H44 ' D
     mVK(BTN_DBG_BOX) = &H70   ' F1
     mVK(BTN_TAG) = &H43       ' C
+    SetKeys BTN_M1, Array(&H41, &H44, &H57, &H53, &H52, &H54, &H46, &H47)   ' A D W S | R T F G
+    SetKeys BTN_M2, Array(&H25, &H27, &H26, &H28, &H4B, &H4C, &HBC, &HBE)   ' arrows | K L , .
     mPid = GetCurrentProcessId()
     mHadFocus = True
     mFocusLost = False
@@ -68,6 +74,23 @@ Public Sub Init()
         mPrev(i) = False
     Next i
 End Sub
+
+Private Sub SetKeys(ByVal first As Long, ByVal vks As Variant)
+    Dim k As Long
+    For k = 0 To 7
+        mVK(first + k) = vks(k)
+    Next k
+End Sub
+
+' Button index of a logical control (0 left, 1 right, 2 up, 3 down, 4 LP, 5 HP, 6 LK, 7 HK)
+' in key set ks (0 = single player arrows + A S Z X, 1 = multiplayer 1P, 2 = multiplayer 2P).
+Public Function KeyOf(ByVal ks As Long, ByVal logical As Long) As Long
+    Select Case ks
+    Case 1: KeyOf = BTN_M1 + logical
+    Case 2: KeyOf = BTN_M2 + logical
+    Case Else: KeyOf = logical
+    End Select
+End Function
 
 Public Sub Poll()
     Dim focused As Boolean, i As Long, s As Integer

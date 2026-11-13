@@ -13,6 +13,7 @@ Private rHeadX(0 To ROSTER - 1) As Long           ' head centre in idle_0, relat
 Private rHeadY(0 To ROSTER - 1) As Long           ' (from docs/<name>_points.txt) - centres the portrait
 
 Private mCursor As Long          ' title menu
+Private mMenuLevel As Long       ' 0 = SINGLE / MULTI, 1 = single modes, 2 = multi modes, 3 = controls chart
 Private mMenuTick As Long
 Private mPhase As Long           ' select: 0 = player, 1 = opponent
 Private mSel(0 To 3) As Long     ' cursor per phase (tag mode: 0-1 = player team, 2-3 = CPU team)
@@ -102,24 +103,70 @@ End Function
 ' ---------------------------------------------------------------- title screen
 
 Public Sub TitleTick()
+    Dim n As Long
     mMenuTick = mMenuTick + 1
-    If KeyInput.IsPressed(BTN_UP) Then mCursor = (mCursor + 3) Mod 4
-    If KeyInput.IsPressed(BTN_DOWN) Then mCursor = (mCursor + 1) Mod 4
-    If KeyInput.IsPressed(BTN_QUIT) Then Game.QuitRequested = True       ' Esc on the title = quit
-    If KeyInput.IsPressed(BTN_LP) Then
+    If mMenuLevel = 3 Then                                  ' controls chart: any key back
+        If KeyInput.IsPressed(BTN_LP) Or KeyInput.IsPressed(BTN_HP) Or KeyInput.IsPressed(BTN_QUIT) Then mMenuLevel = 2
+        Exit Sub
+    End If
+    n = MenuCount()
+    If KeyInput.IsPressed(BTN_UP) Then mCursor = (mCursor + n - 1) Mod n
+    If KeyInput.IsPressed(BTN_DOWN) Then mCursor = (mCursor + 1) Mod n
+    If KeyInput.IsPressed(BTN_QUIT) Or KeyInput.IsPressed(BTN_HP) Then
+        If mMenuLevel = 0 Then
+            If KeyInput.IsPressed(BTN_QUIT) Then Game.QuitRequested = True     ' Esc on the top menu = quit
+        Else
+            mCursor = mMenuLevel - 1                        ' back to SINGLE / MULTI
+            mMenuLevel = 0
+        End If
+        Exit Sub
+    End If
+    If Not KeyInput.IsPressed(BTN_LP) Then Exit Sub
+    Select Case mMenuLevel
+    Case 0                                                  ' SINGLE PLAYER / MULTIPLAYER
+        mMenuLevel = 1 + mCursor
+        mCursor = 0
+    Case 1                                                  ' single: ARCADE / VS CPU (tag) / TRAINING
+        Game.Multi = False
+        Game.WatchMode = False
         Select Case mCursor
         Case 0: Game.GameMode = MODE_ARCADE
-        Case 1: Game.GameMode = MODE_VSCPU
-        Case 2: Game.GameMode = MODE_TAG
+        Case 1: Game.GameMode = MODE_TAG
         Case Else: Game.GameMode = MODE_TRAINING
         End Select
-        Game.WatchMode = False
         SelectBegin
-    End If
+    Case 2                                                  ' multi: VERSUS / CONTROLS
+        If mCursor = 0 Then
+            Game.Multi = True
+            Game.WatchMode = False
+            Game.GameMode = MODE_VSCPU                      ' 1 vs 1 rounds, both sides human
+            SelectBegin
+        Else
+            mMenuLevel = 3
+        End If
+    End Select
 End Sub
 
+Private Function MenuCount() As Long
+    Select Case mMenuLevel
+    Case 0: MenuCount = 2
+    Case 1: MenuCount = 3
+    Case Else: MenuCount = 2
+    End Select
+End Function
+
+Private Function MenuLabel(ByVal k As Long) As String
+    Dim t As Variant
+    Select Case mMenuLevel
+    Case 0: t = Array("SINGLE PLAYER", "MULTIPLAYER")
+    Case 1: t = Array("ARCADE", "VS CPU  2 VS 2", "TRAINING")
+    Case Else: t = Array("VERSUS  1P VS 2P", "CONTROLS")
+    End Select
+    MenuLabel = t(k)
+End Function
+
 Public Sub TitleRender()
-    Dim k As Long, y As Long, c As Long, lbl As String, cx As Long
+    Dim k As Long, y As Long, c As Long, lbl As String, cx As Long, n As Long, hint As String
     cx = SCREEN_W \ 2
     Renderer.BeginFrame True
     ' fighters facing each other on both sides
@@ -132,30 +179,53 @@ Public Sub TitleRender()
     Renderer.FillRect cx - 38, 48, 76, 1, RGB(140, 100, 40)
     Renderer.FillRect cx - 52, 45, 3, 3, RGB(200, 150, 60)
     Renderer.FillRect cx + 49, 45, 3, 3, RGB(200, 150, 60)
+    If mMenuLevel = 3 Then
+        ControlsRender
+        Exit Sub
+    End If
     ' menu
-    For k = 0 To 3
-        y = 52 + k * 10
-        Select Case k
-        Case 0: lbl = "ARCADE"
-        Case 1: lbl = "VS CPU"
-        Case 2: lbl = "TAG 2 VS 2"
-        Case Else: lbl = "TRAINING"
-        End Select
+    n = MenuCount()
+    For k = 0 To n - 1
+        y = 54 + k * 11
+        lbl = MenuLabel(k)
         If k = mCursor Then
-            Renderer.FillRect cx - 30, y - 2, 60, 9, RGB(40, 28, 20)
-            Renderer.DrawRectOutline cx - 30, y - 2, 60, 9, RGB(230, 180, 80)
+            Renderer.FillRect cx - 36, y - 2, 72, 9, RGB(40, 28, 20)
+            Renderer.DrawRectOutline cx - 36, y - 2, 72, 9, RGB(230, 180, 80)
             c = RGB(255, 236, 180)
             If (mMenuTick \ 6) Mod 2 = 0 Then
-                PixelFont.DrawText ">", cx - 26, y, RGB(255, 200, 90)
-                PixelFont.DrawText "<", cx + 24, y, RGB(255, 200, 90)
+                PixelFont.DrawText ">", cx - 32, y, RGB(255, 200, 90)
+                PixelFont.DrawText "<", cx + 30, y, RGB(255, 200, 90)
             End If
         Else
-            Renderer.FillRect cx - 30, y - 2, 60, 9, RGB(20, 16, 26)
+            Renderer.FillRect cx - 36, y - 2, 72, 9, RGB(20, 16, 26)
             c = RGB(130, 120, 150)
         End If
         PixelFont.DrawText lbl, cx, y, c, 1, 1
     Next k
-    PixelFont.DrawText "UP DOWN = SELECT    A = OK    ESC = QUIT", cx, 92, RGB(150, 140, 170), 1, 1
+    If mMenuLevel = 0 Then hint = "UP DOWN = SELECT    A = OK    ESC = QUIT" Else hint = "UP DOWN = SELECT    A = OK    S = BACK"
+    PixelFont.DrawText hint, cx, 92, RGB(150, 140, 170), 1, 1
+End Sub
+
+' Multiplayer key chart.
+Private Sub ControlsRender()
+    Dim cx As Long, y As Long
+    cx = SCREEN_W \ 2
+    Renderer.FillRect 8, 51, SCREEN_W - 16, 40, RGB(14, 10, 22)
+    Renderer.DrawRectOutline 8, 51, SCREEN_W - 16, 40, RGB(230, 180, 80)
+    y = 55
+    PixelFont.DrawText "1P", 52, y, cP1, 1, 1
+    PixelFont.DrawText "2P", 140, y, cP2, 1, 1
+    PixelFont.DrawText "MOVE", 14, y + 8, cDim
+    PixelFont.DrawText "W A S D", 52, y + 8, RGB(230, 230, 240), 1, 1
+    PixelFont.DrawText "ARROWS", 140, y + 8, RGB(230, 230, 240), 1, 1
+    PixelFont.DrawText "PUNCH", 14, y + 15, cDim
+    PixelFont.DrawText "R   T", 52, y + 15, RGB(230, 230, 240), 1, 1
+    PixelFont.DrawText "K   L", 140, y + 15, RGB(230, 230, 240), 1, 1
+    PixelFont.DrawText "KICK", 14, y + 22, cDim
+    PixelFont.DrawText "F   G", 52, y + 22, RGB(230, 230, 240), 1, 1
+    PixelFont.DrawText ",   .", 140, y + 22, RGB(230, 230, 240), 1, 1
+    PixelFont.DrawText "LIGHT HEAVY   THROW = LIGHT P + LIGHT K   ESC = PAUSE", cx, y + 30, cDim, 1, 1
+    PixelFont.DrawText "A = BACK", cx, 93, RGB(150, 140, 170), 1, 1
 End Sub
 
 ' ---------------------------------------------------------------- character select
@@ -204,7 +274,7 @@ Public Sub SelectTick()
             SelectDone
         End If
     ElseIf KeyInput.IsPressed(BTN_HP) Then                                                     ' S = back
-        If mPhase > 0 Then mPhase = mPhase - 1 Else Game.GameState = GS_MENU
+        If mPhase > 0 Then mPhase = mPhase - 1 Else Game.GameState = GS_MENU      ' back to the mode menu
     End If
 End Sub
 
@@ -217,7 +287,9 @@ Private Sub SelectDone()
         Game.P2Char2 = rPrefix(mPick(3))
     End If
     Game.HumanIndex = 0
-    If Game.GameMode = MODE_VSCPU Or Game.GameMode = MODE_ARCADE Or TagMode() Then
+    If Game.Multi Then
+        StageBegin                                          ' 2 players: no CPU level
+    ElseIf Game.GameMode = MODE_VSCPU Or Game.GameMode = MODE_ARCADE Or TagMode() Then
         mLevelSel = Game.CpuLevel
         Game.GameState = GS_LEVEL
     Else
@@ -249,12 +321,16 @@ Public Sub SelectRender()
     If TagMode() Then
         If PlayerPhase() Then t = "YOUR TEAM " & (mPhase + 1) & " OF 2" Else t = "CPU TEAM " & (mPhase - 1) & " OF 2"
         PixelFont.DrawBig t, cx, 2, cGold, 1
+    ElseIf Game.Multi Then
+        t = CStr(mPhase + 1) & "P SELECT"
+        PixelFont.DrawBig t, cx, 2, cGold, 1
     ElseIf mPhase = 0 Then
         PixelFont.DrawBig "SELECT FIGHTER", cx, 2, cGold, 1
     Else
         PixelFont.DrawBig "SELECT OPPONENT", cx, 2, cGold, 1
     End If
     If Game.GameMode = MODE_TRAINING Then opp = "DUMMY" Else opp = "CPU"
+    If Game.Multi Then opp = "2P"
     PixelFont.DrawText "1P", 3, 13, cP1
     PixelFont.DrawText opp, SCREEN_W - 3, 13, cP2, 1, 2
 
@@ -449,7 +525,7 @@ Public Sub StageTick()
         Game.StageIndex = mStageSel
         LaunchMatch
     ElseIf KeyInput.IsPressed(BTN_HP) Then
-        If Game.GameMode = MODE_VSCPU Or TagMode() Then
+        If (Game.GameMode = MODE_VSCPU And Not Game.Multi) Or TagMode() Then
             Game.GameState = GS_LEVEL
         Else
             mPhase = 1

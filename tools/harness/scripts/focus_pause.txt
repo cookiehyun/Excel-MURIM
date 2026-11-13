@@ -1,6 +1,12 @@
 # title -> TRAINING -> pick -> pick -> stage -> fight; another window takes focus -> auto-pause; S resumes
 4 -
 1 A
+3 -
+1 D
+2 -
+1 D
+2 -
+1 A
 4 -
 1 A
 4 -

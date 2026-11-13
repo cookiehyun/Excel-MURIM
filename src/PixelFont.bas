@@ -21,6 +21,7 @@ Private Sub Build()
     SetGlyph "G", "011100101101011"
     SetGlyph "H", "101101111101101"
     SetGlyph "I", "111010010010111"
+    SetGlyph ",", "000000000010100"
     SetGlyph "J", "001001001101010"
     SetGlyph "K", "101101110101101"
     SetGlyph "L", "100100100100111"

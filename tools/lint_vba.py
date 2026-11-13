@@ -15,7 +15,7 @@ for p in sorted(glob.glob("src/*.bas")):
         m = re.match(r"\s*If .+ Then\s+([A-Za-z_][\w.]*)\s+[^=]+\s+Else\s+([A-Za-z_][\w.]*)\s+[^=]+$", code.strip("\r\n"))
         if m:
             print(f"{p}:{n}: one-line If with Sub calls in both branches -> use a block If"); bad += 1
-        if re.search(r"\b[A-Za-z_][\w.]*\s+\([^()]*\)\s*[\\/*+-].*,", code) and not re.search(r"=|\bIf\b|\bThen\b", code.split(",")[0]):
+        if re.search(r"\b[A-Za-z_][\w.]*\s+\([^()]*\)\s*[\\/*+&-].*,", code) and not re.search(r"=|\bIf\b|\bThen\b", code.split(",")[0]):
             print(f"{p}:{n}: Sub call whose first argument starts with '(' -> compute it first"); bad += 1
         if re.search(r"Function \w+\(.*\) As \w+\(\)", code):
             print(f"{p}:{n}: function returning a typed array -> return Variant"); bad += 1

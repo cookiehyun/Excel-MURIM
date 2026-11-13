@@ -416,22 +416,20 @@ Public Function DirFrom(ByVal fwd As Boolean, ByVal back As Boolean, ByVal up As
 End Function
 
 ' Keyboard -> relative input for fighter i.
-Public Sub FeedHuman(ByVal i As Long)
-    Dim l As Boolean, r As Boolean, press As Long, held As Long, d As Long
-    l = KeyInput.IsDown(BTN_LEFT): r = KeyInput.IsDown(BTN_RIGHT)
+' ks = key set (KeyInput.KeyOf): 0 single player, 1 / 2 multiplayer 1P / 2P.
+Public Sub FeedHuman(ByVal i As Long, Optional ByVal ks As Long = 0)
+    Dim l As Boolean, r As Boolean, u As Boolean, dn As Boolean, press As Long, held As Long, d As Long, k As Long
+    l = KeyInput.IsDown(KeyInput.KeyOf(ks, 0)): r = KeyInput.IsDown(KeyInput.KeyOf(ks, 1))
+    u = KeyInput.IsDown(KeyInput.KeyOf(ks, 2)): dn = KeyInput.IsDown(KeyInput.KeyOf(ks, 3))
     If F(i).facing > 0 Then
-        d = DirFrom(r, l, KeyInput.IsDown(BTN_UP), KeyInput.IsDown(BTN_DOWN))
+        d = DirFrom(r, l, u, dn)
     Else
-        d = DirFrom(l, r, KeyInput.IsDown(BTN_UP), KeyInput.IsDown(BTN_DOWN))
+        d = DirFrom(l, r, u, dn)
     End If
-    If KeyInput.IsPressed(BTN_LP) Then press = press Or B_LP
-    If KeyInput.IsPressed(BTN_HP) Then press = press Or B_HP
-    If KeyInput.IsPressed(BTN_LK) Then press = press Or B_LK
-    If KeyInput.IsPressed(BTN_HK) Then press = press Or B_HK
-    If KeyInput.IsDown(BTN_LP) Then held = held Or B_LP
-    If KeyInput.IsDown(BTN_HP) Then held = held Or B_HP
-    If KeyInput.IsDown(BTN_LK) Then held = held Or B_LK
-    If KeyInput.IsDown(BTN_HK) Then held = held Or B_HK
+    For k = 0 To 3                                   ' LP HP LK HK = bit masks 1 2 4 8
+        If KeyInput.IsPressed(KeyInput.KeyOf(ks, 4 + k)) Then press = press Or (2 ^ k)
+        If KeyInput.IsDown(KeyInput.KeyOf(ks, 4 + k)) Then held = held Or (2 ^ k)
+    Next k
     FeedInput i, d, press, held
 End Sub
 
@@ -579,11 +577,13 @@ End Function
 
 Public Sub Update()
     Dim i As Long
-    If KeyInput.IsPressed(BTN_SWAP) Then mControl = 1 - mControl: F(0).bufAtk = -1: F(1).bufAtk = -1
-    If KeyInput.IsPressed(BTN_DBG_DUMMY) Then SetDummy ((mDummy + 1) Mod 4)
-    If KeyInput.IsPressed(BTN_DBG_BOX) Then mShowBoxes = Not mShowBoxes
-    If KeyInput.IsPressed(BTN_DBG_HIT) Then ApplyHit 1 - mControl, 10, 1.5, False
-    If KeyInput.IsPressed(BTN_DBG_DOWN) Then ApplyHit 1 - mControl, 0, 1.5, True
+    If Game.GameMode = MODE_TRAINING Then                ' debug keys: training only
+        If KeyInput.IsPressed(BTN_SWAP) Then mControl = 1 - mControl: F(0).bufAtk = -1: F(1).bufAtk = -1
+        If KeyInput.IsPressed(BTN_DBG_DUMMY) Then SetDummy ((mDummy + 1) Mod 4)
+        If KeyInput.IsPressed(BTN_DBG_BOX) Then mShowBoxes = Not mShowBoxes
+        If KeyInput.IsPressed(BTN_DBG_HIT) Then ApplyHit 1 - mControl, 10, 1.5, False
+        If KeyInput.IsPressed(BTN_DBG_DOWN) Then ApplyHit 1 - mControl, 0, 1.5, True
+    End If
 
     For i = 0 To 1
         UpdateFighter i

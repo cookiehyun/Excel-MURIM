@@ -229,6 +229,8 @@ Public Sub Draw()
     Case MP_MATCHEND
         If mMatchWinner < 0 Then
             t = "DRAW GAME"
+        ElseIf Game.Multi Then
+            t = (mMatchWinner + 1) & "P WINS"
         ElseIf Game.WatchMode Then
             t = UCase$(Fighter.F(mMatchWinner).prefix) & " WINS"
         ElseIf mMatchWinner = Fighter.Controlled Then

@@ -1,10 +1,16 @@
-# title: move to VS CPU, back to TRAINING, down again, start
+# title: SINGLE / MULTI, into MULTIPLAYER, CONTROLS chart, back, back, into SINGLE PLAYER list
 6 -
 1 D
 4 -
-1 U
-4 -
-1 D
-6 -
 1 A
-20 -
+4 -
+1 D
+4 -
+1 A
+12 -
+1 A
+4 -
+1 S
+4 -
+1 A
+8 -

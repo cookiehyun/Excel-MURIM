@@ -1,8 +1,8 @@
 # TAG: title -> TAG 2 VS 2 -> team danwoo + cheolsan vs CPU muyeong + seolhwa -> NORMAL -> stage -> fight
 # P1 takes damage, tags out (C): cheolsan drops in, danwoo rests and recovers red health; tag back later
 4 -
-1 D
-2 -
+1 A
+3 -
 1 D
 2 -
 1 A

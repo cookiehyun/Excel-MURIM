@@ -28,6 +28,7 @@ Public P1Char2 As String             ' tag mode partners
 Public P2Char2 As String
 Public StageIndex As Long            ' Data stage (0 = mountain gate)
 Public WatchMode As Boolean              ' CPU vs CPU
+Public Multi As Boolean                  ' 2 players on one keyboard
 Public GameMode As Long              ' MODE_TRAINING / MODE_VSCPU
 Public QuitRequested As Boolean       ' title screen Esc -> GameLoop stops
 Public HarnessSeed As Long            ' harness: seed for the next auto-restarted match (varies every match)
@@ -113,6 +114,8 @@ Public Sub GameTick()
     For i = 0 To 1
         If Not Match.InputAllowed Then
             Fighter.FeedInput i, 5, 0, 0                ' intro / round over: nobody moves
+        ElseIf Multi Then
+            Fighter.FeedHuman i, 1 + i                  ' 1P / 2P key sets
         ElseIf IsCpu(i) Then
             CpuAI.Observe i
             CpuAI.Think i
@@ -142,7 +145,9 @@ Public Sub GameTick()
 End Sub
 
 Public Function IsCpu(ByVal i As Long) As Boolean
-    If WatchMode Then
+    If Multi Then
+        IsCpu = False
+    ElseIf WatchMode Then
         IsCpu = True
     ElseIf i <> Fighter.Controlled Then
         IsCpu = (Fighter.DummyMode = DUMMY_CPU)
