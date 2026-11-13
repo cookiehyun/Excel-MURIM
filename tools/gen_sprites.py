@@ -164,6 +164,7 @@ DANWOO = dict(
         "p": "3B3F4F", "P": "2A2D39",          # pants
         "n": "4A3324",                          # boots
         "r": "C23B3B",                          # headband red
+        "t": "D8ECFF", "T": "8FC0EE",          # wind trail
     },
     look=dict(arm_front="b", arm_back="B", arm_front2="b", arm_back2="B",
               leg_front="p", leg_back="P", boot="n",
@@ -299,7 +300,26 @@ BASE_POSES = {
     "sp_1": P(lean=20, lf=(40, 0), lb=(-40, -40), af=(90, 90), ab=(84, 86), open_hand=True),
 }
 
+DW_GUARD = dict(af=(70, 122), ab=(18, 118), open_hand=True)   # orthodox guard: front palm up, rear hand at the hip
 DANWOO_OVERRIDES = {
+    # upright, calm stance
+    "idle_0": P(lean=2, lf=(22, 4), lb=(-24, -8), **DW_GUARD),
+    "idle_1": P(lean=3, lf=(23, 5), lb=(-25, -9), af=(68, 120), ab=(18, 116), open_hand=True),
+    "walk_0": P(lean=3, lf=(25, 5), lb=(-20, -25), **DW_GUARD),
+    "walk_1": P(lean=3, lf=(8, 0), lb=(-5, -40), **DW_GUARD),
+    "walk_2": P(lean=3, lf=(-18, -25), lb=(25, 5), **DW_GUARD),
+    "walk_3": P(lean=3, lf=(-5, -40), lb=(8, 0), **DW_GUARD),
+    # light: straight palm strike, rear hand pulled to the hip, small wind puff
+    "lp_0": P(lean=2, lf=(22, 4), lb=(-24, -8), af=(30, 100), ab=(15, 115), open_hand=True),
+    "lp_1": P(lean=10, lf=(30, 4), lb=(-30, -14), af=(92, 90), ab=(5, 100), open_hand=True, trail=("palm", 3)),
+    # heavy: both palms drawn to the waist, then pushed out together with a ring of wind
+    "hp_0": P(lean=-2, lf=(24, 4), lb=(-28, -12), af=(15, 75), ab=(10, 80), open_hand=True),
+    "hp_1": P(lean=16, lf=(42, 0), lb=(-42, -36), af=(90, 88), ab=(86, 85), open_hand=True, trail=("palm", 5)),
+    # kicks: straight front snap kick and a tall crescent kick, arms open for balance
+    "lk_0": P(lean=0, lf=(70, 130), lb=(-6, 0), **DW_GUARD),
+    "lk_1": P(lean=-4, lf=(92, 90), lb=(-6, 0), **DW_GUARD),
+    "hk_0": P(lean=-6, lf=(110, 150), lb=(-6, 0), af=(60, 120), ab=(-30, 30), open_hand=True),
+    "hk_1": P(lean=-16, lf=(140, 142), lb=(-6, 0), af=(70, 125), ab=(-45, 35), open_hand=True),
     # rising palm (623P): palm up -> twisting climb -> turn at the peak -> tuck and fall
     "dp_2": P(lean=-18, lf=(60, -40), lb=(-30, -45), af=(176, 180), ab=(-40, -90), ground="air", rot=-12, open_hand=True),
     "dp_3": P(lean=-4, lf=TUCK_F, lb=TUCK_B, af=(160, 175), ab=(120, 150), ground="air", open_hand=True, flip=True),
@@ -885,7 +905,7 @@ def build(spec, pose):
     else:
         cv.outline()
     tr = pose.get("trail")
-    if tr and (tr[0] == "kick" or "tip" in pt):
+    if tr and (tr[0] in ("kick", "palm") or "tip" in pt):
         # motion smear: a light arc swept by the blade tip (around the shoulder) or the kicking foot
         # (around the hip), from angle a0 to a1 (degrees from straight down, + = forward)
         if tr[0] == "kick":
@@ -893,6 +913,11 @@ def build(spec, pose):
             ex_, ey_ = pt["fF"]
             a1 = math.degrees(math.atan2(ex_ - cx_, ey_ - cy_))
             a0 = a1 - tr[1]
+        elif tr[0] == "palm":
+            # a push of wind: half ring in front of the front hand
+            cx_, cy_ = pt["hF"][0] + 0.5, pt["hF"][1]
+            ex_, ey_ = cx_ + tr[1], cy_
+            a0, a1 = 25, 155
         else:
             a0, a1 = tr
             cx_, cy_ = pt["shoulder"]
