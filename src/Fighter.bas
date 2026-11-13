@@ -59,7 +59,7 @@ Private Const GETUP_TICKS As Long = 4
 Private Const DUMMY_INTERVAL As Long = 30
 Private Const BUF_TICKS As Long = 5
 Private Const MAX_CHAIN As Long = 3
-Private Const HIST As Long = 32
+Private Const HIST_LEN As Long = 32
 Private Const MOTION_WINDOW As Long = 12
 Private Const SUPER_WINDOW As Long = 20
 Private Const DASH_TICKS As Long = 6
@@ -298,7 +298,7 @@ Private Sub ResetOne(ByVal i As Long)
         .chain = 0
         .meter = 0
         .inDir = 5: .inPress = 0: .inHeld = 0
-        For k = 0 To HIST - 1
+        For k = 0 To HIST_LEN - 1
             .hist(k) = 5
         Next k
         .state = -1
@@ -365,7 +365,7 @@ Public Sub FeedInput(ByVal i As Long, ByVal d As Long, ByVal press As Long, ByVa
     Dim a As Long
     With F(i)
         .inDir = d: .inPress = press: .inHeld = held
-        .histPos = (.histPos + 1) Mod HIST
+        .histPos = (.histPos + 1) Mod HIST_LEN
         .hist(.histPos) = d
         If .flash > 0 Then .flash = .flash - 1
         a = DecodeAttack(i)
@@ -384,7 +384,7 @@ End Sub
 
 ' Direction t ticks ago (0 = this tick).
 Private Function HistAt(ByVal i As Long, ByVal t As Long) As Long
-    HistAt = F(i).hist((F(i).histPos - t + HIST * 4) Mod HIST)
+    HistAt = F(i).hist((F(i).histPos - t + HIST_LEN * 4) Mod HIST_LEN)
 End Function
 
 ' Double tap: d now (new press), released, and d tapped again within DASH window.
