@@ -56,10 +56,10 @@ End Sub
 
 Public Sub StartMatch(Optional ByVal seed As Long = 0)
     Renderer.SetStage StageIndex
-    Fighter.Init P1Char, P2Char, HumanIndex
     If GameMode = MODE_TAG Then
-        Tag.Begin P1Char2, P2Char2
+        Tag.Begin P1Char, P2Char, P1Char2, P2Char2, HumanIndex
     Else
+        Fighter.Init P1Char, P2Char, HumanIndex
         Tag.Off
     End If
     Combat.Init

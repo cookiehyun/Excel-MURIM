@@ -15,23 +15,18 @@ Private Const CPU_TAG_LOW As Double = 0.4      ' CPU tags out below this health 
 Private mOn As Boolean
 Private mCool(0 To 1) As Long
 Private mTags(0 To 1) As Long                  ' tags this round (stats / tests)
-Private mReserve(0 To 1) As TFighter           ' the waiting partner of each side
+' the waiting partner of side i lives in Fighter.F(2 + i); Fighter.F(4) is the swap buffer
 
 Public Property Get Active() As Boolean
     Active = mOn
 End Property
 
-' Called after Fighter.Init built the point fighters: build the partners in the same slots and park them.
-Public Sub Begin(ByVal p1b As String, ByVal p2b As String)
-    Dim keep0 As TFighter, keep1 As TFighter, ctl As Long
-    ctl = Fighter.Controlled
-    Fighter.CopyFighter keep0, Fighter.F(0)
-    Fighter.CopyFighter keep1, Fighter.F(1)
-    Fighter.Init p1b, p2b, ctl
-    Fighter.CopyFighter mReserve(0), Fighter.F(0)
-    Fighter.CopyFighter mReserve(1), Fighter.F(1)
-    Fighter.CopyFighter Fighter.F(0), keep0
-    Fighter.CopyFighter Fighter.F(1), keep1
+' Build both teams: partners first (parked in slots 2 / 3), then the point fighters in 0 / 1.
+Public Sub Begin(ByVal p1a As String, ByVal p2a As String, ByVal p1b As String, ByVal p2b As String, ByVal humanIndex As Long)
+    Fighter.Init p1b, p2b, humanIndex
+    Fighter.CopyFighter Fighter.F(2), Fighter.F(0)
+    Fighter.CopyFighter Fighter.F(3), Fighter.F(1)
+    Fighter.Init p1a, p2a, humanIndex
     mOn = True
     mCool(0) = 0: mCool(1) = 0
 End Sub
@@ -41,19 +36,19 @@ Public Sub Off()
 End Sub
 
 Public Function ReservePrefix(ByVal side As Long) As String
-    ReservePrefix = mReserve(side).prefix
+    ReservePrefix = Fighter.F(2 + side).prefix
 End Function
 
 Public Function ReserveHealth(ByVal side As Long) As Long
-    ReserveHealth = mReserve(side).health
+    ReserveHealth = Fighter.F(2 + side).health
 End Function
 
 Public Function ReserveRed(ByVal side As Long) As Long
-    ReserveRed = mReserve(side).redCap
+    ReserveRed = Fighter.F(2 + side).redCap
 End Function
 
 Public Function ReserveMax(ByVal side As Long) As Long
-    ReserveMax = mReserve(side).maxHealth
+    ReserveMax = Fighter.F(2 + side).maxHealth
 End Function
 
 Public Function TagCount(ByVal side As Long) As Long
@@ -62,7 +57,7 @@ End Function
 
 ' Health ratio of the whole team (time-up decision).
 Public Function TeamRatio(ByVal side As Long) As Double
-    TeamRatio = (Fighter.F(side).health + mReserve(side).health) / (Fighter.F(side).maxHealth + mReserve(side).maxHealth)
+    TeamRatio = (Fighter.F(side).health + Fighter.F(2 + side).health) / (Fighter.F(side).maxHealth + Fighter.F(2 + side).maxHealth)
 End Function
 
 ' New round: both team members back to full (point fighter is reset by Fighter.ResetRound).
@@ -70,7 +65,7 @@ Public Sub ResetRound()
     Dim i As Long
     If Not mOn Then Exit Sub
     For i = 0 To 1
-        With mReserve(i)
+        With Fighter.F(2 + i)
             .health = .maxHealth
             .healthShown = .maxHealth
             .redCap = .maxHealth
@@ -87,7 +82,7 @@ Public Sub Tick()
     If Not mOn Then Exit Sub
     For i = 0 To 1
         If mCool(i) > 0 Then mCool(i) = mCool(i) - 1
-        With mReserve(i)                                   ' resting partner recovers
+        With Fighter.F(2 + i)                                   ' resting partner recovers
             If .health < .redCap Then
                 .health = .health + RED_REGEN
                 If .health > .redCap Then .health = .redCap
@@ -114,7 +109,7 @@ End Sub
 
 Private Function CanTag(ByVal i As Long) As Boolean
     If mCool(i) > 0 Then Exit Function
-    If mReserve(i).health <= 0 Then Exit Function
+    If Fighter.F(2 + i).health <= 0 Then Exit Function
     With Fighter.F(i)
         If Not .onGround Then Exit Function
         Select Case .state
@@ -128,23 +123,23 @@ Private Function CpuWantsTag(ByVal i As Long) As Boolean
     Dim r As Double, rr As Double
     If Not CanTag(i) Then Exit Function
     r = Fighter.F(i).health / Fighter.F(i).maxHealth
-    rr = mReserve(i).health / mReserve(i).maxHealth
+    rr = Fighter.F(2 + i).health / Fighter.F(2 + i).maxHealth
     If r < CPU_TAG_LOW And rr > r + 0.2 And Abs(Fighter.F(0).x - Fighter.F(1).x) > 40 Then
         CpuWantsTag = (Rnd < 0.08)
     End If
 End Function
 
 Public Sub TryTag(ByVal i As Long)
-    Dim outgoing As TFighter, x As Double, fc As Long, meter As Long
+    Dim x As Double, fc As Long, meter As Long
     If Not CanTag(i) Then Exit Sub
-    Fighter.CopyFighter outgoing, Fighter.F(i)
-    x = outgoing.x: fc = outgoing.facing: meter = outgoing.meter
-    FX.Spawn Int(x + 0.5), Int(outgoing.footY) - 16, FX_DARK                      ' leaves in a puff
-    Fighter.CopyFighter Fighter.F(i), mReserve(i)
-    Fighter.CopyFighter mReserve(i), outgoing
-    mReserve(i).state = ST_IDLE
-    mReserve(i).stTick = 0
-    mReserve(i).bufAtk = -1
+    x = Fighter.F(i).x: fc = Fighter.F(i).facing: meter = Fighter.F(i).meter
+    FX.Spawn Int(x + 0.5), Int(Fighter.F(i).footY) - 16, FX_DARK                  ' leaves in a puff
+    Fighter.CopyFighter Fighter.F(4), Fighter.F(i)
+    Fighter.CopyFighter Fighter.F(i), Fighter.F(2 + i)
+    Fighter.CopyFighter Fighter.F(2 + i), Fighter.F(4)
+    Fighter.F(2 + i).state = ST_IDLE
+    Fighter.F(2 + i).stTick = 0
+    Fighter.F(2 + i).bufAtk = -1
     With Fighter.F(i)
         .x = x
         .facing = fc

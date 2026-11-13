@@ -144,7 +144,7 @@ Public Type TFighter
     spOrder(0 To 2) As Long  ' special slots sorted by command length (longest first)
 End Type
 
-Public F(0 To 1) As TFighter
+Public F(0 To 4) As TFighter      ' 0 / 1 = fighters on screen; 2 / 3 = tag partners; 4 = scratch
 Private mControl As Long
 Private mDummy As Long
 Private mDummyTick As Long
