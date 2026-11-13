@@ -76,6 +76,13 @@ Public Sub Poll()
     Next i
     mLost = mBlurNext: mBlurNext = False
 End Sub
+Public Function KeyOf(ByVal ks As Long, ByVal logical As Long) As Long
+    Select Case ks
+    Case 1: KeyOf = BTN_M1 + logical
+    Case 2: KeyOf = BTN_M2 + logical
+    Case Else: KeyOf = logical
+    End Select
+End Function
 Public Function FocusLost() As Boolean
     FocusLost = mLost
 End Function
