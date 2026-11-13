@@ -10,7 +10,7 @@ Option Explicit
 Private Const TAG_COOLDOWN As Long = 40        ' ticks between tags
 Private Const DROP_HEIGHT As Double = 46       ' incoming partner starts this high
 Private Const RED_REGEN As Long = 2            ' hp per tick while waiting
-Private Const CPU_TAG_LOW As Double = 0.4      ' CPU tags out below this health ratio...
+Private Const CPU_TAG_LOW As Double = 0.5      ' CPU tags out below this health ratio...
 
 Private mOn As Boolean
 Private mCool(0 To 1) As Long
@@ -124,8 +124,8 @@ Private Function CpuWantsTag(ByVal i As Long) As Boolean
     If Not CanTag(i) Then Exit Function
     r = Fighter.F(i).health / Fighter.F(i).maxHealth
     rr = Fighter.F(2 + i).health / Fighter.F(2 + i).maxHealth
-    If r < CPU_TAG_LOW And rr > r + 0.2 And Abs(Fighter.F(0).x - Fighter.F(1).x) > 40 Then
-        CpuWantsTag = (Rnd < 0.08)
+    If r < CPU_TAG_LOW And rr > r + 0.15 And Abs(Fighter.F(0).x - Fighter.F(1).x) > 30 Then
+        CpuWantsTag = (Rnd < 0.15)
     End If
 End Function
 

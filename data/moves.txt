@@ -39,7 +39,7 @@ cheolsan   chk   C    6       3      12       110    12      9         L     1  
 cheolsan   jp    A    4       4      0        80     8       6         O     0  8   -23 7   6   jump       jp        N    0    0  -
 cheolsan   jk    A    5       5      0        100    9       7         O     0  11  -13 8   6   jump       jk        N    0    0  -
 cheolsan  throw  S  3  1  8  130  0  0  H  1  0  -34  20  12  throw_0  throw_1  T  0  0  -
-cheolsan  sp1  S  3  1  18  160  0  0  H  1  0  -34  24  12  throw_0  throw_1  G  0  0  624P  300
+cheolsan  sp1  S  3  1  18  145  0  0  H  1  0  -34  20  12  throw_0  throw_1  G  0  0  624P  300
 cheolsan  sp2  S  4  5  12  120  14  10  H  1  8  -30  12  20  rush_0  rush_1  R  4.5  0  26P  300
 cheolsan   super S    3       1      16       380    0       0         H     1  0   -36 40  14  throw_0    throw_1   SG   0    0  2626P
 # muyeong (swordsman): longest reach, but every swing is a tick slower, weaker and easier to punish

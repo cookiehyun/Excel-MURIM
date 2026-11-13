@@ -142,12 +142,12 @@ Private Sub DrawReserve(ByVal side As Long, ByVal ox As Long, ByVal fromRight As
         Renderer.FillRect ox + 1 + BAR_W - RW - 1, BAR_Y + 4, RW + 2, 2, cBorder
         Renderer.FillRect ox + 1 + BAR_W - wr, BAR_Y + 4, wr, 1, cRed
         Renderer.FillRect ox + 1 + BAR_W - w, BAR_Y + 4, w, 1, cHpDark
-        PixelFont.DrawText nm, ox + BAR_W - 44, 8, c, 1, 2
+        PixelFont.DrawText nm, ox + BAR_W - 44, 15, c, 1, 2
     Else
         Renderer.FillRect ox, BAR_Y + 4, RW + 2, 2, cBorder
         Renderer.FillRect ox + 1, BAR_Y + 4, wr, 1, cRed
         Renderer.FillRect ox + 1, BAR_Y + 4, w, 1, cHpDark
-        PixelFont.DrawText nm, ox + 46, 8, c
+        PixelFont.DrawText nm, ox + 46, 15, c
     End If
 End Sub
 
