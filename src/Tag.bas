@@ -13,9 +13,9 @@ Private Const RED_REGEN As Long = 2            ' hp per tick while waiting
 Private Const CPU_TAG_LOW As Double = 0.4      ' CPU tags out below this health ratio...
 
 Private mOn As Boolean
-Private mReserve(0 To 1) As TFighter           ' the waiting partner of each side
 Private mCool(0 To 1) As Long
 Private mTags(0 To 1) As Long                  ' tags this round (stats / tests)
+Private mReserve(0 To 1) As TFighter           ' the waiting partner of each side
 
 Public Property Get Active() As Boolean
     Active = mOn
