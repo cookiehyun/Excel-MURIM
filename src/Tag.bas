@@ -154,6 +154,7 @@ Public Sub TryTag(ByVal i As Long)
         .stTick = 0
         .airAttacked = False
     End With
+    Fighter.ClearGhosts i
     mCool(i) = TAG_COOLDOWN
     mTags(i) = mTags(i) + 1
     Combat.ShowText "TAG", 16, i

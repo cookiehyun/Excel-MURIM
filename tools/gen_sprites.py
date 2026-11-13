@@ -394,6 +394,7 @@ HEUKRIM = dict(
         "d": "8A2AA8",                          # purple sash
         "p": "2A2232", "P": "1C1622",
         "n": "18141E",
+        "t": "C8FFB0", "T": "6AD060",          # poison claw trail
     },
     look=dict(arm_front="b", arm_back="B", arm_front2="b", arm_back2="B",
               leg_front="p", leg_back="P", boot="n",
@@ -417,6 +418,7 @@ CHEONMA = dict(                          # final boss (arcade): the Heavenly Dem
         "p": "201820", "P": "140E14",
         "n": "100A0E",
         "e": "FF4030",                          # glowing red eyes
+        "t": "FFC8B8", "T": "E0503A",          # demon trail
     },
     look=dict(arm_front="b", arm_back="B", arm_front2="b", arm_back2="B",
               leg_front="p", leg_back="P", boot="n",
@@ -480,15 +482,21 @@ HONGRYEON_OVERRIDES = {
 
 CLAW_F = (70, 95)
 HEUKRIM_OVERRIDES = {
-    "idle_0": P(lean=16, lf=(24, 6), lb=(-24, -10), af=CLAW_F, ab=(40, 110), open_hand=True),
-    "idle_1": P(lean=17, lf=(26, 8), lb=(-26, -12), af=(68, 92), ab=(38, 106), open_hand=True),
-    "walk_0": P(lean=16, lf=(22, 5), lb=(-18, -22), af=CLAW_F, ab=(40, 110), open_hand=True),
-    "walk_1": P(lean=16, lf=(8, 0), lb=(-5, -35), af=CLAW_F, ab=(40, 110), open_hand=True),
-    "walk_2": P(lean=16, lf=(-16, -22), lb=(22, 5), af=CLAW_F, ab=(40, 110), open_hand=True),
-    "walk_3": P(lean=16, lf=(-5, -35), lb=(8, 0), af=CLAW_F, ab=(40, 110), open_hand=True),
-    "lp_1": P(lean=20, af=(95, 92), ab=(40, 110), open_hand=True),                 # claw jab
-    "hp_0": P(lean=0, af=(-30, 140), ab=(30, 120), open_hand=True),
-    "hp_1": P(lean=26, lf=(40, 0), lb=(-40, -40), af=(96, 98), ab=(80, 90), open_hand=True),   # double palm
+    # light on his feet: narrow stance, rear heel up, claws ready
+    "idle_0": P(lean=14, lf=(20, 4), lb=(-18, -34), af=CLAW_F, ab=(55, 130), open_hand=True),
+    "idle_1": P(lean=15, lf=(21, 5), lb=(-19, -36), af=(68, 92), ab=(53, 126), open_hand=True),
+    "walk_0": P(lean=16, lf=(22, 5), lb=(-18, -30), af=CLAW_F, ab=(55, 130), open_hand=True),
+    "walk_1": P(lean=16, lf=(8, 0), lb=(-5, -40), af=CLAW_F, ab=(55, 130), open_hand=True),
+    "walk_2": P(lean=16, lf=(-16, -26), lb=(22, 5), af=CLAW_F, ab=(55, 130), open_hand=True),
+    "walk_3": P(lean=16, lf=(-5, -40), lb=(8, 0), af=CLAW_F, ab=(55, 130), open_hand=True),
+    # light: claw swipe across, poison streak
+    "lp_0": P(lean=8, af=(140, 150), ab=(55, 130), open_hand=True),
+    "lp_1": P(lean=22, lf=(26, 2), lb=(-24, -30), af=(96, 80), ab=(50, 120), open_hand=True, trail=("arm", 70)),
+    # heavy: claws crossed high, torn down and outward in a big X
+    "hp_0": P(lean=-6, lf=(22, 4), lb=(-20, -30), af=(165, 175), ab=(160, 170), open_hand=True),
+    "hp_1": P(lean=30, lf=(42, 0), lb=(-42, -40), af=(105, 60), ab=(80, 40), open_hand=True, trail=("arm", 115)),
+    # quick kicks
+    "lk_1": P(lean=-8, lf=(80, 84), lb=(-8, -10), af=CLAW_F, ab=(55, 130), open_hand=True, trail=("kick", 55)),
     "sp_0": P(lean=4, af=(-40, 170), ab=(40, 110), open_hand=True),               # needle throw wind-up
     "sp_1": P(lean=22, lf=(35, 2), lb=(-35, -25), af=(105, 100), ab=(30, 120), open_hand=True),
     "rush_0": P(lean=30, lf=CROUCH_F, lb=CROUCH_B, af=(10, 170), ab=(-10, 170), open_hand=True),   # vanish

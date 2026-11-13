@@ -18,6 +18,8 @@ PAL T A9C4DC
 PAL y C9A040
 PAL m 5A2A20
 PAL r C23434
+PAL u B8A486
+PAL U D8CCB4
 SPRITE idle_0 33 36 10 35
 ........kkkkkk...................
 .......kwhhhhhk..................

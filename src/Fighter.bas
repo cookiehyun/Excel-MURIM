@@ -150,6 +150,13 @@ Private mDummy As Long
 Private mDummyTick As Long
 Private mDummyNext As Long
 Private mShowBoxes As Boolean
+' afterimages (Heukrim / Cheonma): the last few positions, drawn as one-color silhouettes
+Private Const GHOSTS As Long = 4
+Private mGX(0 To 1, 0 To GHOSTS - 1) As Long
+Private mGY(0 To 1, 0 To GHOSTS - 1) As Long
+Private mGId(0 To 1, 0 To GHOSTS - 1) As Long
+Private mGFlip(0 To 1, 0 To GHOSTS - 1) As Boolean
+Private mGN(0 To 1) As Long
 
 ' c0 / c1 = character names ("danwoo", "cheolsan"); the same character may appear twice.
 Public Sub Init(ByVal c0 As String, ByVal c1 As String, ByVal humanIndex As Long)
@@ -373,6 +380,7 @@ End Sub
 
 Private Sub ResetOne(ByVal i As Long)
     Dim k As Long
+    mGN(i) = 0
     With F(i)
         .x = .startX
         .footY = GROUND_Y
@@ -591,6 +599,7 @@ Public Sub Update()
     ResolvePush
     For i = 0 To 1
         UpdateFacing i
+        UpdateGhosts i
     Next i
 End Sub
 
@@ -1245,12 +1254,65 @@ End Function
 ' ======================================================================
 
 Public Sub Draw()
+    DrawGhosts 1 - mControl
+    DrawGhosts mControl
     DrawOne 1 - mControl
     DrawOne mControl
     If mShowBoxes Then
         DrawBoxes 0
         DrawBoxes 1
     End If
+End Sub
+
+Public Sub ClearGhosts(ByVal i As Long)
+    mGN(i) = 0
+End Sub
+
+Private Function GhostColor(ByVal i As Long) As Long
+    Select Case F(i).prefix
+    Case "heukrim": GhostColor = RGB(74, 56, 96)
+    Case "cheonma": GhostColor = RGB(96, 30, 40)
+    Case Else: GhostColor = -1
+    End Select
+End Function
+
+' Light-footed fighters leave afterimages while dashing, jumping or teleporting.
+Private Sub UpdateGhosts(ByVal i As Long)
+    Dim k As Long, want As Boolean, mT As Long
+    If GhostColor(i) < 0 Then
+        mGN(i) = 0
+        Exit Sub
+    End If
+    With F(i)
+        Select Case .state
+        Case ST_DASH, ST_JUMP
+            want = True
+        Case ST_ATTACK
+            mT = Data.MvType(.mv)
+            want = (mT = MT_TELEPORT Or mT = MT_SUPER_TELE Or Not .onGround)
+        End Select
+    End With
+    If want Then
+        For k = GHOSTS - 1 To 1 Step -1
+            mGX(i, k) = mGX(i, k - 1): mGY(i, k) = mGY(i, k - 1)
+            mGId(i, k) = mGId(i, k - 1): mGFlip(i, k) = mGFlip(i, k - 1)
+        Next k
+        mGX(i, 0) = Int(F(i).x + 0.5): mGY(i, 0) = Int(F(i).footY + 0.5)
+        mGId(i, 0) = CurrentSprite(i): mGFlip(i, 0) = (F(i).facing < 0)
+        If mGN(i) < GHOSTS Then mGN(i) = mGN(i) + 1
+    ElseIf mGN(i) > 0 Then
+        mGN(i) = mGN(i) - 1                          ' fade out one step per tick
+    End If
+End Sub
+
+' Draw the 2nd and 4th oldest positions (spaced out so they read as separate images).
+Private Sub DrawGhosts(ByVal i As Long)
+    Dim k As Long, c As Long
+    c = GhostColor(i)
+    If c < 0 Then Exit Sub
+    For k = 1 To GHOSTS - 1 Step 2
+        If k < mGN(i) Then Renderer.DrawSprite mGId(i, k), mGX(i, k), mGY(i, k), mGFlip(i, k), c
+    Next k
 End Sub
 
 Private Function CurrentSprite(ByVal i As Long) As Long

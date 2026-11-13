@@ -1,0 +1,17 @@
+# heukrim: dash in, claw swipe, heavy X claw, jump
+CMD start 0 1 0 1
+CMD chars heukrim danwoo
+CMD dummy 1
+CMD place 40 110
+3 -
+1 R
+1 -
+1 R
+10 -
+1 A
+12 -
+CMD place 70 92
+1 S
+24 -
+1 U+R
+20 -
