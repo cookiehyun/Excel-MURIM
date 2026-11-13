@@ -37,7 +37,7 @@ def keyinput_stub():
              "A": "BTN_LP", "S": "BTN_HP", "Z": "BTN_LK", "X": "BTN_HK", "ESC": "BTN_QUIT",
              "TAB": "BTN_SWAP", "H": "BTN_DBG_HIT", "J": "BTN_DBG_DOWN", "DD": "BTN_DBG_DUMMY",
              "F1": "BTN_DBG_BOX", "C": "BTN_TAG"}
-    for k, nm in enumerate(("L", "R", "U", "D", "A", "S", "Z", "X")):   # multiplayer sets: 1L 1A ... / 2L 2A ...
+    for k, nm in enumerate(("L", "R", "U", "D", "A", "S", "Z", "X", "C")):   # multiplayer sets: 1L 1A ... / 2L 2A ...
         names["1" + nm] = f"BTN_M1 + {k}"
         names["2" + nm] = f"BTN_M2 + {k}"
     cases = "\n".join(f'    Case "{k}": mNext({v}) = True' for k, v in names.items())
@@ -45,22 +45,22 @@ def keyinput_stub():
 Option Explicit
 ' generated stub: scripted input instead of GetAsyncKeyState
 {chr(10).join(c.strip() for c in consts)}
-Private mCur(0 To 31) As Boolean
-Private mPrev(0 To 31) As Boolean
-Private mNext(0 To 31) As Boolean
+Private mCur(0 To 47) As Boolean
+Private mPrev(0 To 47) As Boolean
+Private mNext(0 To 47) As Boolean
 Private mLost As Boolean
 Private mBlurNext As Boolean
-Private mVKs(0 To 31) As Long
+Private mVKs(0 To 47) As Long
 Private mScanNext As Long
 Public Sub Init()
     Dim i As Long
-    For i = 0 To 31
+    For i = 0 To 47
         mCur(i) = False: mPrev(i) = False: mNext(i) = False
     Next i
 End Sub
 Public Sub ClearNext()
     Dim i As Long
-    For i = 0 To 31
+    For i = 0 To 47
         mNext(i) = False
     Next i
 End Sub
@@ -74,7 +74,7 @@ Public Sub SetNextByName(ByVal nm As String)
 End Sub
 Public Sub Poll()
     Dim i As Long
-    For i = 0 To 31
+    For i = 0 To 47
         mPrev(i) = mCur(i): mCur(i) = mNext(i)
     Next i
     mLost = mBlurNext: mBlurNext = False

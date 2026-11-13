@@ -649,10 +649,17 @@ Private Sub UpdateFighter(ByVal i As Long)
 
         Case ST_DASH
             .x = .x + .vx
-            If .backward Then
+            If u And Not .backward And .stTick >= 2 Then       ' dash jump: carries the run into a long jump
+                SetState i, ST_JUMP
+                .onGround = False
+                .airAttacked = False
+                .vy = .jumpVY
+                .vx = .facing * .jumpVX * 1.7
+                .footY = GROUND_Y
+            ElseIf .backward Then
                 .footY = GROUND_Y - 3 * Sin(3.14159 * .stTick / DASH_TICKS)     ' small hop
             End If
-            If .stTick >= DASH_TICKS Then
+            If .state = ST_DASH And .stTick >= DASH_TICKS Then
                 .footY = GROUND_Y
                 SetState i, ST_IDLE
             End If
@@ -1076,8 +1083,17 @@ End Function
 Public Function Threatened(ByVal i As Long) As Boolean
     Dim o As Long
     o = 1 - i
-    If F(o).state = ST_ATTACK And Abs(F(o).x - F(i).x) < GUARD_RANGE Then Threatened = True
-    If Projectile.IncomingDistance(i) < 40 Then Threatened = True
+    Dim reach As Double, mv As Long
+    If F(o).state = ST_ATTACK Then
+        ' only guard (and stop walking back) when the attack could actually reach
+        mv = F(o).mv
+        reach = Data.MvHbX(mv) + Data.MvHbW(mv) + F(i).HalfW + 8
+        If Data.MvType(mv) = MT_RUSH Or Data.MvType(mv) = MT_SUPER_RUSH Then reach = reach + Data.MvP1(mv) * Data.MvActive(mv)
+        If reach < 26 Then reach = 26
+        If reach > GUARD_RANGE Then reach = GUARD_RANGE
+        If Abs(F(o).x - F(i).x) < reach Then Threatened = True
+    End If
+    If Projectile.IncomingDistance(i) < 30 Then Threatened = True
 End Function
 
 ' Ballistic step. Returns True on the tick it lands.

@@ -34,11 +34,11 @@ Public Const BTN_DBG_DOWN As Long = 11  ' debug: knock the other fighter down (J
 Public Const BTN_DBG_DUMMY As Long = 12 ' debug: toggle dummy attacks (D)
 Public Const BTN_DBG_BOX As Long = 13   ' debug: toggle hitbox display (F1)
 Public Const BTN_TAG As Long = 14         ' tag mode: switch fighters (C)
-' multiplayer key sets (order: left right up down LP HP LK HK), set by KeyConfig
+' multiplayer key sets (order: left right up down LP HP LK HK TAG), set by KeyConfig
 '   defaults 1P: W A S D move + R T / F G attacks      2P: arrows move + K L / , . attacks
-Public Const BTN_M1 As Long = 15          ' first button of the 1P multiplayer set
-Public Const BTN_M2 As Long = 23          ' first button of the 2P multiplayer set
-Public Const BTN_COUNT As Long = 31
+Public Const BTN_M1 As Long = 15          ' first button of the 1P multiplayer set (9 buttons, the 9th = tag)
+Public Const BTN_M2 As Long = 24          ' first button of the 2P multiplayer set
+Public Const BTN_COUNT As Long = 33
 
 Private mVK(0 To BTN_COUNT - 1) As Long
 Private mCur(0 To BTN_COUNT - 1) As Boolean

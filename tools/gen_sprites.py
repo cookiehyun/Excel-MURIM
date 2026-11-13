@@ -270,8 +270,8 @@ BASE_POSES = {
     "lp_1": P(lean=16, af=(92, 90)),
     "hp_0": P(lean=-14, lf=(30, 5), lb=(-30, -15), af=(-50, 150), ab=(40, 140)),
     "hp_1": P(lean=24, lf=(40, 0), lb=(-40, -40), af=(90, 88), ab=(10, 120)),
-    "lk_0": P(lean=-5, lf=(90, 10), lb=(-8, 0)),
-    "lk_1": P(lean=-10, lf=(82, 86), lb=(-8, 0)),
+    "lk_0": P(lean=-5, lf=(85, 25), lb=(-8, 0)),           # knee up, shin hanging: chamber
+    "lk_1": P(lean=-10, lf=(86, 80), lb=(-8, 0)),          # snap the shin out (knee stays straight, not bent back)
     "hk_0": P(lean=-15, lf=(120, 30), lb=(-5, 0), af=(60, 150)),
     "hk_1": P(lean=-28, lf=(122, 128), lb=(-5, 0), af=(40, 160), ab=(-30, 20)),
     "clp": P(lean=20, lf=CROUCH_F, lb=CROUCH_B, af=(88, 86)),
@@ -322,8 +322,8 @@ DANWOO_OVERRIDES = {
     "hp_0": P(lean=-2, lf=(24, 4), lb=(-28, -12), af=(15, 75), ab=(10, 80), open_hand=True),
     "hp_1": P(lean=16, lf=(42, 0), lb=(-42, -36), af=(90, 88), ab=(86, 85), open_hand=True, trail=("palm", 5)),
     # kicks: straight front snap kick and a tall crescent kick, arms open for balance
-    "lk_0": P(lean=0, lf=(70, 130), lb=(-6, 0), **DW_GUARD),
-    "lk_1": P(lean=-4, lf=(92, 90), lb=(-6, 0), **DW_GUARD),
+    "lk_0": P(lean=0, lf=(82, 22), lb=(-6, 0), **DW_GUARD),
+    "lk_1": P(lean=-4, lf=(90, 84), lb=(-6, 0), **DW_GUARD),
     "hk_0": P(lean=-6, lf=(110, 150), lb=(-6, 0), af=(60, 120), ab=(-30, 30), open_hand=True),
     "hk_1": P(lean=-16, lf=(140, 142), lb=(-6, 0), af=(70, 125), ab=(-45, 35), open_hand=True),
     # rising palm (623P): palm up -> twisting climb -> turn at the peak -> tuck and fall
@@ -479,7 +479,8 @@ HONGRYEON_OVERRIDES = {
     "hp_k": P(lean=-20, lf=(118, 120), lb=(-6, 0), af=(150, 175), ab=(-40, -10), wa=175, trail=("kick", 90)),
     "hp_r": P(lean=6, lf=(40, -10), lb=(-24, -16), af=(80, 150), ab=(20, 70), wa=160),
     # light kick: quick snap kick, fans held open
-    "lk_1": P(lean=-10, lf=(84, 88), lb=(-6, 0), af=(60, 150), ab=(10, 60), wa=160, trail=("kick", 55)),
+    "lk_0": P(lean=-4, lf=(84, 24), lb=(-6, 0), af=(60, 150), ab=(10, 60), wa=160),
+    "lk_1": P(lean=-10, lf=(88, 82), lb=(-6, 0), af=(60, 150), ab=(10, 60), wa=160, trail=("kick", 55)),
     # heavy kick: turn with both fans spread, then a spinning high kick
     "hk_0": P(lean=-6, lf=(60, 110), lb=(-6, 0), af=(110, 150), ab=(100, 150), wa=150),
     "hk_t": P(lean=8, lf=(-30, -80), lb=(4, 0), af=(95, 92), ab=(95, 92), wa=92, flip=True),
@@ -522,7 +523,8 @@ HEUKRIM_OVERRIDES = {
     "hp_0": P(lean=-6, lf=(22, 4), lb=(-20, -30), af=(165, 175), ab=(160, 170), open_hand=True),
     "hp_1": P(lean=30, lf=(42, 0), lb=(-42, -40), af=(105, 60), ab=(80, 40), open_hand=True, trail=("arm", 115)),
     # quick kicks
-    "lk_1": P(lean=-8, lf=(80, 84), lb=(-8, -10), af=CLAW_F, ab=(55, 130), open_hand=True, trail=("kick", 55)),
+    "lk_0": P(lean=-2, lf=(84, 24), lb=(-8, -10), af=CLAW_F, ab=(55, 130), open_hand=True),
+    "lk_1": P(lean=-8, lf=(86, 80), lb=(-8, -10), af=CLAW_F, ab=(55, 130), open_hand=True, trail=("kick", 55)),
     "sp_0": P(lean=4, af=(-40, 170), ab=(40, 110), open_hand=True),               # needle throw wind-up
     "sp_1": P(lean=22, lf=(35, 2), lb=(-35, -25), af=(105, 100), ab=(30, 120), open_hand=True),
     "rush_0": P(lean=30, lf=CROUCH_F, lb=CROUCH_B, af=(10, 170), ab=(-10, 170), open_hand=True),   # vanish
@@ -542,8 +544,8 @@ SEOLHWA_OVERRIDES = {
     "walk_2": P(lean=4, lf=(-18, -25), lb=(25, 5), af=KICK_GUARD_F, ab=(25, 160), open_hand=True),
     "walk_3": P(lean=4, lf=(-5, -40), lb=(8, 0), af=KICK_GUARD_F, ab=(25, 160), open_hand=True),
     # light: whip-fast snap kick
-    "lk_0": P(lean=-4, lf=(70, 140), lb=(-6, 0), af=(60, 150), ab=(-20, 40), open_hand=True),
-    "lk_1": P(lean=-12, lf=(86, 88), lb=(-6, 0), af=(60, 150), ab=(-20, 40), open_hand=True, trail=("kick", 60)),
+    "lk_0": P(lean=-4, lf=(95, 30), lb=(-6, 0), af=(60, 150), ab=(-20, 40), open_hand=True),
+    "lk_1": P(lean=-12, lf=(90, 84), lb=(-6, 0), af=(60, 150), ab=(-20, 40), open_hand=True, trail=("kick", 60)),
     # heavy: spinning back kick - chamber, turn away, heel shoots out behind toward the opponent
     "hk_0": P(lean=-10, lf=(110, 40), lb=(-4, 0), af=(40, 160), ab=(-30, 30), open_hand=True),
     "hk_t": P(lean=10, lf=(-40, -110), lb=(4, 0), af=(60, 140), ab=(20, 150), open_hand=True, flip=True),
@@ -708,7 +710,10 @@ def build(spec, pose):
 
     hipF = (0.8, 0.0)
     hipB = (-0.8, 0.0)
-    kF, fF = limb(hipF, pose["lf"][0], L["thigh"], pose["lf"][1], L["shin"])
+    th_, sh_ = pose["lf"]
+    if th_ > 20 and sh_ > th_ + 2:
+        sh_ = th_ - 2            # a raised leg never bends backward at the knee (no hyperextension)
+    kF, fF = limb(hipF, th_, L["thigh"], sh_, L["shin"])
     kB, fB = limb(hipB, pose["lb"][0], L["thigh"], pose["lb"][1], L["shin"])
     eF, hF = limb(shoulder, pose["af"][0], L["upper"], pose["af"][1], L["fore"])
     eB, hB = limb(shoulder, pose["ab"][0], L["upper"], pose["ab"][1], L["fore"])

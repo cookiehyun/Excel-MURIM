@@ -6,7 +6,8 @@ Option Explicit
 ' A key that is already used by the other slot / player is swapped, so no two controls share a key.
 
 Private Const KEY_FILE As String = "keys.txt"
-Private Const ROWS As Long = 9                ' 8 controls + RESET
+Private Const ROWS As Long = 10               ' 9 controls + RESET
+Private Const CTRLS As Long = 9
 
 Private mRow As Long
 Private mCol As Long
@@ -18,13 +19,13 @@ Private mMsgT As Long
 ' ---------------------------------------------------------------- defaults / file
 
 Public Sub ResetDefaults()
-    SetSet 1, Array(&H41, &H44, &H57, &H53, &H52, &H54, &H46, &H47)   ' 1P: A D W S | R T F G
-    SetSet 2, Array(&H25, &H27, &H26, &H28, &H4B, &H4C, &HBC, &HBE)   ' 2P: arrows | K L , .
+    SetSet 1, Array(&H41, &H44, &H57, &H53, &H52, &H54, &H46, &H47, &H51)   ' 1P: A D W S | R T F G | tag Q
+    SetSet 2, Array(&H25, &H27, &H26, &H28, &H4B, &H4C, &HBC, &HBE, &HBF)   ' 2P: arrows | K L , . | tag /
 End Sub
 
 Private Sub SetSet(ByVal ks As Long, ByVal vks As Variant)
     Dim k As Long
-    For k = 0 To 7
+    For k = 0 To CTRLS - 1
         KeyInput.SetVK KeyInput.KeyOf(ks, k), vks(k)
     Next k
 End Sub
@@ -37,11 +38,11 @@ Public Sub Load()
     lines = Data.ReadFileLines(KEY_FILE)
     For i = 0 To UBound(lines)
         p = Split(Trim$(lines(i)), " ")
-        If UBound(p) >= 8 Then
+        If UBound(p) >= 8 Then                          ' older files have no tag key: keep its default
             ks = CLng(p(0))
             If ks = 1 Or ks = 2 Then
-                For k = 0 To 7
-                    KeyInput.SetVK KeyInput.KeyOf(ks, k), CLng(p(k + 1))
+                For k = 0 To CTRLS - 1
+                    If k + 1 <= UBound(p) Then KeyInput.SetVK KeyInput.KeyOf(ks, k), CLng(p(k + 1))
                 Next k
             End If
         End If
@@ -56,7 +57,7 @@ Public Sub Save()
     Open Data.FilePath(KEY_FILE) For Output As #f
     For ks = 1 To 2
         ln = CStr(ks)
-        For k = 0 To 7
+        For k = 0 To CTRLS - 1
             ln = ln & " " & KeyInput.GetVK(KeyInput.KeyOf(ks, k))
         Next k
         Print #f, ln
@@ -112,7 +113,7 @@ Private Sub Assign(ByVal ks As Long, ByVal logical As Long, ByVal vk As Long)
     b = KeyInput.KeyOf(ks, logical)
     old = KeyInput.GetVK(b)
     For s = 1 To 2
-        For k = 0 To 7
+        For k = 0 To CTRLS - 1
             ob = KeyInput.KeyOf(s, k)
             If ob <> b And KeyInput.GetVK(ob) = vk Then
                 KeyInput.SetVK ob, old
@@ -124,7 +125,7 @@ Private Sub Assign(ByVal ks As Long, ByVal logical As Long, ByVal vk As Long)
 End Sub
 
 Private Function ControlName(ByVal k As Long) As String
-    ControlName = Choose(k + 1, "LEFT", "RIGHT", "UP", "DOWN", "LIGHT P", "HEAVY P", "LIGHT K", "HEAVY K")
+    ControlName = Choose(k + 1, "LEFT", "RIGHT", "UP", "DOWN", "LIGHT P", "HEAVY P", "LIGHT K", "HEAVY K", "TAG")
 End Function
 
 Public Function KeyName(ByVal vk As Long) As String
@@ -170,7 +171,7 @@ Public Sub Render()
     PixelFont.DrawText "1P", 96, 12, cP1, 1, 1
     PixelFont.DrawText "2P", 150, 12, cP2, 1, 1
     For r = 0 To ROWS - 1
-        y = 19 + r * 7
+        y = 17 + r * 7
         If r = ROWS - 1 Then
             sel = (r = mRow)
             If sel Then Renderer.FillRect 70, y - 2, 106, 8, RGB(40, 28, 20)
@@ -195,7 +196,7 @@ Public Sub Render()
             Next s
         End If
     Next r
-    If mMsgT > 0 Then PixelFont.DrawText mMsg, cx, 84, RGB(150, 220, 255), 1, 1
+    If mMsgT > 0 Then PixelFont.DrawText mMsg, cx, 87, RGB(150, 220, 255), 1, 1
     If mWait Then
         PixelFont.DrawText "PRESS NEW KEY   ESC = CANCEL", cx, 93, RGB(150, 140, 170), 1, 1
     Else

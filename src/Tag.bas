@@ -99,7 +99,9 @@ Public Sub Inputs(ByVal allowed As Boolean)
     Dim i As Long
     If Not mOn Or Not allowed Then Exit Sub
     For i = 0 To 1
-        If Game.IsCpu(i) Then
+        If Game.Multi Then
+            If KeyInput.IsPressed(KeyInput.KeyOf(1 + i, 8)) Then TryTag i     ' each player's own tag key
+        ElseIf Game.IsCpu(i) Then
             If CpuWantsTag(i) Then TryTag i
         ElseIf i = Fighter.Controlled Then
             If KeyInput.IsPressed(BTN_TAG) Then TryTag i

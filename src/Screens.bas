@@ -135,11 +135,11 @@ Public Sub TitleTick()
         Case Else: Game.GameMode = MODE_TRAINING
         End Select
         SelectBegin
-    Case 2                                                  ' multi: VERSUS / CONTROLS
-        If mCursor = 0 Then
+    Case 2                                                  ' multi: VERSUS / TAG VERSUS / KEY CONFIG
+        If mCursor <= 1 Then
             Game.Multi = True
             Game.WatchMode = False
-            Game.GameMode = MODE_VSCPU                      ' 1 vs 1 rounds, both sides human
+            If mCursor = 0 Then Game.GameMode = MODE_VSCPU Else Game.GameMode = MODE_TAG   ' rounds, both sides human
             SelectBegin
         Else
             mMenuLevel = 3
@@ -152,7 +152,7 @@ Private Function MenuCount() As Long
     Select Case mMenuLevel
     Case 0: MenuCount = 2
     Case 1: MenuCount = 3
-    Case Else: MenuCount = 2
+    Case Else: MenuCount = 3
     End Select
 End Function
 
@@ -161,7 +161,7 @@ Private Function MenuLabel(ByVal k As Long) As String
     Select Case mMenuLevel
     Case 0: t = Array("SINGLE PLAYER", "MULTIPLAYER")
     Case 1: t = Array("ARCADE", "VS CPU", "TRAINING")
-    Case Else: t = Array("VERSUS", "KEY CONFIG")
+    Case Else: t = Array("VERSUS", "TAG VERSUS", "KEY CONFIG")
     End Select
     MenuLabel = t(k)
 End Function
@@ -299,7 +299,13 @@ Public Sub SelectRender()
     Renderer.FillRect 63, 10, 1, 90, cP1
     Renderer.FillRect 128, 10, 1, 90, cP2
     If TagMode() Then
-        If PlayerPhase() Then t = "YOUR TEAM " & (mPhase + 1) & " OF 2" Else t = "CPU TEAM " & (mPhase - 1) & " OF 2"
+        If Game.Multi Then
+            If PlayerPhase() Then t = "1P TEAM " & (mPhase + 1) & " OF 2" Else t = "2P TEAM " & (mPhase - 1) & " OF 2"
+        ElseIf PlayerPhase() Then
+            t = "YOUR TEAM " & (mPhase + 1) & " OF 2"
+        Else
+            t = "CPU TEAM " & (mPhase - 1) & " OF 2"
+        End If
         PixelFont.DrawBig t, cx, 2, cGold, 1
     ElseIf Game.Multi Then
         t = CStr(mPhase + 1) & "P SELECT"
@@ -505,7 +511,10 @@ Public Sub StageTick()
         Game.StageIndex = mStageSel
         LaunchMatch
     ElseIf KeyInput.IsPressed(BTN_HP) Then
-        If (Game.GameMode = MODE_VSCPU And Not Game.Multi) Or TagMode() Then
+        If Game.Multi Then
+            mPhase = LastPhase()
+            Game.GameState = GS_SELECT
+        ElseIf Game.GameMode = MODE_VSCPU Or TagMode() Then
             Game.GameState = GS_LEVEL
         Else
             mPhase = 1
