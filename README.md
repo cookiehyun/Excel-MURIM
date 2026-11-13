@@ -127,7 +127,7 @@ P는 A 또는 S, K는 Z 또는 X입니다. →는 상대가 있는 쪽입니다.
 - 철산의 금강파쇄와 궁극기(나한복마)는 잡기라서 콤보 끝에 붙이지 않고 가까이서 따로 씁니다.
 - 흑림의 귀영보는 순간이동이라 콤보에 넣지 않습니다.
 
-밸런스는 CPU끼리 싸운 승률로 맞췄고, 지금 전체 승률은 38~58%입니다. 기록은 [docs/BALANCE.md](docs/BALANCE.md)에 있습니다.
+밸런스는 CPU끼리 싸운 승률로 맞췄고, 지금 전체 승률은 44~60%입니다. 기록은 [docs/BALANCE.md](docs/BALANCE.md)에 있습니다.
 
 </details>
 
@@ -240,7 +240,7 @@ A light attack (A·Z, standing or crouching) can chain into another normal, up t
 - Cheolsan's command grab and super (Nahan Bokma) are grabs, so use them up close on their own rather than at the end of a combo.
 - Heukrim's Gwiyeongbo is a teleport and doesn't go in combos.
 
-Balance is tuned with CPU-vs-CPU matches; overall win rates are currently 38-58%. Notes are in [docs/BALANCE.md](docs/BALANCE.md).
+Balance is tuned with CPU-vs-CPU matches; overall win rates are currently 44-60%. Notes are in [docs/BALANCE.md](docs/BALANCE.md).
 
 </details>
 
