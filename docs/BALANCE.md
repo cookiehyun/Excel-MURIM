@@ -6,12 +6,15 @@ human-level balance.
 
 | fighter | overall | notes |
 |---|---|---|
-| Cheolsan | 58% | high HP, command grab, slow (strong vs Hongryeon 79%) |
-| Muyeong | 53% | longest reach (HP 980 -> 940 after naegong) |
-| Heukrim | 50% | zoner: cheap needles (naegong 250), HP 1070 |
+| Muyeong | 56% | longest reach |
+| Hongryeon | 54% | HP 1000, uppercut invincible 4 ticks |
+| Heukrim | 52% | zoner, cheap needles |
 | Seolhwa | 48% | fastest, lowest HP |
-| Hongryeon | 45% | mid-range fans, cheaper boomerang (naegong 300) |
-| Danwoo | 45% | all-rounder, fireball naegong 350 |
+| Cheolsan | 47% | command grab reach 24 -> 20, damage 160 -> 145 |
+| Danwoo | 44% | fireball naegong 300 |
+
+Lopsided pairings left (n ~ 20-30 each, so +-10%p noise): Heukrim > Cheolsan 82:18,
+Hongryeon > Seolhwa 71:29, Cheolsan > Danwoo 65:35.
 
 Naegong (inner energy, added after players found fireball spam unanswerable):
 specials 1 / 2 cost naegong (250-400 of 1000), refill 7 per tick, no refill while the special is out;
@@ -26,6 +29,9 @@ Pass history
 6. Naegong gauge: zoners collapsed (Heukrim 24%, Hongryeon 35%), Muyeong 67%
    -> cheaper zoner specials, Muyeong HP 940
 7. Cheolsan 59% -> HP 1030; Heukrim HP 1070; Danwoo fireball 350 -> 45-58%
+8. Matchups Cheolsan-Hongryeon 79:21 and Heukrim-Danwoo 73:27: Cheolsan's command grab dealt 63% of his damage
+   -> grab reach 20 / damage 145; Hongryeon HP 1000 + longer uppercut invincibility; Danwoo fireball 300
+   -> those two now 58:42 and 45:55, overall 44-56%
 
 Re-run: generate `tools/harness/scripts/bal_<a>_<b>.txt`, run them (optionally in parallel with
 `HARNESS_PIPE=<name>`), then `python3 tools/harness/balance.py`.
