@@ -1,0 +1,87 @@
+# arcade: pick danwoo, win all 6 fights on TIME (opponent idle, hp lowered), ending
+CMD roundtime 30
+4 -
+1 A
+4 -
+1 A
+4 -
+1 A
+20 -
+1 A
+2 -
+CMD dummy 1
+5 -
+CMD hp 1 300
+175 -
+5 -
+CMD hp 1 300
+175 -
+60 -
+CMD render 1
+20 -
+1 A
+2 -
+CMD dummy 1
+CMD render 0
+5 -
+CMD hp 1 300
+175 -
+5 -
+CMD hp 1 300
+175 -
+60 -
+CMD render 1
+20 -
+1 A
+2 -
+CMD dummy 1
+CMD render 0
+5 -
+CMD hp 1 300
+175 -
+5 -
+CMD hp 1 300
+175 -
+60 -
+CMD render 1
+20 -
+1 A
+2 -
+CMD dummy 1
+CMD render 0
+5 -
+CMD hp 1 300
+175 -
+5 -
+CMD hp 1 300
+175 -
+60 -
+CMD render 1
+20 -
+1 A
+2 -
+CMD dummy 1
+CMD render 0
+5 -
+CMD hp 1 300
+175 -
+5 -
+CMD hp 1 300
+175 -
+60 -
+CMD render 1
+20 -
+1 A
+2 -
+CMD dummy 1
+5 -
+CMD hp 1 300
+175 -
+5 -
+CMD hp 1 300
+175 -
+60 -
+CMD render 1
+80 -
+1 A
+5 -

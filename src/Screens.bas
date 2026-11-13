@@ -41,6 +41,55 @@ Public Sub Init()
     cP2 = RGB(255, 90, 80)
 End Sub
 
+Public Property Get RosterSize() As Long
+    RosterSize = ROSTER
+End Property
+
+Public Function RosterPrefix(ByVal k As Long) As String
+    RosterPrefix = rPrefix(k)
+End Function
+
+Public Function RosterName(ByVal k As Long) As String
+    RosterName = rName(k)
+End Function
+
+Public Function RosterIndex(ByVal prefix As String) As Long
+    Dim k As Long
+    RosterIndex = -1
+    For k = 0 To ROSTER - 1
+        If rPrefix(k) = prefix Then RosterIndex = k
+    Next k
+End Function
+
+' Head-and-shoulders portrait of roster slot k in a 20x20 box at (x, y).
+Public Sub DrawPortraitAt(ByVal k As Long, ByVal x As Long, ByVal y As Long)
+    Dim id As Long
+    Renderer.FillRect x, y, 20, 20, RGB(26, 22, 36)
+    id = Data.SpriteId(rPrefix(k) & ".idle_0")
+    Renderer.DrawSpriteScaled id, x + 10 - rHeadX(k) * 2, y + 9 - rHeadY(k) * 2, False, 2, x + 1, y + 1, x + 18, y + 18
+End Sub
+
+' Full-body x2 view of a character, body centred on x, feet at y = 96.
+Public Sub DrawBigView(ByVal prefix As String, ByVal x As Long, ByVal flip As Boolean, ByVal clipL As Long, ByVal clipR As Long)
+    Dim id As Long, ref As Long
+    ref = Data.SpriteId(prefix & ".idle_0")
+    If flip Then
+        x = x - (Data.SprAX(ref) * 2 - Data.SprW(ref))
+    Else
+        x = x - (Data.SprW(ref) - Data.SprAX(ref) * 2)
+    End If
+    id = Data.AnimFrame(Data.AnimId(prefix & ".idle"), mMenuTick)
+    Renderer.DrawSpriteScaled id, x, 96, flip, 2, clipL, 10, clipR, 99
+End Sub
+
+Public Sub TickMenu()
+    mMenuTick = mMenuTick + 1
+End Sub
+
+Public Property Get MenuTick() As Long
+    MenuTick = mMenuTick
+End Property
+
 Private Function Locked(ByVal k As Long) As Boolean
     Locked = (Len(rPrefix(k)) = 0)
 End Function
@@ -49,10 +98,15 @@ End Function
 
 Public Sub TitleTick()
     mMenuTick = mMenuTick + 1
-    If KeyInput.IsPressed(BTN_UP) Or KeyInput.IsPressed(BTN_DOWN) Then mCursor = 1 - mCursor
+    If KeyInput.IsPressed(BTN_UP) Then mCursor = (mCursor + 2) Mod 3
+    If KeyInput.IsPressed(BTN_DOWN) Then mCursor = (mCursor + 1) Mod 3
     If KeyInput.IsPressed(BTN_QUIT) Then Game.QuitRequested = True       ' Esc on the title = quit
     If KeyInput.IsPressed(BTN_LP) Then
-        Game.GameMode = mCursor
+        Select Case mCursor
+        Case 0: Game.GameMode = MODE_ARCADE
+        Case 1: Game.GameMode = MODE_VSCPU
+        Case Else: Game.GameMode = MODE_TRAINING
+        End Select
         Game.WatchMode = False
         SelectBegin
     End If
@@ -73,19 +127,23 @@ Public Sub TitleRender()
     Renderer.FillRect cx - 52, 45, 3, 3, RGB(200, 150, 60)
     Renderer.FillRect cx + 49, 45, 3, 3, RGB(200, 150, 60)
     ' menu
-    For k = 0 To 1
-        y = 57 + k * 13
-        If k = 0 Then lbl = "TRAINING" Else lbl = "VS CPU"
+    For k = 0 To 2
+        y = 55 + k * 12
+        Select Case k
+        Case 0: lbl = "ARCADE"
+        Case 1: lbl = "VS CPU"
+        Case Else: lbl = "TRAINING"
+        End Select
         If k = mCursor Then
-            Renderer.FillRect cx - 30, y - 3, 60, 11, RGB(40, 28, 20)
-            Renderer.DrawRectOutline cx - 30, y - 3, 60, 11, RGB(230, 180, 80)
+            Renderer.FillRect cx - 30, y - 3, 60, 10, RGB(40, 28, 20)
+            Renderer.DrawRectOutline cx - 30, y - 3, 60, 10, RGB(230, 180, 80)
             c = RGB(255, 236, 180)
             If (mMenuTick \ 6) Mod 2 = 0 Then
                 PixelFont.DrawText ">", cx - 26, y, RGB(255, 200, 90)
                 PixelFont.DrawText "<", cx + 24, y, RGB(255, 200, 90)
             End If
         Else
-            Renderer.FillRect cx - 30, y - 3, 60, 11, RGB(20, 16, 26)
+            Renderer.FillRect cx - 30, y - 3, 60, 10, RGB(20, 16, 26)
             c = RGB(130, 120, 150)
         End If
         PixelFont.DrawText lbl, cx, y, c, 1, 1
@@ -112,7 +170,10 @@ Public Sub SelectTick()
     mSel(mPhase) = k
     If KeyInput.IsPressed(BTN_LP) And Not Locked(k) Then
         mPick(mPhase) = k
-        If mPhase = 0 Then
+        If mPhase = 0 And Game.GameMode = MODE_ARCADE Then
+            mPick(1) = (k + 1) Mod ROSTER
+            SelectDone
+        ElseIf mPhase = 0 Then
             mPhase = 1
         Else
             SelectDone
@@ -127,7 +188,7 @@ Private Sub SelectDone()
     Game.P1Char = rPrefix(mPick(0))
     Game.P2Char = rPrefix(mPick(1))
     Game.HumanIndex = 0
-    If Game.GameMode = MODE_VSCPU Then
+    If Game.GameMode = MODE_VSCPU Or Game.GameMode = MODE_ARCADE Then
         mLevelSel = Game.CpuLevel
         Game.GameState = GS_LEVEL
     Else
@@ -245,9 +306,13 @@ Public Sub LevelTick()
     If KeyInput.IsPressed(BTN_DOWN) Then mLevelSel = (mLevelSel + 1) Mod 3
     If KeyInput.IsPressed(BTN_LP) Then
         Game.CpuLevel = mLevelSel
-        StageBegin
+        If Game.GameMode = MODE_ARCADE Then
+            Arcade.Begin Game.P1Char
+        Else
+            StageBegin
+        End If
     ElseIf KeyInput.IsPressed(BTN_HP) Then
-        mPhase = 1
+        If Game.GameMode = MODE_ARCADE Then mPhase = 0 Else mPhase = 1
         Game.GameState = GS_SELECT
     End If
 End Sub
@@ -264,7 +329,12 @@ Public Sub LevelRender()
     PixelFont.DrawText "1P", 3, 13, cP1
     PixelFont.DrawText "CPU", SCREEN_W - 3, 13, cP2, 1, 2
     BigView mPick(0), 32, False, 0, 63
-    BigView mPick(1), 160, True, 129, SCREEN_W - 1
+    If Game.GameMode = MODE_ARCADE Then
+        PixelFont.DrawBig "?", 160, 48, RGB(110, 50, 60), 3
+        PixelFont.DrawText "ARCADE", cx, 23, cDim, 1, 1
+    Else
+        BigView mPick(1), 160, True, 129, SCREEN_W - 1
+    End If
     PixelFont.DrawBig "VS", cx, 13, RGB(255, 240, 210), 2
 
     For k = 0 To 2

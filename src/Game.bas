@@ -9,10 +9,14 @@ Public Const GS_FIGHT As Long = 1
 Public Const GS_SELECT As Long = 2
 Public Const GS_LEVEL As Long = 3
 Public Const GS_STAGE As Long = 4
+Public Const GS_LADDER As Long = 5     ' arcade: next opponent
+Public Const GS_CONTINUE As Long = 6   ' arcade: lost -> continue countdown
+Public Const GS_ENDING As Long = 7     ' arcade: cleared
 
 Public Const MODE_TRAINING As Long = 0
 Public Const MODE_VSCPU As Long = 1
 Public Const MODE_SANDBOX As Long = 2      ' harness: no rounds, no refills
+Public Const MODE_ARCADE As Long = 3
 
 Public GameState As Long
 Public CpuLevel As Long                 ' CpuAI.LV_EASY / LV_NORMAL / LV_HARD
@@ -56,7 +60,7 @@ Public Sub StartMatch(Optional ByVal seed As Long = 0)
     mPaused = False
     CpuAI.Init CpuLevel, seed
     Dim rounds As Boolean, training As Boolean
-    rounds = (GameMode = MODE_VSCPU)
+    rounds = (GameMode = MODE_VSCPU Or GameMode = MODE_ARCADE)
     training = (GameMode = MODE_TRAINING)
     Match.BeginMatch rounds, training
     GameState = GS_FIGHT
@@ -92,6 +96,9 @@ Public Sub GameTick()
         Exit Sub
     ElseIf GameState = GS_STAGE Then
         Screens.StageTick
+        Exit Sub
+    ElseIf GameState >= GS_LADDER Then
+        Arcade.ScreenTick
         Exit Sub
     End If
 
@@ -142,6 +149,8 @@ Public Sub GameRender()
         Screens.LevelRender
     ElseIf GameState = GS_STAGE Then
         Screens.StageRender
+    ElseIf GameState >= GS_LADDER Then
+        Arcade.ScreenRender
     Else
         dark = (Combat.SuperFreeze > 0)
         Renderer.BeginFrame dark

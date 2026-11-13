@@ -336,6 +336,29 @@ HEUKRIM = dict(
     head="heukrim",
 )
 
+CHEONMA = dict(                          # final boss (arcade): the Heavenly Demon
+    name="cheonma",
+    thigh=8.6, shin=8.6, torso=12.0, upper=6.3, fore=5.9, head_r=3.5,
+    w_thigh=2.0, w_shin=1.65, w_upper=1.6, w_fore=1.45, w_hand=1.6,
+    chest=4.6, waist=3.3, skirt=11.0,
+    palette={
+        "k": "0E080C",
+        "s": "E6CDB8", "S": "B89A86",          # pale skin
+        "h": "141018", "H": "2C2232",          # long black hair
+        "b": "8E1820", "B": "5A0E16",          # crimson robe / shade
+        "w": "E8B848",                          # gold trim / crown
+        "d": "1A1418",                          # black sash
+        "p": "201820", "P": "140E14",
+        "n": "100A0E",
+        "e": "FF4030",                          # glowing red eyes
+    },
+    look=dict(arm_front="b", arm_back="B", arm_front2="b", arm_back2="B",
+              leg_front="p", leg_back="P", boot="n",
+              torso="b", torso_dark="B", skirt="b", skirt_dark="B",
+              belt="d", trim="w", cuff="w"),
+    head="cheonma",
+)
+
 HONGRYEON = dict(
     name="hongryeon",
     thigh=7.7, shin=7.9, torso=9.8, upper=5.1, fore=4.7, head_r=3.3,
@@ -620,6 +643,19 @@ def build(spec, pose):
         cv.put(circle_mask(flower, 1.2), "r")
         trim = seg_mask(pt["neck"], (pt["neck"][0] + fx * 1.5 - ux * 2.5, pt["neck"][1] + fy * 1.5 - uy * 2.5), 0.7) & tm
         cv.c[trim] = "w"
+    elif spec["head"] == "cheonma":
+        hair = hm & ((hu > 0.8) | (hf < -0.9))
+        cv.c[hair] = "h"
+        for k_, (lx, ly, wd) in enumerate(((2.5, 10.5, 1.5), (4.5, 8.0, 1.1))):   # long hair streaming back
+            a0 = (cx - fx * (r - 0.4) + ux * 0.6, cy - fy * (r - 0.4) + uy * 0.6)
+            a1 = (a0[0] - fx * lx - ux * ly, a0[1] - fy * lx - uy * ly)
+            cv.put(seg_mask(a0, a1, wd) & ~hm, "h" if k_ == 0 else "H")
+        crown = hm & (hu > 1.6) & (hu <= 2.5) & (hf > -1.2) & (hf < 1.6)
+        cv.c[crown] = "w"
+        spike = seg_mask((cx + ux * (r + 0.2), cy + uy * (r + 0.2)), (cx + ux * (r + 1.8) + fx * 0.3, cy + uy * (r + 1.8) + fy * 0.3), 0.5)
+        cv.put(spike, "w")
+        trim = seg_mask(pt["neck"], (pt["neck"][0] + fx * 1.5 - ux * 2.5, pt["neck"][1] + fy * 1.5 - uy * 2.5), 0.7) & tm
+        cv.c[trim] = "w"
     elif spec["head"] == "heukrim":
         hair = hm & ((hu > 1.4) | (hf < -1.5))
         cv.c[hair] = "h"
@@ -695,7 +731,7 @@ def build(spec, pose):
             no = (cx + fx * (r * 0.95) - ux * 0.9, cy + fy * (r * 0.95) - uy * 0.9)
             cv.c[circle_mask(no, 0.35) & (cv.c == "s")] = "S"                                           # nose shade
     elif 0 <= ex < CANVAS and 0 <= ey < CANVAS and cv.c[ey, ex] != "":
-        cv.c[ey, ex] = "k"
+        cv.c[ey, ex] = "e" if spec["head"] == "cheonma" else "k"
         if spec.get("hd"):
             mx_, my_ = int(cx + fx * (r * 0.5) - ux * 1.8), int(cy + fy * (r * 0.5) - uy * 1.8)
             if 0 <= mx_ < CANVAS and 0 <= my_ < CANVAS and cv.c[my_, mx_] == "s":
@@ -847,7 +883,7 @@ if __name__ == "__main__":
     only = os.environ.get("ONLY")
     for spec, ov in ((DANWOO, {}), (CHEOLSAN, CHEOLSAN_OVERRIDES), (MUYEONG, MUYEONG_OVERRIDES),
                      (SEOLHWA, SEOLHWA_OVERRIDES), (HEUKRIM, HEUKRIM_OVERRIDES),
-                     (HONGRYEON, HONGRYEON_OVERRIDES)):
+                     (HONGRYEON, HONGRYEON_OVERRIDES), (CHEONMA, HEUKRIM_OVERRIDES)):
         if only and spec["name"] != only:
             continue
         names = generate(spec, ov)

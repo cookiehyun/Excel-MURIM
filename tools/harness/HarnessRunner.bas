@@ -50,6 +50,10 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                     dumpEvery = CLng(p(2))
                 Case "meter"
                     Fighter.F(CLng(p(2))).meter = CLng(p(3))
+                Case "hp"
+                    Fighter.F(CLng(p(2))).health = CLng(p(3))
+                Case "render"
+                    noRender = (p(2) = "0")
                 Case "control": Fighter.SetControl CLng(p(2))
                 Case "dummy": Fighter.SetDummy CLng(p(2))
                 Case "place"

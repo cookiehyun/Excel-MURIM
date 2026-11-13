@@ -75,7 +75,7 @@ End Function
 
 ' Called once per game tick, after the simulation step.
 Public Sub Tick(ByVal frozen As Boolean)
-    Dim i As Long
+    Dim i As Long, won As Boolean
     mT = mT + 1
     Select Case mPhase
     Case MP_INTRO
@@ -130,6 +130,11 @@ Public Sub Tick(ByVal frozen As Boolean)
             If mT >= 30 Then
                 Game.HarnessSeed = (Game.HarnessSeed + 7919) Mod 30011
                 Game.StartMatch Game.HarnessSeed
+            End If
+        ElseIf Game.GameMode = MODE_ARCADE Then
+            If mT >= 50 Or (mT >= 15 And KeyInput.IsPressed(BTN_LP)) Then
+                won = (mMatchWinner = Fighter.Controlled)
+                Arcade.MatchOver won
             End If
         ElseIf KeyInput.IsPressed(BTN_LP) Then
             Game.Restart                                 ' rematch, same settings
@@ -225,7 +230,7 @@ Public Sub Draw()
             t = "YOU LOSE"
         End If
         Banner t, 28, RGB(255, 204, 92), 3
-        If Not Game.AutoRestart Then PixelFont.DrawText "A = REMATCH   S = MENU", cx, 54, RGB(220, 210, 230), 1, 1
+        If Not Game.AutoRestart And Game.GameMode <> MODE_ARCADE Then PixelFont.DrawText "A = REMATCH   S = MENU", cx, 54, RGB(220, 210, 230), 1, 1
     End Select
 End Sub
 
