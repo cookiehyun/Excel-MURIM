@@ -67,7 +67,7 @@ Public Sub TitleRender()
     Renderer.DrawSprite Data.AnimFrame(Fighter.F(1).aIdle, mMenuTick), SCREEN_W - 30, GROUND_Y, True
     ' title
     PixelFont.DrawBig "EXCEL", cx, 5, RGB(230, 220, 200), 2
-    PixelFont.DrawBig "MUHYEOP", cx, 21, RGB(255, 204, 92), 3
+    PixelFont.DrawBig "MURIM", cx, 21, RGB(255, 204, 92), 3
     Renderer.FillRect cx - 50, 46, 100, 1, RGB(200, 150, 60)
     Renderer.FillRect cx - 38, 48, 76, 1, RGB(140, 100, 40)
     Renderer.FillRect cx - 52, 45, 3, 3, RGB(200, 150, 60)
