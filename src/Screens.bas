@@ -160,8 +160,8 @@ Private Function MenuLabel(ByVal k As Long) As String
     Dim t As Variant
     Select Case mMenuLevel
     Case 0: t = Array("SINGLE PLAYER", "MULTIPLAYER")
-    Case 1: t = Array("ARCADE", "VS CPU  2 VS 2", "TRAINING")
-    Case Else: t = Array("VERSUS  1P VS 2P", "KEY CONFIG")
+    Case 1: t = Array("ARCADE", "TAG BATTLE", "TRAINING")
+    Case Else: t = Array("VERSUS", "KEY CONFIG")
     End Select
     MenuLabel = t(k)
 End Function
