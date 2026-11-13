@@ -1,0 +1,3 @@
+CMD start 0 2 1 911 1
+CMD chars cheolsan hongryeon
+3000 -
