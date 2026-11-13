@@ -1,0 +1,11 @@
+CMD start 0 1 0 1
+CMD chars cheonma danwoo
+CMD dummy 1
+CMD place 50 66
+3 -
+1 A
+3 -
+1 A
+3 -
+1 S
+40 -

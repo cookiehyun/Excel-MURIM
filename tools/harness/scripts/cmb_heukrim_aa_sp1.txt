@@ -1,0 +1,13 @@
+CMD start 0 1 0 1
+CMD chars heukrim danwoo
+CMD dummy 1
+CMD place 50 66
+3 -
+1 A
+3 -
+1 A
+4 -
+1 D
+1 D+R
+1 R+S
+40 -

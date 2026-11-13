@@ -1,0 +1,11 @@
+# not enough naegong: the fireball motion gives a plain jab instead
+CMD start 0 1 0 1
+CMD chars danwoo cheolsan
+CMD dummy 1
+CMD place 40 170
+3 -
+CMD ng 0 100
+1 D
+1 D+R
+1 R+A
+20 -

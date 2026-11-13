@@ -195,7 +195,7 @@ Private Sub SetupCharacter(ByVal i As Long, ByVal prefix As String, ByVal x As D
         '         prefix      x  walk dash  jumpVY jumpVX halfW  hp    hurtH hurtHC
         Setup i, prefix, x, 1.4, 2.6, -4#, 1.4, 8, 1060, 34, 25
     Case "muyeong"
-        Setup i, prefix, x, 2#, 3#, -4.4, 1.7, 6, 980, 30, 21
+        Setup i, prefix, x, 2#, 3#, -4.4, 1.7, 6, 940, 30, 21
     Case "seolhwa"
         Setup i, prefix, x, 2.1, 3.3, -4.8, 2#, 5, 850, 29, 20
     Case "heukrim"

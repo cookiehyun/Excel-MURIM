@@ -1,0 +1,9 @@
+CMD start 0 1 0 1
+CMD chars muyeong danwoo
+CMD dummy 1
+CMD place 50 66
+3 -
+1 D+Z
+4 D
+1 D+X
+40 -
