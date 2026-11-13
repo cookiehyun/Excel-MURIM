@@ -35,7 +35,7 @@ Public Sub Init()
     rPrefix(4) = "heukrim": rName(4) = "HEUKRIM": rStyle(4) = "ZONER"
     rStat(4, 0) = 3: rStat(4, 1) = 5: rStat(4, 2) = 4: rStat(4, 3) = 3: rHeadX(4) = 4: rHeadY(4) = -32
     rPrefix(5) = "hongryeon": rName(5) = "HONGRYEON": rStyle(5) = "FAN DANCER"
-    rStat(5, 0) = 2: rStat(5, 1) = 4: rStat(5, 2) = 4: rStat(5, 3) = 4: rHeadX(5) = 1: rHeadY(5) = -30
+    rStat(5, 0) = 2: rStat(5, 1) = 4: rStat(5, 2) = 4: rStat(5, 3) = 3: rHeadX(5) = 1: rHeadY(5) = -30
     cGold = RGB(240, 190, 80)
     cDim = RGB(130, 120, 150)
     cP1 = RGB(90, 170, 255)

@@ -123,4 +123,4 @@ hongryeon  throw S    3       1      8        100    0       0         H     1  
 hongryeon  sp1  S  5  1  16  70  10  6  H  0  0  0  9  9  sp_0  sp_1  PB  3  2  26P  300
 hongryeon  sp2  S  2  6  12  90  14  8  H  1  -3  -41  12  30  dp_0  dp_1  U  -4.5  4  623K  250
 hongryeon  super S    8       1      18       300    8       4         H     1  0   0   22  40  sp_0       sp_1      SF   0    6  2626P
-hongryeon  ovh  S  8  2  10  65  11  6  O  0  9  -37  10  16  ovh_0  ovh_1  N  1.0  0  -
+hongryeon  ovh  S  8  2  10  55  11  6  O  0  9  -34  10  12  ovh_0  ovh_1  N  1.0  0  -
