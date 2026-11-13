@@ -55,6 +55,9 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                     dumpEvery = CLng(p(2))
                 Case "meter"
                     Fighter.F(CLng(p(2))).meter = CLng(p(3))
+                Case "rendermode"
+                    Renderer.RenderMode = CLng(p(2))
+                    Renderer.Invalidate
                 Case "ng"
                     Fighter.F(CLng(p(2))).naegong = CLng(p(3))
                 Case "hp"

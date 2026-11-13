@@ -41,6 +41,12 @@ Private mSlotColor(0 To MAX_SLOTS - 1) As Long
 Private mSlotAddr(0 To MAX_SLOTS - 1) As String
 Private mSlots As Long
 Public KeepScreenUpdating As Boolean      ' benchmark option: never switch ScreenUpdating off
+' RenderMode 0: paint fills per color (one Range call per color per frame)
+' RenderMode 1: write palette numbers into the cells with ONE Range.Value call per frame;
+'               a conditional-format rule per color turns each number into its fill color
+Public RenderMode As Long
+Private mPalIdx As Collection             ' color -> palette number (mode 1)
+Private mPalCount As Long
 ' dirty spans per row: this frame (mD0..mD1) and the previous frame (mP0..mP1); x0 > x1 = clean
 Private mD0(0 To SCREEN_H - 1) As Long
 Private mD1(0 To SCREEN_H - 1) As Long
@@ -57,9 +63,15 @@ Private mSim() As Long                    ' headless: what the sheet would show
 
 Public Sub Init()
     Dim x As Long, y As Long
+    Set mPalIdx = New Collection
+    mPalCount = 0
     If Not Headless Then
         Set mWs = GetSheet(GAME_SHEET)
+        mWs.Cells.FormatConditions.Delete
+        mWs.Cells.ClearContents
+        mWs.Cells.NumberFormat = "General"
         mWs.Cells.Interior.Color = RGB(16, 16, 20)     ' dark frame around the play area
+        If RenderMode = 1 Then PlayRange().NumberFormat = ";;;"   ' numbers stay invisible
         SquareCells mWs, ORG_ROW, ORG_COL, SCREEN_H, SCREEN_W, PIXEL_PT
         mWs.Activate
         ActiveWindow.DisplayGridlines = False
@@ -258,6 +270,10 @@ End Sub
 ' Paint differences to the sheet. Returns number of Range paint calls.
 Public Function Flush() As Long
     Dim x As Long, y As Long, x0 As Long, c As Long, k As Long, a0 As Long, a1 As Long
+    If RenderMode = 1 Then
+        Flush = FlushValues()
+        Exit Function
+    End If
     mPaintCalls = 0: mRuns = 0: mRects = 0: mSlots = 0: mOn = 0
     If Not Headless And Not KeepScreenUpdating Then Application.ScreenUpdating = False
     For y = 0 To SCREEN_H - 1
@@ -298,6 +314,73 @@ Public Function Flush() As Long
     mFull = False
     If Headless Then VerifySim
     Flush = mPaintCalls
+End Function
+
+' Mode 1: find the box that changed, write it as palette numbers in one call.
+Private Function FlushValues() As Long
+    Dim x As Long, y As Long, a0 As Long, a1 As Long, bx0 As Long, bx1 As Long, by0 As Long, by1 As Long
+    Dim arr() As Variant, c As Long
+    mPaintCalls = 0: mRuns = 0: mRects = 0
+    bx0 = SCREEN_W: bx1 = -1: by0 = SCREEN_H: by1 = -1
+    For y = 0 To SCREEN_H - 1
+        If mFull Then
+            a0 = 0: a1 = SCREEN_W - 1
+        Else
+            a0 = mD0(y): a1 = mD1(y)
+            If mP0(y) < a0 Then a0 = mP0(y)
+            If mP1(y) > a1 Then a1 = mP1(y)
+        End If
+        For x = a0 To a1
+            If mBack(x, y) <> mFront(x, y) Then
+                If x < bx0 Then bx0 = x
+                If x > bx1 Then bx1 = x
+                If y < by0 Then by0 = y
+                by1 = y
+            End If
+        Next x
+        mP0(y) = mD0(y): mP1(y) = mD1(y)
+        mD0(y) = SCREEN_W: mD1(y) = -1
+    Next y
+    mFull = False
+    If bx1 >= 0 Then
+        ReDim arr(1 To by1 - by0 + 1, 1 To bx1 - bx0 + 1)
+        For y = by0 To by1
+            For x = bx0 To bx1
+                c = mBack(x, y)
+                arr(y - by0 + 1, x - bx0 + 1) = PalIndex(c)
+                mFront(x, y) = c
+                If Headless Then mSim(x, y) = c
+            Next x
+        Next y
+        If Not Headless Then
+            If Not KeepScreenUpdating Then Application.ScreenUpdating = False
+            mWs.Range(mWs.Cells(ORG_ROW + by0, ORG_COL + bx0), mWs.Cells(ORG_ROW + by1, ORG_COL + bx1)).Value = arr
+            If Not KeepScreenUpdating Then Application.ScreenUpdating = True
+        End If
+        mPaintCalls = 1
+        mRects = 1
+    End If
+    If Headless Then VerifySim
+    FlushValues = mPaintCalls
+End Function
+
+' Palette number of a color; a new color gets a conditional-format rule on the play area.
+Private Function PalIndex(ByVal c As Long) As Long
+    On Error GoTo NewColor
+    PalIndex = mPalIdx.Item(CStr(c))
+    Exit Function
+NewColor:
+    mPalCount = mPalCount + 1
+    mPalIdx.Add mPalCount, CStr(c)
+    If Not Headless Then
+        ' Type 1 = xlCellValue, Operator 3 = xlEqual
+        PlayRange().FormatConditions.Add(1, 3, "=" & mPalCount).Interior.Color = c
+    End If
+    PalIndex = mPalCount
+End Function
+
+Private Function PlayRange() As Range
+    Set PlayRange = mWs.Range(mWs.Cells(ORG_ROW, ORG_COL), mWs.Cells(ORG_ROW + SCREEN_H - 1, ORG_COL + SCREEN_W - 1))
 End Function
 
 ' A run on row y: grow the matching rectangle from row y-1, or start a new one.

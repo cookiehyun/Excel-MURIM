@@ -1,0 +1,15 @@
+CMD rendermode 1
+# tag: switch danwoo -> heukrim, then fireball motion: heukrim's needles must fly (not danwoo's palm blast)
+CMD start 0 1 0 1
+CMD tagchars danwoo heukrim cheolsan seolhwa
+CMD dummy 1
+CMD place 60 150
+55 -
+1 C
+25 -
+1 D
+1 D+R
+1 R+A
+12 -
+1 ESC
+6 -

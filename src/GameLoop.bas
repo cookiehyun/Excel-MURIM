@@ -107,12 +107,14 @@ End Sub
 ' seconds with each paint option and reports milliseconds per frame.
 ' Run: Alt+F8 -> RenderBenchmark (takes about 20 seconds).
 Public Sub RenderBenchmark()
-    Dim results As String, v As Long, f As Long, t0 As Double, tr As Double, calls As Long
+    Dim results As String, v As Long, f As Long, t0 As Double, tr As Double, calls As Long, keepMode As Long, lbl As String
     If mRunning Then Exit Sub
     On Error GoTo Fail
     BeginSession
-    For v = 0 To 1
-        Renderer.KeepScreenUpdating = (v = 1)
+    keepMode = Renderer.RenderMode
+    For v = 0 To 3
+        Renderer.KeepScreenUpdating = (v = 1 Or v = 3)
+        Renderer.RenderMode = IIf(v >= 2, 1, 0)
         Game.GameInit False
         Game.WatchMode = True
         Game.GameMode = MODE_VSCPU
@@ -127,16 +129,23 @@ Public Sub RenderBenchmark()
             tr = tr + (WinApi.NowSec() - t0)
             calls = calls + Renderer.PaintCalls
         Next f
-        results = results & IIf(v = 0, "ScreenUpdating off/on per frame: ", "ScreenUpdating always on: ") & _
-                  Format(1000 * tr / 150, "0.0") & " ms/frame, " & Format(calls / 150, "0.0") & " paint calls" & vbCrLf
+        Select Case v
+        Case 0: lbl = "A  fills, ScreenUpdating off/on: "
+        Case 1: lbl = "B  fills, ScreenUpdating always on: "
+        Case 2: lbl = "C  values + formatting, off/on: "
+        Case Else: lbl = "D  values + formatting, always on: "
+        End Select
+        results = results & lbl & Format(1000 * tr / 150, "0.0") & " ms/frame" & vbCrLf
     Next v
     Renderer.KeepScreenUpdating = False
+    Renderer.RenderMode = keepMode
     Game.WatchMode = False
     EndSession
     MsgBox results & vbCrLf & "Lower is better. Send these numbers to tune the renderer.", vbInformation, "Excel Murim"
     Exit Sub
 Fail:
     Renderer.KeepScreenUpdating = False
+    Renderer.RenderMode = 0
     EndSession
     MsgBox "Error " & Err.Number & ": " & Err.Description, vbExclamation, "Excel Murim"
 End Sub
