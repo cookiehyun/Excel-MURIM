@@ -247,7 +247,7 @@ Public Sub SelectRender()
     Renderer.FillRect 63, 10, 1, 90, cP1
     Renderer.FillRect 128, 10, 1, 90, cP2
     If TagMode() Then
-        If PlayerPhase() Then t = "SELECT TEAM " & (mPhase + 1) & "/2" Else t = "CPU TEAM " & (mPhase - 1) & "/2"
+        If PlayerPhase() Then t = "YOUR TEAM " & (mPhase + 1) & " OF 2" Else t = "CPU TEAM " & (mPhase - 1) & " OF 2"
         PixelFont.DrawBig t, cx, 2, cGold, 1
     ElseIf mPhase = 0 Then
         PixelFont.DrawBig "SELECT FIGHTER", cx, 2, cGold, 1

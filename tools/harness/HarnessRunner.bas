@@ -38,6 +38,11 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                     If UBound(p) >= 6 Then Game.GameMode = CLng(p(6))      ' 0 training, 1 VS CPU
                     Game.HarnessSeed = CLng(p(5))
                     Game.StartMatch CLng(p(5))
+                Case "tagchars"
+                    Game.GameMode = MODE_TAG
+                    Game.P1Char = p(2): Game.P1Char2 = p(3)
+                    Game.P2Char = p(4): Game.P2Char2 = p(5)
+                    Game.StartMatch 1
                 Case "chars"
                     Game.P1Char = p(2)
                     Game.P2Char = p(3)

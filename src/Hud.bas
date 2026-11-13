@@ -136,8 +136,8 @@ Private Sub DrawReserve(ByVal side As Long, ByVal ox As Long, ByVal fromRight As
     mx = Tag.ReserveMax(side)
     w = (RW * Tag.ReserveHealth(side) + mx - 1) \ mx
     wr = (RW * Tag.ReserveRed(side) + mx - 1) \ mx
-    If Tag.ReserveHealth(side) <= 0 Then c = RGB(90, 80, 100) Else c = RGB(170, 160, 190)
-    nm = "+" & UCase$(Tag.ReservePrefix(side))
+    If Tag.ReserveHealth(side) <= 0 Then c = RGB(90, 80, 100) Else c = RGB(140, 130, 160)
+    nm = UCase$(Tag.ReservePrefix(side))
     If fromRight Then
         Renderer.FillRect ox + 1 + BAR_W - RW - 1, BAR_Y + 4, RW + 2, 2, cBorder
         Renderer.FillRect ox + 1 + BAR_W - wr, BAR_Y + 4, wr, 1, cRed

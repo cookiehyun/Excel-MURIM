@@ -1,0 +1,3 @@
+CMD start 0 2 1 77 1
+CMD tagchars danwoo seolhwa cheolsan hongryeon
+2400 -
