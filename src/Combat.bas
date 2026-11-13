@@ -185,6 +185,7 @@ Public Sub ApplyAttack(ByVal a As Long, ByVal d As Long, ByVal mv As Long, ByVal
             FX.Spawn cx, cy, FX_HIT
             HitStop = 3
         End If
+        If heavy And Not isProj And Fighter.F(a).prefix = "cheolsan" Then HitStop = HitStop + 2   ' his hits land heavier
         If counter Then ShowText "COUNTER", 20, a
         If mCombo(a) >= 2 Then
             mComboShown(a) = mCombo(a)

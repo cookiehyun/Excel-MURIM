@@ -1,0 +1,11 @@
+# cheolsan heavy punch and heavy kick on an idle dummy
+CMD start 0 1 0 1
+CMD chars cheolsan danwoo
+CMD dummy 1
+CMD place 70 92
+3 -
+1 S
+26 -
+CMD place 70 94
+1 X
+26 -

@@ -234,11 +234,11 @@ TUCK_F = (100, -10)
 TUCK_B = (60, -45)
 
 def P(lean=8, lf=STANCE_F, lb=STANCE_B, af=GUARD_F, ab=GUARD_B,
-      ground="feet", hip_y=None, rot=0, open_hand=False, wa=None, flip=False, trail=None):
+      ground="feet", hip_y=None, rot=0, open_hand=False, wa=None, flip=False, trail=None, dust=False):
     """wa = weapon angle (absolute, from down, + forward); None = continue the front forearm
     flip = mirror the finished pose (the fighter turned around mid-spin)"""
     return dict(lean=lean, lf=lf, lb=lb, af=af, ab=ab, ground=ground,
-                hip_y=hip_y, rot=rot, open_hand=open_hand, wa=wa, flip=flip, trail=trail)
+                hip_y=hip_y, rot=rot, open_hand=open_hand, wa=wa, flip=flip, trail=trail, dust=dust)
 
 def blend(a, b, t):
     """pose part-way from a to b (0 = a, 1 = b); used for in-between frames"""
@@ -328,13 +328,26 @@ DANWOO_OVERRIDES = {
     "sp_a": P(lean=4, lf=(32, 2), lb=(-32, -18), af=(-40, 60), ab=(-50, 55), open_hand=True),
 }
 
+CS_ARMS = dict(af=(70, 108), ab=(42, 118), open_hand=True)     # wide grappler's arms
 CHEOLSAN_OVERRIDES = {
-    "idle_0": P(lean=12, lf=(32, 8), lb=(-32, -12), af=(60, 105), ab=(30, 120), open_hand=True),
-    "idle_1": P(lean=13, lf=(35, 11), lb=(-35, -15), af=(58, 100), ab=(28, 115), open_hand=True),
-    "walk_0": P(lean=12, lf=(30, 8), lb=(-22, -25), af=(60, 105), ab=(30, 120), open_hand=True),
-    "walk_1": P(lean=12, lf=(10, 0), lb=(-5, -40), af=(60, 105), ab=(30, 120), open_hand=True),
-    "walk_2": P(lean=12, lf=(-20, -25), lb=(30, 8), af=(60, 105), ab=(30, 120), open_hand=True),
-    "walk_3": P(lean=12, lf=(-5, -40), lb=(10, 0), af=(60, 105), ab=(30, 120), open_hand=True),
+    # low, wide, rooted stance
+    "idle_0": P(lean=14, lf=(38, 12), lb=(-38, -16), **CS_ARMS),
+    "idle_1": P(lean=15, lf=(40, 14), lb=(-40, -18), af=(68, 104), ab=(40, 114), open_hand=True),
+    "walk_0": P(lean=14, lf=(32, 10), lb=(-24, -26), **CS_ARMS),
+    "walk_1": P(lean=14, lf=(12, 2), lb=(-6, -40), **CS_ARMS),
+    "walk_2": P(lean=14, lf=(-22, -26), lb=(32, 10), **CS_ARMS),
+    "walk_3": P(lean=14, lf=(-6, -40), lb=(12, 2), **CS_ARMS),
+    # light: short heavy palm shove
+    "lp_0": P(lean=10, lf=(36, 10), lb=(-36, -16), af=(40, 110), ab=(42, 118), open_hand=True),
+    "lp_1": P(lean=22, lf=(40, 6), lb=(-40, -22), af=(90, 88), ab=(40, 112), open_hand=True),
+    # heavy: both fists raised high, brought down like a hammer, the floor shakes
+    "hp_0": P(lean=-12, lf=(30, 6), lb=(-34, -16), af=(176, 160), ab=(172, 156)),
+    "hp_1": P(lean=42, lf=(50, 4), lb=(-50, -42), af=(100, 22), ab=(96, 26), trail=("arm", 120), dust=True),
+    # kicks: low stomping kick and a heavy front push kick
+    "lk_0": P(lean=8, lf=(80, 120), lb=(-30, -12), **CS_ARMS),
+    "lk_1": P(lean=12, lf=(62, 50), lb=(-34, -14), af=(70, 108), ab=(42, 118), open_hand=True, dust=True),
+    "hk_0": P(lean=0, lf=(115, 160), lb=(-12, 0), af=(60, 130), ab=(20, 140), open_hand=True),
+    "hk_1": P(lean=-12, lf=(98, 94), lb=(-12, 0), af=(50, 140), ab=(10, 150), open_hand=True, dust="back"),
     "sp_0": P(lean=10, af=(110, 120), ab=(100, 125), open_hand=True),
     "sp_1": P(lean=30, lf=(40, 0), lb=(-40, -40), af=(95, 75), ab=(90, 80), open_hand=True),
     # shoulder charge: stomping steps while driving forward
@@ -905,7 +918,15 @@ def build(spec, pose):
     else:
         cv.outline()
     tr = pose.get("trail")
-    if tr and (tr[0] in ("kick", "palm") or "tip" in pt):
+    if pose.get("dust"):
+        # puffs of dust kicked up on the floor around the front foot
+        gy = AY - 0.5
+        fx0 = pt["fB" if pose["dust"] == "back" else "fF"][0]
+        for dx_, r_ in ((-6.0, 1.9), (-2.5, 2.7), (2.5, 2.5), (6.2, 1.8)):
+            m_ = circle_mask((fx0 + dx_, gy - r_ * 1.1), r_) & (cv.c == "")
+            cv.c[m_] = "u"
+            cv.c[m_ & circle_mask((fx0 + dx_ - 0.5, gy - r_ * 1.4), r_ * 0.55)] = "U"
+    if tr and (tr[0] in ("kick", "palm", "arm") or "tip" in pt):
         # motion smear: a light arc swept by the blade tip (around the shoulder) or the kicking foot
         # (around the hip), from angle a0 to a1 (degrees from straight down, + = forward)
         if tr[0] == "kick":
@@ -913,6 +934,12 @@ def build(spec, pose):
             ex_, ey_ = pt["fF"]
             a1 = math.degrees(math.atan2(ex_ - cx_, ey_ - cy_))
             a0 = a1 - tr[1]
+        elif tr[0] == "arm":
+            # a fist swung around the shoulder: arc from (hand angle + sweep) to the hand
+            cx_, cy_ = pt["shoulder"]
+            ex_, ey_ = pt["hF"]
+            a1 = math.degrees(math.atan2(ex_ - cx_, ey_ - cy_))
+            a0 = a1 + tr[1]
         elif tr[0] == "palm":
             # a push of wind: half ring in front of the front hand
             cx_, cy_ = pt["hF"][0] + 0.5, pt["hF"][1]
@@ -926,7 +953,7 @@ def build(spec, pose):
         ys_, xs_ = mgrid()
         dx_, dy_ = xs_ + 0.5 - sx, ys_ + 0.5 - sy
         dist = np.hypot(dx_, dy_)
-        R_ = math.hypot(ex_ - sx, ey_ - sy) + (1.0 if tr[0] == "kick" else 0)
+        R_ = math.hypot(ex_ - sx, ey_ - sy) + {"kick": 1.0, "arm": 3.5}.get(tr[0], 0)
         pang = np.degrees(np.arctan2(dx_, dy_)) % 360
         lo, hi = min(a0, a1) % 360, max(a0, a1) % 360
         inarc = (pang >= lo) & (pang <= hi) if lo <= hi else (pang >= lo) | (pang <= hi)
@@ -978,6 +1005,8 @@ def generate(spec, overrides):
         spec = dict(spec)
         for k in SCALE_KEYS:
             spec[k] = spec[k] * SPRITE_SCALE
+    if "u" not in spec["palette"]:
+        spec = dict(spec, palette=dict(spec["palette"], u="B8A486", U="D8CCB4"))   # dust
     if "t" not in spec["palette"]:
         spec = dict(spec, palette=dict(spec["palette"], t="EEF2F8", T="B8C4D4"))   # motion trail
     if spec["name"] in os.environ.get("HD", "").split(",") or spec.get("hd"):
