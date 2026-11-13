@@ -90,7 +90,7 @@ Public Function RunScript(ByVal dataDir As String, ByVal script As String, ByVal
                         lastPhase = Match.Phase
                         GoTo NextTick
                     End If
-                    Print #f, "T " & tick & " " & Renderer.PaintCalls & " " & Renderer.RunCount & " " & Combat.HitStop & _
+                    Print #f, "T " & tick & " " & Renderer.PaintCalls & " " & Renderer.RectCount & " " & Combat.HitStop & _
                               " " & Game.GameState & " " & Combat.ComboCount(0) & " " & Combat.ComboCount(1) & _
                               " M" & Match.Phase & "/" & Match.Wins(0) & "-" & Match.Wins(1) & _
                               " | " & FighterLine(0) & " | " & FighterLine(1)

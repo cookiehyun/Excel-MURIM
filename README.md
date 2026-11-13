@@ -28,7 +28,7 @@ Windows 엑셀(.xlsm) 전용입니다. 맥 엑셀에서는 돌아가지 않습�
 | 메뉴 | 모드 | 내용 |
 |---|---|---|
 | SINGLE PLAYER | ARCADE | 캐릭터와 난이도를 고르고 나머지 5명과 차례로 싸운 뒤 최종 보스 천마와 대결. 이기면 캐릭터별 엔딩 |
-| SINGLE PLAYER | TAG BATTLE | 2명씩 팀을 짜서 CPU 팀과 싸웁니다. C 키로 교체 |
+| SINGLE PLAYER | VS CPU | 2명씩 팀을 짜서 CPU 팀과 싸웁니다. C 키로 교체 |
 | SINGLE PLAYER | TRAINING | 시간 제한 없음. 콤보가 끝나면 체력이 다시 차고, 내공과 게이지는 항상 가득 |
 | MULTIPLAYER | VERSUS | 키보드 하나로 1P와 2P가 1대1로 대결 |
 | MULTIPLAYER | KEY CONFIG | 1P·2P 키 바꾸기. `data/keys.txt`에 저장됩니다 |
@@ -38,7 +38,7 @@ Windows 엑셀(.xlsm) 전용입니다. 맥 엑셀에서는 돌아가지 않습�
 - 지면 CONTINUE? 화면이 뜹니다. 9초 안에 A를 누르면 같은 상대와 다시 싸우고, S를 누르거나 시간이 지나면 게임 오버입니다.
 - 천마는 체력 1400에 흑림 계열 기술을 더 강하게 씁니다(마공탄, 순간이동, 궁극기 천마무황).
 
-### TAG BATTLE
+### VS CPU
 - 내 팀 2명을 고른 다음 CPU 팀 2명을 고릅니다.
 - 서 있거나 걷거나 앉아 있을 때 C를 누르면 교체됩니다. 한 번 바꾸면 2초 동안은 다시 못 바꿉니다. 들어오는 캐릭터는 위에서 뛰어내리는데, 내려오는 동안에는 맞을 수 있습니다.
 - 맞은 데미지의 절반은 체력바에 빨갛게 남고, 쉬는 동안 천천히 돌아옵니다. 쉬는 캐릭터는 내공도 빨리 찹니다.
@@ -63,7 +63,7 @@ Windows 엑셀(.xlsm) 전용입니다. 맥 엑셀에서는 돌아가지 않습�
 | A + Z 동시 (가까이서) | 잡기. 잡힌 직후 A + Z를 누르면 풀 수 있음 (커맨드 잡기는 못 풂) |
 | 상대 반대쪽 | 가드. 앉은 발차기는 앉아서, 점프 공격은 서서 막아야 함 |
 | →→ / ←← | 대시 / 백대시 |
-| C | 교체 (TAG BATTLE) |
+| C | 교체 (VS CPU) |
 | Esc | 경기 중에는 일시정지, 시작 화면에서는 게임 종료 |
 
 2인 대전 기본 키 (KEY CONFIG에서 바꿀 수 있고, 이미 쓰는 키를 고르면 두 키가 서로 바뀝니다)
@@ -133,7 +133,7 @@ Pick SINGLE PLAYER or MULTIPLAYER on the title screen. In menus, ↑↓ moves, A
 | Menu | Mode | What it is |
 |---|---|---|
 | SINGLE PLAYER | ARCADE | Pick a fighter and a level, beat the other five, then face the final boss Cheonma. Each fighter has an ending |
-| SINGLE PLAYER | TAG BATTLE | Two-fighter teams against a CPU team. Press C to switch |
+| SINGLE PLAYER | VS CPU | Two-fighter teams against a CPU team. Press C to switch |
 | SINGLE PLAYER | TRAINING | No timer. Health refills after a combo; inner energy and super gauge stay full |
 | MULTIPLAYER | VERSUS | 1P vs 2P on one keyboard |
 | MULTIPLAYER | KEY CONFIG | Change 1P / 2P keys. Saved to `data/keys.txt` |
@@ -143,7 +143,7 @@ Pick SINGLE PLAYER or MULTIPLAYER on the title screen. In menus, ↑↓ moves, A
 - Lose and you get CONTINUE?. Press A within 9 seconds to retry the same fight; press S or let it run out and it's game over.
 - Cheonma has 1400 HP and a stronger version of Heukrim's moves (demon orb, teleport, super Cheonma Muhwang).
 
-### TAG BATTLE
+### VS CPU
 - Pick your two fighters, then the CPU's two.
 - Press C while standing, walking or crouching to switch. After a switch you have to wait 2 seconds. The incoming fighter drops in from above and can be hit on the way down.
 - Half of the damage you take stays on the health bar in red and slowly comes back while that fighter rests. A resting fighter also refills inner energy faster.
@@ -168,7 +168,7 @@ Single-player keys. Two-player keys are in the second table.
 | A + Z together (close) | Throw. Press A + Z right after being grabbed to break it (command grabs can't be broken) |
 | Away from the opponent | Block. Crouching kicks must be blocked low, jump attacks high |
 | →→ / ←← | Dash / back dash |
-| C | Switch (TAG BATTLE) |
+| C | Switch (VS CPU) |
 | Esc | Pause during a fight, quit on the title screen |
 
 Two-player default keys (change them in KEY CONFIG; picking a key that's already used swaps the two)
