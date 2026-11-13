@@ -40,7 +40,7 @@ cheolsan   chk   C    6       3      12       110    12      9         L     1  
 cheolsan   jp    A    4       4      0        80     8       6         O     0  8   -23 7   6   jump       jp        N    0    0  -
 cheolsan   jk    A    5       5      0        100    9       7         O     0  11  -13 8   6   jump       jk        N    0    0  -
 cheolsan  throw  S  3  1  8  130  0  0  H  1  0  -34  20  12  throw_0  throw_1  T  0  0  -
-cheolsan  sp1  S  3  1  18  145  0  0  H  1  0  -34  20  12  throw_0  throw_1  G  0  0  624P  300
+cheolsan  sp1  S  3  1  18  135  0  0  H  1  0  -34  20  12  throw_0  throw_1  G  0  0  624P  300
 cheolsan  sp2  S  4  5  12  120  14  10  H  1  8  -30  12  20  rush_0  rush_1  R  4.5  0  26P  300
 cheolsan   super S    3       1      16       380    0       0         H     1  0   -36 40  14  throw_0    throw_1   SG   0    0  2626P
 cheolsan  ovh  S  8  2  10  95  11  6  O  0  12  -34  8  12  ovh_0  ovh_1  N  1.0  0  -
@@ -78,7 +78,7 @@ seolhwa    super S    4       5      20       300    12      6         H     1  
 seolhwa  ovh  S  8  2  10  50  11  6  O  0  8  -29  7  11  ovh_0  ovh_1  N  1.0  0  -
 # heukrim (zoner): fast poison needles and a teleport, but slow normals and average health
 heukrim    lp    S    3       2      5        30     6       4         H     0  10  -29 7   5   lp_0       lp_1      N    0    0  -
-heukrim  hp  S  4  3  9  90  11  8  H  0  11  -29  8  7  hp_0  hp_1  N  1.2  0  -
+heukrim  hp  S  4  3  9  80  11  8  H  0  11  -29  8  7  hp_0  hp_1  N  1.2  0  -
 heukrim  lk  S  3  2  6  40  7  5  H  0  12  -19  8  6  lk_0  lk_1  N  0  0  -
 heukrim  hk  S  5  3  9  100  12  9  H  0  9  -30  8  6  hk_0  hk_1  N  1.2  0  -
 heukrim    clp   C    3       2      5        28     6       4         H     0  10  -22 7   5   crouch     clp       N    0    0  -
