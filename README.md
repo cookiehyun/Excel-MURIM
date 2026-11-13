@@ -116,7 +116,7 @@ P = A 또는 S, K = Z 또는 X, → 는 상대 쪽. 궁극기는 게이지 MAX�
 | 천마 | S → ↓↘→ + S (마공탄) | 2 / 180 |
 | 천마 | S → ↓→↓→ + S (궁극기 천마무황) | 8 / 475 |
 
-밸런스: CPU끼리 측정한 전체 승률 44~54% ([docs/BALANCE.md](docs/BALANCE.md)).
+밸런스: CPU끼리 측정한 전체 승률 45~58% ([docs/BALANCE.md](docs/BALANCE.md)).
 
 ---
 
