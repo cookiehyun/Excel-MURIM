@@ -6,7 +6,7 @@
 
 처음 한 번만 세팅하면 된다. 자세한 단계별 안내: [docs/SETUP_KO.md](docs/SETUP_KO.md)
 
-1. 엑셀에서 새 통합 문서를 만들고 `STREET/`에 `ExcelMurim.xlsm`으로 저장한다.
+1. 엑셀에서 새 통합 문서를 만들고 `excel-murim/`에 `ExcelMurim.xlsm`으로 저장한다.
    (OneDrive 동기화 폴더는 피하고 로컬 경로를 쓴다.)
 2. 파일 > 옵션 > 보안 센터 > 보안 센터 설정 > 매크로 설정 →
    **"VBA 프로젝트 개체 모델에 안전하게 액세스할 수 있음"**을 켠다.
@@ -152,7 +152,7 @@ P = A 또는 S, K = Z 또는 X, → 는 상대 쪽. 궁극기는 게이지 MAX�
 ### 폴더 구조
 
 ```
-STREET/
+excel-murim/
   ExcelMurim.xlsm   <- 엑셀에서 직접 생성 (git에 없음)
   src/                <- VBA 모듈(.bas)
     GameLoop.bas      고정 타임스텝 루프, 엑셀 세션 설정/복구
