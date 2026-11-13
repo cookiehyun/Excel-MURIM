@@ -142,7 +142,7 @@ Public Sub ApplyAttack(ByVal a As Long, ByVal d As Long, ByVal mv As Long, ByVal
     If isProj Or mt = MT_RUSH Then hits = Data.MvP2(mv)
     If hits < 1 Then hits = 1
     heavy = (Data.MvDamage(mv) >= 80)
-    If heavy Then push = 2.2 Else push = 1.3
+    If heavy Then push = 2.2 Else push = 0.8      ' light hits push less so chains reach a third hit
     If Not lastHit Then push = 0.4
 
     If (mt = MT_SUPER_RUSH Or mt = MT_SUPER_TELE) And Not Blocks(d, Data.MvLevel(mv)) Then

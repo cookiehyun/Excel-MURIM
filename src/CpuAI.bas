@@ -317,6 +317,14 @@ Private Function Neutral(ByVal i As Long, ByVal o As Long, ByVal v As Long, ByVa
         mPunishDecided(i) = False
     End If
 
+    ' 3b. opponent sits in a crouch guard up close: break it with the overhead (forward + S)
+    If Fighter.F(o).crouch And Fighter.F(o).onGround And dist < 30 Then
+        If (Fighter.F(o).state = ST_CROUCH Or Fighter.F(o).state = ST_GUARD) And Rnd < 0.05 * (1 + pAggr) Then
+            QAdd i, 6, B_HP
+            Exit Function
+        End If
+    End If
+
     ' 4. super when the gauge is full
     meFull = (Fighter.F(i).meter >= METER_MAX)
     If meFull And Rnd < 0.04 * (1 + pAggr) Then

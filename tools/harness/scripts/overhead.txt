@@ -1,0 +1,11 @@
+# forward + S overhead vs a crouch-guarding dummy (dummy 2 = guard): hits through a low guard; then S alone is blocked
+CMD start 0 1 0 1
+CMD chars danwoo cheolsan
+CMD dummy 4
+CMD place 70 96
+3 -
+1 R+S
+24 -
+CMD place 70 96
+1 S
+24 -

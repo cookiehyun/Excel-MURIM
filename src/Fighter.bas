@@ -37,6 +37,7 @@ Public Const MV_THROW As Long = 10
 Public Const MV_SP1 As Long = 11
 Public Const MV_SP2 As Long = 12
 Public Const MV_SUPER As Long = 13
+Public Const MV_OVH As Long = 14          ' forward + S: slow overhead (must be blocked standing)
 
 ' button masks
 Public Const B_LP As Long = 1
@@ -52,6 +53,7 @@ Public Const DUMMY_CPU As Long = 0
 Public Const DUMMY_IDLE As Long = 1
 Public Const DUMMY_GUARD As Long = 2
 Public Const DUMMY_ATTACK As Long = 3
+Public Const DUMMY_CGUARD As Long = 4       ' crouches and blocks low (practice overheads / throws)
 
 Private Const GRAVITY As Double = 0.5        ' px / tick^2
 Private Const BACK_WALK As Double = 0.75     ' back-walk speed factor
@@ -140,7 +142,7 @@ Public Type TFighter
     seqFx As Long            ' effect used by the super sequence hits
     superName As String
     hitCount As Long         ' hits landed by the current multi-hit rush
-    moves(0 To 13) As Long
+    moves(0 To 14) As Long
     spOrder(0 To 2) As Long  ' special slots sorted by command length (longest first)
 End Type
 
@@ -182,6 +184,7 @@ Public Property Get StatusText() As String
         Case DUMMY_CPU: d = "CPU"
         Case DUMMY_IDLE: d = "dummy idle"
         Case DUMMY_GUARD: d = "dummy guard"
+        Case DUMMY_CGUARD: d = "dummy crouch guard"
         Case Else: d = "dummy attack"
     End Select
     StatusText = "P1 " & F(mControl).prefix & " (Tab) | opponent " & d & " (D)" & IIf(mShowBoxes, " | boxes (F1)", "")
@@ -243,7 +246,7 @@ Private Sub Setup(ByVal i As Long, ByVal prefix As String, ByVal x As Double, By
                   ByVal dashSpeed As Double, ByVal jumpVY As Double, ByVal jumpVX As Double, ByVal halfW As Double, _
                   ByVal maxHealth As Long, ByVal hurtH As Long, ByVal hurtHC As Long)
     Dim names As Variant, k As Long, a As Long, b As Long, t As Long
-    names = Array("lp", "hp", "lk", "hk", "clp", "chp", "clk", "chk", "jp", "jk", "throw", "sp1", "sp2", "super")
+    names = Array("lp", "hp", "lk", "hk", "clp", "chp", "clk", "chk", "jp", "jk", "throw", "sp1", "sp2", "super", "ovh")
     With F(i)
         .prefix = prefix
         .startX = x
@@ -275,7 +278,7 @@ Private Sub Setup(ByVal i As Long, ByVal prefix As String, ByVal x As Double, By
         .sSlashA = Data.SpriteId(prefix & ".hp_1")
         .sSlashB = Data.SpriteId(prefix & ".chp_1")
         .sSlashC = Data.SpriteId(prefix & ".lp_1")
-        For k = 0 To 13
+        For k = 0 To 14
             .moves(k) = Data.MoveId(prefix & "." & names(k))
         Next k
         ' specials ordered by command length so e.g. 623 is tested before 26
@@ -363,7 +366,7 @@ Public Sub CopyFighter(dst As TFighter, src As TFighter)
     dst.seqFx = src.seqFx
     dst.superName = src.superName
     dst.hitCount = src.hitCount
-    For k = 0 To 13
+    For k = 0 To 14
         dst.moves(k) = src.moves(k)
     Next k
     For k = 0 To 2
@@ -447,7 +450,10 @@ End Sub
 Public Sub FeedDummy(ByVal i As Long)
     Dim d As Long, press As Long
     d = 5
-    If mDummy = DUMMY_GUARD Then
+    If mDummy = DUMMY_CGUARD Then
+        d = 2
+        If Threatened(i) Then d = 1
+    ElseIf mDummy = DUMMY_GUARD Then
         If Threatened(i) Then d = 4
     ElseIf mDummy = DUMMY_ATTACK Then
         mDummyTick = mDummyTick + 1
@@ -566,7 +572,9 @@ Private Function DecodeAttack(ByVal i As Long) As Long
         ' plain normals: heavier button wins if pressed on the same tick
         If (press And B_LP) <> 0 Then DecodeAttack = MV_LP
         If (press And B_LK) <> 0 Then DecodeAttack = MV_LK
-        If (press And B_HP) <> 0 Then DecodeAttack = MV_HP
+        If (press And B_HP) <> 0 Then
+            If .inDir = 6 Then DecodeAttack = MV_OVH Else DecodeAttack = MV_HP   ' forward + S = overhead
+        End If
         If (press And B_HK) <> 0 Then DecodeAttack = MV_HK
     End With
 End Function
@@ -589,7 +597,7 @@ Public Sub Update()
     Dim i As Long
     If Game.GameMode = MODE_TRAINING Then                ' debug keys: training only
         If KeyInput.IsPressed(BTN_SWAP) Then mControl = 1 - mControl: F(0).bufAtk = -1: F(1).bufAtk = -1
-        If KeyInput.IsPressed(BTN_DBG_DUMMY) Then SetDummy ((mDummy + 1) Mod 4)
+        If KeyInput.IsPressed(BTN_DBG_DUMMY) Then SetDummy ((mDummy + 1) Mod 5)
         If KeyInput.IsPressed(BTN_DBG_BOX) Then mShowBoxes = Not mShowBoxes
         If KeyInput.IsPressed(BTN_DBG_HIT) Then ApplyHit 1 - mControl, 10, 1.5, False
         If KeyInput.IsPressed(BTN_DBG_DOWN) Then ApplyHit 1 - mControl, 0, 1.5, True
@@ -734,6 +742,10 @@ Private Sub UpdateAttack(ByVal i As Long, ByVal d As Boolean)
                 Projectile.Spawn i, .mv
                 If mt = MT_SUPER_FIRE Then Combat.ShowText .superName, 40, i
             End If
+        Case MT_NORMAL
+            If t < Data.MvStartup(.mv) And .onGround And Data.MvP1(.mv) > 0 Then
+                .x = .x + .facing * Data.MvP1(.mv)            ' heavy normals step in while winding up
+            End If
         Case MT_RISE
             If t = Data.MvStartup(.mv) Then
                 .onGround = False
@@ -774,7 +786,7 @@ Private Sub UpdateAttack(ByVal i As Long, ByVal d As Boolean)
 
         ' cancels after the attack connected (hit or guard)
         If .hasHit And .bufAtk >= 0 And .bufAtk <> MV_THROW Then
-            If .bufAtk >= MV_SP1 And CanCancelIntoSpecial(i, .bufAtk) Then
+            If .bufAtk >= MV_SP1 And .bufAtk <= MV_SUPER And CanCancelIntoSpecial(i, .bufAtk) Then
                 atk = TakeAttack(i)
                 StartAttack i, atk, d, True
                 Exit Sub
@@ -857,7 +869,11 @@ Private Function StartAttack(ByVal i As Long, ByVal atk As Long, ByVal crouching
     Dim mv As Long, mt As Long
     With F(i)
         If atk = MV_THROW Then atk = MV_LP
-        If atk >= MV_SP1 Then
+        If atk = MV_OVH And crouching Then atk = MV_HP
+        If atk = MV_OVH Then
+            mv = .moves(MV_OVH)
+            crouching = False
+        ElseIf atk >= MV_SP1 Then
             mv = .moves(atk)
             mt = Data.MvType(mv)
             If (mt = MT_PROJ Or mt = MT_SUPER_PROJ Or mt = MT_PROJ_BOOM Or mt = MT_SUPER_FIRE) And Projectile.Alive(i) Then Exit Function

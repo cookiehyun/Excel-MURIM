@@ -298,6 +298,9 @@ BASE_POSES = {
     "rush_1": P(lean=42, lf=(55, 10), lb=(-55, -40), af=(115, 55), ab=(95, 35)),
     "sp_0": P(lean=-6, af=(-15, 80), ab=(-25, 75), open_hand=True),
     "sp_1": P(lean=20, lf=(40, 0), lb=(-40, -40), af=(90, 90), ab=(84, 86), open_hand=True),
+    # overhead (forward + S): arms raised high, a step in, chopped straight down
+    "ovh_0": P(lean=-10, lf=(26, 4), lb=(-30, -14), af=(172, 160), ab=(168, 156), open_hand=True),
+    "ovh_1": P(lean=32, lf=(46, 2), lb=(-46, -40), af=(110, 40), ab=(100, 45), open_hand=True, trail=("arm", 110)),
     # round intro: fist-and-palm salute; win: calm palm forward
     "intro": P(lean=0, lf=(14, 2), lb=(-14, -2), af=(80, 150), ab=(85, 150), open_hand=True),
     "win": P(lean=-2, lf=(20, 2), lb=(-22, -6), af=(95, 92), ab=(15, 120), open_hand=True),
@@ -497,6 +500,8 @@ HONGRYEON_OVERRIDES = {
     "sp_2": P(lean=4, lf=(30, 5), lb=(-30, -15), af=(60, 130), ab=(80, 140), wa=150, flip=True),   # spin after the throw
     "su_0": P(lean=-10, lf=(20, 0), lb=(-30, -20), af=(170, 178), ab=(150, 170), wa=180),         # fire dance
     "su_1": P(lean=-6, lf=(30, 5), lb=(-20, -15), af=(120, 160), ab=(160, 175), wa=150, flip=True),
+    "ovh_0": P(lean=-12, lf=(24, 2), lb=(-30, -18), af=(172, 155), ab=(40, 140), wa=200),      # fan raised
+    "ovh_1": P(lean=30, lf=(46, 2), lb=(-46, -40), af=(110, 60), ab=(20, 60), wa=55, trail=(210, 55)),   # fan chopped down
     "intro": P(lean=0, lf=(14, 2), lb=(-20, -8), af=(120, 140), ab=(-100, -120), wa=150),       # fans spread wide
     "win": P(lean=4, lf=(10, 0), lb=(-14, -4), af=(60, 160), ab=(30, 60), wa=170),              # fan held before the face
 }
@@ -556,6 +561,8 @@ SEOLHWA_OVERRIDES = {
     "dp_3": P(lean=0, lf=TUCK_F, lb=TUCK_B, af=(40, 90), ab=(30, 80), ground="air", rot=-160),
     "dp_4": P(lean=0, lf=TUCK_F, lb=TUCK_B, af=(40, 90), ab=(30, 80), ground="air", rot=-250),
     "dp_5": P(lean=10, lf=(30, -10), lb=(-20, -30), af=(60, 150), ab=(30, 120), ground="air"),
+    "ovh_0": P(lean=-20, lf=(168, 172), lb=(-4, 0), af=(40, 160), ab=(-30, 30), open_hand=True),    # axe kick: leg up high
+    "ovh_1": P(lean=10, lf=(70, 40), lb=(-6, 0), af=(60, 150), ab=(-20, 40), open_hand=True, trail=("kick", -110)),   # heel down
     "intro": P(lean=-4, lf=(100, -10), lb=(-4, 0), af=(150, 175), ab=(-80, -100), open_hand=True),   # crane stance
     "win": P(lean=-8, lf=(10, 0), lb=(-60, -110), af=(170, 178), ab=(160, 175), open_hand=True),    # arms up, heel kicked back
 }
@@ -592,6 +599,8 @@ MUYEONG_OVERRIDES = {
     "rush_1": P(lean=34, lf=(60, 5), lb=(-55, -45), af=(95, 88), wa=92),
     "rush_2": P(lean=30, lf=(70, 10), lb=(-60, -50), af=(140, 170), wa=175),   # cut rising through
     "rush_3": P(lean=20, lf=(60, 0), lb=(-60, -50), af=(-10, 60), ab=(30, 100), wa=-60),   # follow-through, blade behind
+    "ovh_0": P(lean=-14, lf=(24, 2), lb=(-30, -18), af=(172, 150), ab=(170, 150), wa=210),      # blade over the head
+    "ovh_1": P(lean=34, lf=(50, 2), lb=(-50, -42), af=(110, 70), ab=(100, 75), wa=50, trail=(215, 50)),   # straight down cut
     "intro": P(lean=0, lf=(16, 2), lb=(-16, -4), af=(60, 160), ab=(60, 165), wa=180),          # blade raised upright
     "win": P(lean=-2, lf=(20, 2), lb=(-20, -6), af=(20, 10), ab=(30, 60), wa=-150),            # blade lowered behind
 }
