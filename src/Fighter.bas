@@ -199,7 +199,7 @@ Private Sub SetupCharacter(ByVal i As Long, ByVal prefix As String, ByVal x As D
     Case "hongryeon"
         Setup i, prefix, x, 2#, 3.2, -4.6, 1.8, 5, 980, 29, 20
     Case "cheonma"                                       ' boss: bigger, tougher
-        Setup i, prefix, x, 1.9, 3#, -4.3, 1.6, 7, 1300, 32, 23
+        Setup i, prefix, x, 1.9, 3#, -4.3, 1.6, 7, 1400, 32, 23
     Case Else
         Setup i, "danwoo", x, 2#, 3.2, -4.5, 1.8, 6, 1000, 30, 21
     End Select
